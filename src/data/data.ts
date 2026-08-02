@@ -219,3 +219,5 @@ export const notes: string[] = [
   "Luchthaven is CMB (Bandaranaike), ~10 min van Negombo.",
   "Totaal moet uitkomen op 23 nachten (26 jan t/m 17 feb).",
 ];
+
+export const openQuestions: string[] = ["Yala of Udawalawe?", "Tangalle of Hiriketiya?"];

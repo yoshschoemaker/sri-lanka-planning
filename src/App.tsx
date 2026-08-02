@@ -1,15 +1,18 @@
-import { useCallback, useRef, useState } from "react";
-import { trip, stops, daytrips, transportModes, notes } from "./data/data";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { trip, stops, daytrips, transportModes, notes, openQuestions } from "./data/data";
 import { Header } from "./components/Header";
 import { FilterBar, type ModeFilter, type StatusFilter } from "./components/FilterBar";
 import { ItineraryList } from "./components/ItineraryList";
 import { TripMap } from "./components/TripMap";
+import { OpenQuestions } from "./components/OpenQuestions";
 
 function App() {
   const [selected, setSelected] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
+  const [mapOutOfView, setMapOutOfView] = useState(false);
   const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const mapAnchorRef = useRef<HTMLDivElement>(null);
 
   const registerRef = useCallback((n: number, el: HTMLDivElement | null) => {
     if (el) cardRefs.current.set(n, el);
@@ -21,11 +24,27 @@ function App() {
     cardRefs.current.get(n)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, []);
 
+  useEffect(() => {
+    const el = mapAnchorRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setMapOutOfView(!entry.isIntersecting), {
+      threshold: 0,
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToMap = useCallback(() => {
+    mapAnchorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
   return (
     <div className="min-h-screen bg-cream">
       <Header trip={trip} stops={stops} />
 
       <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
+        <OpenQuestions questions={openQuestions} />
+
         <div className="mb-6">
           <FilterBar
             transportModes={transportModes}
@@ -50,7 +69,7 @@ function App() {
             />
           </div>
 
-          <div className="order-1 lg:sticky lg:top-6 lg:order-2">
+          <div ref={mapAnchorRef} className="order-1 lg:sticky lg:top-6 lg:order-2">
             <TripMap
               stops={stops}
               daytrips={daytrips}
@@ -74,6 +93,19 @@ function App() {
           </ul>
         </footer>
       </main>
+
+      {mapOutOfView && (
+        <button
+          type="button"
+          onClick={scrollToMap}
+          aria-label="Terug naar de kaart"
+          className="fixed bottom-5 right-5 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-terracotta-dark text-cream shadow-lg shadow-ink/20 transition-transform active:scale-95 lg:hidden"
+        >
+          <span aria-hidden className="text-xl leading-none">
+            🗺
+          </span>
+        </button>
+      )}
     </div>
   );
 }
