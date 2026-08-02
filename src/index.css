@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #faf5ea;
+  --color-cream-dark: #f2ead9;
+  --color-terracotta: #c2683f;
+  --color-terracotta-dark: #9c5030;
+  --color-terracotta-light: #e3a67e;
+  --color-sand: #e7d5ac;
+  --color-ink: #2c2319;
+  --color-ink-soft: #5c5044;
+  --color-forest: #2f5d4e;
+  --color-forest-dark: #1e3f34;
+
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream text-ink font-sans antialiased;
+  }
+
+  ::selection {
+    @apply bg-terracotta/30;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-terracotta-dark);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.map-label {
+  paint-order: stroke fill;
+  stroke: var(--color-cream);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
