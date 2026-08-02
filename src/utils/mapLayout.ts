@@ -28,6 +28,10 @@ export interface LabelPlacement {
 const LABEL_OVERRIDES: Record<number, LabelPlacement> = {
   1: { dx: 0, dy: -16, anchor: "middle" },
   10: { dx: 0, dy: 22, anchor: "middle" },
+  // Tangalle / Mirissa / Hikkaduwa sit close together on the south coast;
+  // default right-side labels would overlap, so they alternate above/below.
+  7: { dx: 0, dy: -16, anchor: "middle" },
+  8: { dx: 0, dy: 20, anchor: "middle" },
 };
 
 const DEFAULT_LABEL: LabelPlacement = { dx: 14, dy: 4, anchor: "start" };

@@ -107,7 +107,10 @@ export function TripMap({
               initial={{ strokeDashoffset: len }}
               animate={{ strokeDashoffset: 0, opacity: dimmed ? 0.25 : 1 }}
               transition={{ strokeDashoffset: { duration: 0.9, delay, ease: "easeInOut" }, opacity: { duration: 0.4 } }}
-              onAnimationComplete={() => setSettled((prev) => ({ ...prev, [seg.key]: true }))}
+              onAnimationComplete={() => {
+                console.log("DEBUG settle", seg.key);
+                setSettled((prev) => ({ ...prev, [seg.key]: true }));
+              }}
             />
           );
         })}

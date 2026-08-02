@@ -9,13 +9,13 @@ interface TransportConnectorProps {
 export function TransportConnector({ leg, mode, dimmed }: TransportConnectorProps) {
   return (
     <div
-      className={`relative flex items-center gap-3 py-3 pl-[1.9rem] transition-opacity duration-300 sm:pl-[2.4rem] ${
+      className={`relative flex items-center gap-3 py-3 pl-12 transition-opacity duration-300 sm:pl-16 ${
         dimmed ? "opacity-30" : "opacity-100"
       }`}
     >
       <span
         aria-hidden
-        className="absolute left-0 top-0 h-full w-px sm:left-[1px]"
+        className="absolute left-[1.35rem] top-0 h-full w-px sm:left-[1.6rem]"
         style={{
           backgroundImage:
             mode.style === "dashed"
