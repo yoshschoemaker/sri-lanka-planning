@@ -1,4 +1,4 @@
-import type { Trip, TransportMode, TransportModeKey, Stop, Daytrip } from "../types/trip";
+import type { Trip, TransportMode, TransportModeKey, Stop } from "../types/trip";
 
 export const trip: Trip = {
   title: "Sri Lanka rondreis",
@@ -43,7 +43,7 @@ export const transportModes: Record<TransportModeKey, TransportMode> = {
 
 export const stops: Stop[] = [
   {
-    n: 1,
+    id: "negombo-arrival",
     name: "Negombo",
     dates: "di 26 jan",
     nights: 1,
@@ -52,15 +52,17 @@ export const stops: Stop[] = [
     lat: 7.21,
     lon: 79.84,
     transportTo: { mode: "car", label: "Taxi vanaf luchthaven (CMB)", duration: "15-25 min" },
-    note: "Aankomst 06:10 · Jetwing Sea (geboekt)",
+    note: "Aankomst 06:10",
+    accommodation: { name: "Jetwing Sea", note: "Geboekt" },
+    photos: ["/16028797-st-marys-church-negombo.webp"],
     activities: [
-      { name: "Nederlands fort", dist: "in stad" },
-      { name: "Muthurajawela moeras", dist: "± 15 min" },
-      { name: "Vismarkt & lagune", dist: "in stad" },
+      { id: "nederlands-fort", name: "Nederlands fort", dist: "in stad", photos: [], priority: "nice" },
+      { id: "muthurajawela-moeras", name: "Muthurajawela moeras", dist: "± 15 min", photos: [], priority: "nice" },
+      { id: "vismarkt-lagune", name: "Vismarkt & lagune", dist: "in stad", photos: [], priority: "nice" },
     ],
   },
   {
-    n: 2,
+    id: "anuradhapura",
     name: "Anuradhapura",
     dates: "wo 27 – do 28 jan",
     nights: 2,
@@ -69,15 +71,31 @@ export const stops: Stop[] = [
     lon: 80.41,
     transportTo: { mode: "car", label: "Auto / taxi / bus", duration: "± 3,5 u" },
     note: "Culturele driehoek · Wilpattu als dagtrip",
+    photos: ["/anuradhapura-sunset.jpg"],
     activities: [
-      { name: "Witte tempel / heilige stad", dist: "± 4 km" },
-      { name: "Sri Maha Bodhi (heilige boom)", dist: "± 4 km" },
-      { name: "Mihintale", dist: "± 13 km" },
-      { name: "Dagtrip: jeep-safari Wilpattu NP", dist: "± 1 u", daytrip: true },
+      {
+        id: "witte-tempel-heilige-stad",
+        name: "Witte tempel / heilige stad",
+        dist: "± 4 km",
+        photos: ["/anuradhapura-sunset.jpg"],
+        priority: "must",
+      },
+      { id: "sri-maha-bodhi", name: "Sri Maha Bodhi (heilige boom)", dist: "± 4 km", photos: [], priority: "must" },
+      { id: "mihintale", name: "Mihintale", dist: "± 13 km", photos: [], priority: "nice" },
+      {
+        id: "wilpattu-jeep-safari",
+        name: "Dagtrip: jeep-safari Wilpattu NP",
+        dist: "± 1 u",
+        daytrip: true,
+        lat: 8.45,
+        lon: 80.02,
+        photos: [],
+        priority: "nice",
+      },
     ],
   },
   {
-    n: 3,
+    id: "sigiriya",
     name: "Sigiriya",
     dates: "vr 29 – zo 31 jan",
     nights: 3,
@@ -86,14 +104,30 @@ export const stops: Stop[] = [
     lon: 80.75,
     transportTo: { mode: "car", label: "Auto / taxi / bus", duration: "± 1,5 u" },
     note: "",
+    photos: ["/Beauty_of_Sigiriya_by_Binuka.jpg"],
     activities: [
-      { name: "Leeuwenrots (Sigiriya)", dist: "in de buurt" },
-      { name: "Pidurangala Rock", dist: "± 2 km" },
-      { name: "Dagtrip: Dambulla Cave Temple", dist: "± 20 km", daytrip: true },
+      {
+        id: "leeuwenrots",
+        name: "Leeuwenrots (Sigiriya)",
+        dist: "in de buurt",
+        photos: ["/Beauty_of_Sigiriya_by_Binuka.jpg"],
+        priority: "must",
+      },
+      { id: "pidurangala-rock", name: "Pidurangala Rock", dist: "± 2 km", photos: [], priority: "nice" },
+      {
+        id: "dambulla-cave-temple",
+        name: "Dagtrip: Dambulla Cave Temple",
+        dist: "± 20 km",
+        daytrip: true,
+        lat: 7.86,
+        lon: 80.65,
+        photos: [],
+        priority: "must",
+      },
     ],
   },
   {
-    n: 4,
+    id: "kandy",
     name: "Kandy",
     dates: "ma 1 – di 2 feb",
     nights: 2,
@@ -102,14 +136,15 @@ export const stops: Stop[] = [
     lon: 80.63,
     transportTo: { mode: "car", label: "Auto / taxi / bus", duration: "± 2,5 u" },
     note: "",
+    photos: [],
     activities: [
-      { name: "Tempel van de Tand", dist: "in centrum" },
-      { name: "Botanische tuin Peradeniya", dist: "± 6 km" },
-      { name: "Kandy Lake", dist: "in centrum" },
+      { id: "tempel-van-de-tand", name: "Tempel van de Tand", dist: "in centrum", photos: [], priority: "must" },
+      { id: "botanische-tuin-peradeniya", name: "Botanische tuin Peradeniya", dist: "± 6 km", photos: [], priority: "nice" },
+      { id: "kandy-lake", name: "Kandy Lake", dist: "in centrum", photos: [], priority: "maybe" },
     ],
   },
   {
-    n: 5,
+    id: "ella",
     name: "Ella",
     dates: "wo 3 – vr 5 feb",
     nights: 3,
@@ -118,15 +153,22 @@ export const stops: Stop[] = [
     lon: 81.05,
     transportTo: { mode: "train", label: "Scenische trein Kandy → Ella", duration: "± 6-7 u" },
     note: "Reserveer de trein vooraf",
+    photos: ["/sri-lanka_ella_nine-arch-bridge_brug_trein_shutterstock_b-jpg.webp"],
     activities: [
-      { name: "Little Adam's Peak", dist: "± 2 km" },
-      { name: "Nine Arches Bridge", dist: "± 3 km" },
-      { name: "Ravana Falls", dist: "± 6 km" },
-      { name: "Theeplantages", dist: "rondom" },
+      { id: "little-adams-peak", name: "Little Adam's Peak", dist: "± 2 km", photos: [], priority: "must" },
+      {
+        id: "nine-arches-bridge",
+        name: "Nine Arches Bridge",
+        dist: "± 3 km",
+        photos: ["/sri-lanka_ella_nine-arch-bridge_brug_trein_shutterstock_b-jpg.webp"],
+        priority: "must",
+      },
+      { id: "ravana-falls", name: "Ravana Falls", dist: "± 6 km", photos: [], priority: "nice" },
+      { id: "theeplantages", name: "Theeplantages", dist: "rondom", photos: [], priority: "nice" },
     ],
   },
   {
-    n: 6,
+    id: "udawalawe",
     name: "Udawalawe",
     dates: "za 6 – zo 7 feb",
     nights: 2,
@@ -135,13 +177,14 @@ export const stops: Stop[] = [
     lon: 80.89,
     transportTo: { mode: "tuktuk", label: "Tuk-tuk", duration: "± 2,5 u" },
     note: "Yala als optie",
+    photos: [],
     activities: [
-      { name: "Olifanten-safari Udawalawe NP", dist: "bij het park" },
-      { name: "Elephant Transit Home", dist: "± 5 km" },
+      { id: "olifanten-safari-udawalawe-np", name: "Olifanten-safari Udawalawe NP", dist: "bij het park", photos: [], priority: "must" },
+      { id: "elephant-transit-home", name: "Elephant Transit Home", dist: "± 5 km", photos: [], priority: "nice" },
     ],
   },
   {
-    n: 7,
+    id: "tangalle",
     name: "Tangalle",
     dates: "ma 8 – wo 10 feb",
     nights: 3,
@@ -150,15 +193,16 @@ export const stops: Stop[] = [
     lon: 80.79,
     transportTo: { mode: "tuktuk", label: "Tuk-tuk", duration: "± 2 u" },
     note: "Rustige zuidkust",
+    photos: [],
     activities: [
-      { name: "Rustige stranden", dist: "in de buurt" },
-      { name: "Hiriketiya Bay (surf/zwemmen)", dist: "± 15 min" },
-      { name: "Rekawa schildpaddenstrand", dist: "± 15 min" },
-      { name: "Mulkirigala rotstempel", dist: "± 20 min" },
+      { id: "rustige-stranden", name: "Rustige stranden", dist: "in de buurt", photos: [], priority: "nice" },
+      { id: "hiriketiya-bay", name: "Hiriketiya Bay (surf/zwemmen)", dist: "± 15 min", photos: [], priority: "must" },
+      { id: "rekawa-schildpaddenstrand", name: "Rekawa schildpaddenstrand", dist: "± 15 min", photos: [], priority: "must" },
+      { id: "mulkirigala-rotstempel", name: "Mulkirigala rotstempel", dist: "± 20 min", photos: [], priority: "maybe" },
     ],
   },
   {
-    n: 8,
+    id: "mirissa",
     name: "Mirissa",
     dates: "do 11 – za 13 feb",
     nights: 3,
@@ -167,14 +211,15 @@ export const stops: Stop[] = [
     lon: 80.46,
     transportTo: { mode: "tuktuk", label: "Tuk-tuk", duration: "± 1 u" },
     note: "Zuidkust",
+    photos: [],
     activities: [
-      { name: "Walvistocht (blauwe vinvis)", dist: "vanaf haven" },
-      { name: "Coconut Tree Hill", dist: "± 1 km" },
-      { name: "Strand / uitrusten", dist: "in de buurt" },
+      { id: "walvistocht", name: "Walvistocht (blauwe vinvis)", dist: "vanaf haven", photos: [], priority: "must" },
+      { id: "coconut-tree-hill", name: "Coconut Tree Hill", dist: "± 1 km", photos: [], priority: "must" },
+      { id: "strand-uitrusten", name: "Strand / uitrusten", dist: "in de buurt", photos: [], priority: "nice" },
     ],
   },
   {
-    n: 9,
+    id: "hikkaduwa",
     name: "Hikkaduwa",
     dates: "zo 14 – di 16 feb",
     nights: 3,
@@ -183,14 +228,24 @@ export const stops: Stop[] = [
     lon: 80.1,
     transportTo: { mode: "tuktuk", label: "Tuk-tuk", duration: "± 1,5 u" },
     note: "Zuidwestkust · Galle als dagtrip",
+    photos: [],
     activities: [
-      { name: "Coral Sanctuary (snorkelen)", dist: "aan het strand" },
-      { name: "Zeeschildpadden spotten", dist: "aan het strand" },
-      { name: "Dagtrip: Galle Fort (UNESCO)", dist: "± 30 min", daytrip: true },
+      { id: "coral-sanctuary", name: "Coral Sanctuary (snorkelen)", dist: "aan het strand", photos: [], priority: "must" },
+      { id: "zeeschildpadden-spotten", name: "Zeeschildpadden spotten", dist: "aan het strand", photos: [], priority: "nice" },
+      {
+        id: "galle-fort",
+        name: "Dagtrip: Galle Fort (UNESCO)",
+        dist: "± 30 min",
+        daytrip: true,
+        lat: 6.03,
+        lon: 80.22,
+        photos: [],
+        priority: "must",
+      },
     ],
   },
   {
-    n: 10,
+    id: "negombo-departure",
     name: "Negombo",
     dates: "wo 17 feb",
     nights: 1,
@@ -204,15 +259,26 @@ export const stops: Stop[] = [
       warn: "tuk-tuk mag niet op de snelweg",
     },
     note: "Overnachten bij vliegveld (± 10 min van CMB) i.v.m. vlucht 7.40",
-    activities: [{ name: "Vlucht do 18 feb", dist: "07:40" }],
+    photos: [],
+    activities: [{ id: "vlucht-terug", name: "Vlucht do 18 feb", dist: "07:40", photos: [] }],
   },
 ];
 
-export const daytrips: Daytrip[] = [
-  { name: "Wilpattu", from: "Anuradhapura", lat: 8.45, lon: 80.02, note: "Dagtrip (± 1 u)" },
-  { name: "Dambulla", from: "Sigiriya", lat: 7.86, lon: 80.65, note: "Dagtrip (± 20 km)" },
-  { name: "Galle", from: "Hikkaduwa", lat: 6.03, lon: 80.22, note: "Dagtrip (± 30 min)" },
-];
+if (import.meta.env.DEV) {
+  const seenStopIds = new Set<string>();
+  const seenActivityIds = new Set<string>();
+  for (const stop of stops) {
+    if (seenStopIds.has(stop.id)) console.warn(`[data] Duplicate stop id: "${stop.id}"`);
+    seenStopIds.add(stop.id);
+    for (const activity of stop.activities) {
+      if (seenActivityIds.has(activity.id)) console.warn(`[data] Duplicate activity id: "${activity.id}"`);
+      seenActivityIds.add(activity.id);
+      if (activity.daytrip && (activity.lat == null || activity.lon == null)) {
+        console.warn(`[data] Daytrip activity "${activity.id}" is missing lat/lon`);
+      }
+    }
+  }
+}
 
 export const notes: string[] = [
   "Nachtenverdeling is een voorstel; alleen de vluchten en Negombo (Jetwing Sea) zijn geboekt.",

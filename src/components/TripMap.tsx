@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import type { Stop, Daytrip, TransportMode, TransportModeKey } from "../types/trip";
+import type { Stop, TransportMode, TransportModeKey } from "../types/trip";
 import {
   MAP_VIEWBOX_WIDTH,
   MAP_VIEWBOX_HEIGHT,
@@ -9,14 +9,16 @@ import {
 } from "../data/srilankaShape";
 import { project } from "../utils/projection";
 import { getMarkerPosition, getLabelPlacement } from "../utils/mapLayout";
+import { getDaytripEntries } from "../utils/daytrips";
+import { useReducedMotion } from "../utils/useReducedMotion";
+import { DIM_DURATION, hoverLift, selectPulse, tapShrink } from "../motion/variants";
 import type { ModeFilter, StatusFilter } from "./FilterBar";
 
 interface TripMapProps {
   stops: Stop[];
-  daytrips: Daytrip[];
   transportModes: Record<TransportModeKey, TransportMode>;
-  selected: number | null;
-  onSelect: (n: number) => void;
+  selected: string | null;
+  onSelect: (id: string) => void;
   statusFilter: StatusFilter;
   modeFilter: ModeFilter;
 }
@@ -25,32 +27,29 @@ const MARKER_R = 12;
 const PAD = 6;
 const DRAW_DURATION = 0.9;
 
-export function TripMap({
-  stops,
-  daytrips,
-  transportModes,
-  selected,
-  onSelect,
-  statusFilter,
-  modeFilter,
-}: TripMapProps) {
-  const [hoveredStop, setHoveredStop] = useState<number | null>(null);
+export function TripMap({ stops, transportModes, selected, onSelect, statusFilter, modeFilter }: TripMapProps) {
+  const [hoveredStop, setHoveredStop] = useState<string | null>(null);
   const [hoveredDaytrip, setHoveredDaytrip] = useState<string | null>(null);
   const [pinnedDaytrip, setPinnedDaytrip] = useState<string | null>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const positions = stops.map((stop) => ({ stop, pos: getMarkerPosition(stop) }));
   const segments = stops.slice(1).map((stop, i) => ({
-    key: stop.n,
+    key: stop.id,
     from: positions[i].pos,
     to: positions[i + 1].pos,
     mode: stop.transportTo.mode,
   }));
 
-  const tooltipStopN = hoveredStop ?? selected;
-  const tooltipStop = tooltipStopN != null ? stops.find((s) => s.n === tooltipStopN) ?? null : null;
+  const daytripEntries = getDaytripEntries(stops);
 
-  const tooltipDaytripName = hoveredDaytrip ?? pinnedDaytrip;
-  const tooltipDaytrip = tooltipDaytripName ? daytrips.find((d) => d.name === tooltipDaytripName) ?? null : null;
+  const tooltipStopId = hoveredStop ?? selected;
+  const tooltipStop = tooltipStopId != null ? stops.find((s) => s.id === tooltipStopId) ?? null : null;
+
+  const tooltipDaytripId = hoveredDaytrip ?? pinnedDaytrip;
+  const tooltipDaytrip = tooltipDaytripId
+    ? daytripEntries.find((entry) => entry.activity.id === tooltipDaytripId) ?? null
+    : null;
 
   return (
     <div className="rounded-3xl border border-ink/10 bg-white/50 p-3 sm:p-5">
@@ -69,15 +68,14 @@ export function TripMap({
           strokeWidth={1.5}
         />
 
-        {daytrips.map((daytrip) => {
-          const dp = project(daytrip.lat, daytrip.lon);
-          const parent = positions.find((p) => p.stop.name === daytrip.from);
-          if (!parent) return null;
+        {daytripEntries.map(({ stop, activity }) => {
+          const dp = project(activity.lat, activity.lon);
+          const parentPos = getMarkerPosition(stop);
           return (
             <line
-              key={`dl-${daytrip.name}`}
-              x1={parent.pos.x}
-              y1={parent.pos.y}
+              key={`dl-${activity.id}`}
+              x1={parentPos.x}
+              y1={parentPos.y}
               x2={dp.x}
               y2={dp.y}
               stroke="#8a8072"
@@ -106,9 +104,11 @@ export function TripMap({
                   x={seg.from.x}
                   y={seg.from.y - perp}
                   height={perp * 2}
-                  initial={{ width: 0 }}
+                  initial={prefersReducedMotion ? false : { width: 0 }}
                   animate={{ width: len + 4 }}
-                  transition={{ duration: DRAW_DURATION, delay, ease: "easeInOut" }}
+                  transition={
+                    prefersReducedMotion ? { duration: 0 } : { duration: DRAW_DURATION, delay, ease: "easeInOut" }
+                  }
                   transform={`rotate(${angleDeg} ${seg.from.x} ${seg.from.y})`}
                 />
               </clipPath>
@@ -120,31 +120,31 @@ export function TripMap({
                 strokeLinecap="round"
                 strokeDasharray={mode.style === "dashed" ? "8 6" : undefined}
                 clipPath={`url(#${clipId})`}
-                style={{ opacity: dimmed ? 0.25 : 1, transition: "opacity 0.3s" }}
+                style={{ opacity: dimmed ? 0.25 : 1, transition: `opacity ${DIM_DURATION}s` }}
               />
             </g>
           );
         })}
 
-        {daytrips.map((daytrip) => {
-          const dp = project(daytrip.lat, daytrip.lon);
-          const isActive = tooltipDaytripName === daytrip.name;
+        {daytripEntries.map(({ stop, activity }) => {
+          const dp = project(activity.lat, activity.lon);
+          const isActive = tooltipDaytripId === activity.id;
           return (
             <g
-              key={daytrip.name}
+              key={activity.id}
               tabIndex={0}
               role="button"
-              aria-label={`Dagtrip ${daytrip.name} vanaf ${daytrip.from}`}
+              aria-label={`Dagtrip ${activity.name} vanaf ${stop.name}`}
               aria-pressed={isActive}
-              onMouseEnter={() => setHoveredDaytrip(daytrip.name)}
+              onMouseEnter={() => setHoveredDaytrip(activity.id)}
               onMouseLeave={() => setHoveredDaytrip(null)}
-              onFocus={() => setHoveredDaytrip(daytrip.name)}
+              onFocus={() => setHoveredDaytrip(activity.id)}
               onBlur={() => setHoveredDaytrip(null)}
-              onClick={() => setPinnedDaytrip((prev) => (prev === daytrip.name ? null : daytrip.name))}
+              onClick={() => setPinnedDaytrip((prev) => (prev === activity.id ? null : activity.id))}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  setPinnedDaytrip((prev) => (prev === daytrip.name ? null : daytrip.name));
+                  setPinnedDaytrip((prev) => (prev === activity.id ? null : activity.id));
                 }
               }}
               className="cursor-pointer outline-none"
@@ -162,7 +162,7 @@ export function TripMap({
 
         {positions.map(({ stop, pos }, i) => {
           const mode = transportModes[stop.transportTo.mode];
-          const isActive = selected === stop.n;
+          const isActive = selected === stop.id;
           const statusDimmed = statusFilter === "toBook" && stop.booked;
           const modeDimmed = modeFilter !== "all" && modeFilter !== stop.transportTo.mode;
           const dimmed = statusDimmed || modeDimmed;
@@ -170,26 +170,29 @@ export function TripMap({
 
           return (
             <motion.g
-              key={stop.n}
+              key={stop.id}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: dimmed ? 0.35 : 1 }}
-              transition={{ scale: { duration: 0.4, delay: 0.25 + i * 0.1, ease: "backOut" }, opacity: { duration: 0.3 } }}
-              whileHover={{ scale: 1.12 }}
-              whileTap={{ scale: 0.95 }}
+              transition={{
+                scale: { duration: 0.4, delay: 0.25 + i * 0.1, ease: "backOut" },
+                opacity: { duration: DIM_DURATION },
+              }}
+              whileHover={hoverLift}
+              whileTap={tapShrink}
               style={{ transformOrigin: `${pos.x}px ${pos.y}px`, cursor: "pointer" }}
               tabIndex={0}
               role="button"
               aria-label={`${stop.name}, ${stop.nights} nachten, ${stop.booked ? "geboekt" : "nog te boeken"}`}
               aria-pressed={isActive}
-              onClick={() => onSelect(stop.n)}
-              onMouseEnter={() => setHoveredStop(stop.n)}
+              onClick={() => onSelect(stop.id)}
+              onMouseEnter={() => setHoveredStop(stop.id)}
               onMouseLeave={() => setHoveredStop(null)}
-              onFocus={() => setHoveredStop(stop.n)}
+              onFocus={() => setHoveredStop(stop.id)}
               onBlur={() => setHoveredStop(null)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  onSelect(stop.n);
+                  onSelect(stop.id);
                 }
               }}
               className="outline-none"
@@ -202,8 +205,9 @@ export function TripMap({
                   fill="none"
                   stroke="var(--color-terracotta-dark)"
                   strokeWidth={2}
-                  animate={{ scale: [1, 1.18, 1], opacity: [0.6, 0.15, 0.6] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  variants={selectPulse}
+                  initial="idle"
+                  animate={prefersReducedMotion ? "idle" : "pulse"}
                   style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}
                 />
               )}
@@ -223,7 +227,7 @@ export function TripMap({
                 className="pointer-events-none fill-cream font-sans font-semibold"
                 style={{ fontSize: 11 }}
               >
-                {stop.n}
+                {i + 1}
               </text>
               {stop.booked && (
                 <circle
@@ -253,8 +257,12 @@ export function TripMap({
 
         {tooltipDaytrip ? (
           <MapTooltip
-            pos={project(tooltipDaytrip.lat, tooltipDaytrip.lon)}
-            lines={[tooltipDaytrip.name, `Dagtrip vanuit ${tooltipDaytrip.from}`, tooltipDaytrip.note]}
+            pos={project(tooltipDaytrip.activity.lat, tooltipDaytrip.activity.lon)}
+            lines={[
+              tooltipDaytrip.activity.name,
+              `Dagtrip vanuit ${tooltipDaytrip.stop.name}`,
+              tooltipDaytrip.activity.dist,
+            ]}
           />
         ) : (
           tooltipStop && (
