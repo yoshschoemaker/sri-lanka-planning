@@ -99,8 +99,13 @@ const LagoonMaterial = shaderMaterial(
     // only broad soft glow. Real "sun on water" glitter is small glints
     // clustered inside a broader glow, which is what combining these two
     // normals (below) approximates.
+    // Kept well below screen-pixel frequency at typical camera distance: a
+    // finer pattern here aliases per-pixel on mobile's higher pixel density
+    // (no specular AA on a procedural shader), which reads as flicker rather
+    // than sparkle. Lower frequency = the pattern shifts smoothly frame to
+    // frame instead of popping in and out between adjacent pixels.
     float microHeight(vec2 p, float t) {
-      return sin(p.x * 14.0 + p.y * 9.0 - t * 2.2) + sin(p.x * -11.0 + p.y * 13.0 - t * 1.7);
+      return sin(p.x * 7.0 + p.y * 4.5 - t * 2.2) + sin(p.x * -5.5 + p.y * 6.0 - t * 1.7);
     }
 
     vec3 microNormal(vec2 p, float t) {
@@ -136,8 +141,12 @@ const LagoonMaterial = shaderMaterial(
 
       float glow = pow(max(dot(n, lightDir), 0.0), 10.0);
       vec3 microN = microNormal(vPos, uTime);
-      float glint = pow(max(dot(microN, lightDir), 0.0), 140.0);
-      float sparkle = (glow * 0.35 + glint * glow * 2.2);
+      // Exponent kept moderate rather than the razor-thin highlight a very
+      // high power gives: a wider specular lobe covers more pixels at once,
+      // so it survives the transition between frames/pixels instead of
+      // strobing on and off, which is what read as "flickering" on mobile.
+      float glint = pow(max(dot(microN, lightDir), 0.0), 48.0);
+      float sparkle = (glow * 0.35 + glint * glow * 1.4);
       sparkle *= 1.0 - smoothstep(5.0, 9.0, dist);
       // Moonlight glints are far dimmer than sunlight ones.
       sparkle *= mix(1.0, 0.3, uNight);
