@@ -13,7 +13,7 @@ export function HeroBanner() {
   return (
     <div ref={ref} className="relative h-40 w-full overflow-hidden sm:h-52 lg:h-64">
       <motion.img
-        src="/sri-lanka_ella_nine-arch-bridge_brug_trein_shutterstock_b-jpg.webp"
+        src="/ella.webp"
         alt=""
         className="absolute top-[-10%] h-[120%] w-full object-cover"
         style={{ objectPosition: "50% 55%", y: prefersReducedMotion ? undefined : y }}

@@ -54,7 +54,7 @@ export const stops: Stop[] = [
     transportTo: { mode: "car", label: "Taxi vanaf luchthaven (CMB)", duration: "15-25 min" },
     note: "Aankomst 06:10",
     accommodation: { name: "Jetwing Sea", note: "Geboekt" },
-    photos: ["/16028797-st-marys-church-negombo.webp"],
+    photos: ["/negombo-arrival.webp"],
     activities: [
       { id: "nederlands-fort", name: "Nederlands fort", dist: "in stad", photos: [], priority: "nice" },
       { id: "muthurajawela-moeras", name: "Muthurajawela moeras", dist: "± 15 min", photos: [], priority: "nice" },
@@ -71,13 +71,13 @@ export const stops: Stop[] = [
     lon: 80.41,
     transportTo: { mode: "car", label: "Auto / taxi / bus", duration: "± 3,5 u" },
     note: "Culturele driehoek · Wilpattu als dagtrip",
-    photos: ["/anuradhapura-sunset.jpg"],
+    photos: ["/anuradhapura.jpg"],
     activities: [
       {
         id: "witte-tempel-heilige-stad",
         name: "Witte tempel / heilige stad",
         dist: "± 4 km",
-        photos: ["/anuradhapura-sunset.jpg"],
+        photos: ["/anuradhapura.jpg"],
         priority: "must",
       },
       { id: "sri-maha-bodhi", name: "Sri Maha Bodhi (heilige boom)", dist: "± 4 km", photos: [], priority: "must" },
@@ -104,13 +104,13 @@ export const stops: Stop[] = [
     lon: 80.75,
     transportTo: { mode: "car", label: "Auto / taxi / bus", duration: "± 1,5 u" },
     note: "",
-    photos: ["/Beauty_of_Sigiriya_by_Binuka.jpg"],
+    photos: ["/sigiriya.jpg"],
     activities: [
       {
         id: "leeuwenrots",
         name: "Leeuwenrots (Sigiriya)",
         dist: "in de buurt",
-        photos: ["/Beauty_of_Sigiriya_by_Binuka.jpg"],
+        photos: ["/sigiriya.jpg"],
         priority: "must",
       },
       { id: "pidurangala-rock", name: "Pidurangala Rock", dist: "± 2 km", photos: [], priority: "nice" },
@@ -136,7 +136,7 @@ export const stops: Stop[] = [
     lon: 80.63,
     transportTo: { mode: "car", label: "Auto / taxi / bus", duration: "± 2,5 u" },
     note: "",
-    photos: [],
+    photos: ["/kandy.jpeg"],
     activities: [
       { id: "tempel-van-de-tand", name: "Tempel van de Tand", dist: "in centrum", photos: [], priority: "must" },
       { id: "botanische-tuin-peradeniya", name: "Botanische tuin Peradeniya", dist: "± 6 km", photos: [], priority: "nice" },
@@ -153,14 +153,14 @@ export const stops: Stop[] = [
     lon: 81.05,
     transportTo: { mode: "train", label: "Scenische trein Kandy → Ella", duration: "± 6-7 u" },
     note: "Reserveer de trein vooraf",
-    photos: ["/sri-lanka_ella_nine-arch-bridge_brug_trein_shutterstock_b-jpg.webp"],
+    photos: ["/ella.webp"],
     activities: [
       { id: "little-adams-peak", name: "Little Adam's Peak", dist: "± 2 km", photos: [], priority: "must" },
       {
         id: "nine-arches-bridge",
         name: "Nine Arches Bridge",
         dist: "± 3 km",
-        photos: ["/sri-lanka_ella_nine-arch-bridge_brug_trein_shutterstock_b-jpg.webp"],
+        photos: ["/ella.webp"],
         priority: "must",
       },
       { id: "ravana-falls", name: "Ravana Falls", dist: "± 6 km", photos: [], priority: "nice" },
@@ -177,7 +177,7 @@ export const stops: Stop[] = [
     lon: 80.89,
     transportTo: { mode: "tuktuk", label: "Tuk-tuk", duration: "± 2,5 u" },
     note: "Yala als optie",
-    photos: [],
+    photos: ["/udawalawe.jpg"],
     activities: [
       { id: "olifanten-safari-udawalawe-np", name: "Olifanten-safari Udawalawe NP", dist: "bij het park", photos: [], priority: "must" },
       { id: "elephant-transit-home", name: "Elephant Transit Home", dist: "± 5 km", photos: [], priority: "nice" },
@@ -193,7 +193,7 @@ export const stops: Stop[] = [
     lon: 80.79,
     transportTo: { mode: "tuktuk", label: "Tuk-tuk", duration: "± 2 u" },
     note: "Rustige zuidkust",
-    photos: [],
+    photos: ["/tangalle.jpeg"],
     activities: [
       { id: "rustige-stranden", name: "Rustige stranden", dist: "in de buurt", photos: [], priority: "nice" },
       { id: "hiriketiya-bay", name: "Hiriketiya Bay (surf/zwemmen)", dist: "± 15 min", photos: [], priority: "must" },
@@ -211,7 +211,7 @@ export const stops: Stop[] = [
     lon: 80.46,
     transportTo: { mode: "tuktuk", label: "Tuk-tuk", duration: "± 1 u" },
     note: "Zuidkust",
-    photos: [],
+    photos: ["/mirissa.jpg"],
     activities: [
       { id: "walvistocht", name: "Walvistocht (blauwe vinvis)", dist: "vanaf haven", photos: [], priority: "must" },
       { id: "coconut-tree-hill", name: "Coconut Tree Hill", dist: "± 1 km", photos: [], priority: "must" },
@@ -228,7 +228,7 @@ export const stops: Stop[] = [
     lon: 80.1,
     transportTo: { mode: "tuktuk", label: "Tuk-tuk", duration: "± 1,5 u" },
     note: "Zuidwestkust · Galle als dagtrip",
-    photos: [],
+    photos: ["/hikkaduwa.webp"],
     activities: [
       { id: "coral-sanctuary", name: "Coral Sanctuary (snorkelen)", dist: "aan het strand", photos: [], priority: "must" },
       { id: "zeeschildpadden-spotten", name: "Zeeschildpadden spotten", dist: "aan het strand", photos: [], priority: "nice" },
@@ -259,7 +259,7 @@ export const stops: Stop[] = [
       warn: "tuk-tuk mag niet op de snelweg",
     },
     note: "Overnachten bij vliegveld (± 10 min van CMB) i.v.m. vlucht 7.40",
-    photos: [],
+    photos: ["/negombo-departure.jpeg"],
     activities: [{ id: "vlucht-terug", name: "Vlucht do 18 feb", dist: "07:40", photos: [] }],
   },
 ];
