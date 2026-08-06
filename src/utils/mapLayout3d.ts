@@ -28,7 +28,12 @@ export type LabelDirection = "left" | "right";
  * 3D label is ever visible at a time (hover/focus/selection), so the
  * Tangalle/Mirissa/Hikkaduwa-style permanent collisions don't exist here.
  */
-const LABEL_DIRECTION_OVERRIDES: Record<string, LabelDirection> = {};
+const LABEL_DIRECTION_OVERRIDES: Record<string, LabelDirection> = {
+  // Westmost stop, with the rest of the route fanning out east of it — the
+  // default rightward expansion drifts straight into that cluster (visibly
+  // overlapping stops 3-4) instead of the open water to its west.
+  "negombo-arrival": "left",
+};
 
 export function getLabelDirection(stopId: string): LabelDirection {
   return LABEL_DIRECTION_OVERRIDES[stopId] ?? "right";

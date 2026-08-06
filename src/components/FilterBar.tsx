@@ -1,8 +1,15 @@
-import type { TransportModeKey, TransportMode } from "../types/trip";
+import type { ActivityPriority, TransportModeKey, TransportMode } from "../types/trip";
 import { stops } from "../data/data";
 
 export type StatusFilter = "all" | "toBook";
 export type ModeFilter = TransportModeKey | "all";
+export type PriorityFilter = ActivityPriority | "all";
+
+const PRIORITY_OPTIONS: { key: PriorityFilter; label: string }[] = [
+  { key: "must", label: "Must see/do" },
+  { key: "nice", label: "Leuk idee" },
+  { key: "maybe", label: "Misschien" },
+];
 
 interface FilterBarProps {
   transportModes: Record<TransportModeKey, TransportMode>;
@@ -10,6 +17,8 @@ interface FilterBarProps {
   onStatusFilterChange: (value: StatusFilter) => void;
   modeFilter: ModeFilter;
   onModeFilterChange: (value: ModeFilter) => void;
+  priorityFilter: PriorityFilter;
+  onPriorityFilterChange: (value: PriorityFilter) => void;
 }
 
 export function FilterBar({
@@ -18,6 +27,8 @@ export function FilterBar({
   onStatusFilterChange,
   modeFilter,
   onModeFilterChange,
+  priorityFilter,
+  onPriorityFilterChange,
 }: FilterBarProps) {
   const modeEntries = Object.entries(transportModes) as [TransportModeKey, TransportMode][];
 
@@ -72,6 +83,32 @@ export function FilterBar({
             >
               <span aria-hidden>{mode.icon}</span>
               {mode.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex min-w-0 gap-1 overflow-x-auto rounded-full border border-ink/15 bg-white/60 p-1">
+          <button
+            type="button"
+            aria-pressed={priorityFilter === "all"}
+            onClick={() => onPriorityFilterChange("all")}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              priorityFilter === "all" ? "bg-ink text-cream" : "text-ink-soft hover:bg-ink/5"
+            }`}
+          >
+            Alle activiteiten
+          </button>
+          {PRIORITY_OPTIONS.map((option) => (
+            <button
+              key={option.key}
+              type="button"
+              aria-pressed={priorityFilter === option.key}
+              onClick={() => onPriorityFilterChange(priorityFilter === option.key ? "all" : option.key)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                priorityFilter === option.key ? "bg-terracotta-dark text-white" : "text-ink-soft hover:bg-ink/5"
+              }`}
+            >
+              {option.label}
             </button>
           ))}
         </div>

@@ -9,6 +9,17 @@ const PIN_HEIGHT = 0.1;
 const PIN_RADIUS = 0.014;
 
 /**
+ * Sideways nudge (px) for the rare daytrip marker sitting inside a stop
+ * cluster, where the label's default centered-below position spans wide
+ * enough to overlap neighboring stop pins on one side.
+ */
+const LABEL_OFFSET_OVERRIDES: Record<string, number> = {
+  // Sits between Anuradhapura and Sigiriya's markers; centered-below reached
+  // both. Shifting west (negative) moves it into the open water there instead.
+  "wilpattu-jeep-safari": -40,
+};
+
+/**
  * Smaller sibling of StopMarker3D for daytrip activities: a plain dot (no
  * number, matching the 2D map's undotted circle) that expands into a short
  * two-line label on hover/focus, or pinned open via click/tap so it also
@@ -23,6 +34,7 @@ export function DaytripMarker3D({ stop, activity }: DaytripEntry) {
   const [pinned, setPinned] = useState(false);
   const { x, z } = projectToWorld(activity.lat, activity.lon);
   const expanded = hovered || pinned;
+  const labelOffset = LABEL_OFFSET_OVERRIDES[activity.id] ?? 0;
 
   const toggle = () => setPinned((prev) => !prev);
 
@@ -51,8 +63,8 @@ export function DaytripMarker3D({ stop, activity }: DaytripEntry) {
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-full mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-xl bg-ink/95 px-2.5 py-1.5 text-center shadow-[var(--shadow-card)] transition-opacity duration-200"
-            style={{ opacity: expanded ? 1 : 0 }}
+            className="pointer-events-none absolute top-full mt-1.5 whitespace-nowrap rounded-xl bg-ink/95 px-2.5 py-1.5 text-center shadow-[var(--shadow-card)] transition-opacity duration-200"
+            style={{ left: `calc(50% + ${labelOffset}px)`, transform: "translateX(-50%)", opacity: expanded ? 1 : 0 }}
           >
             <p className="font-serif text-xs font-semibold text-cream">{activity.name}</p>
             <p className="text-[10px] text-cream/80">

@@ -5,6 +5,7 @@ import { dimTransition } from "../motion/variants";
 import { PhotoGallery, CameraIcon } from "./PhotoGallery";
 import { AccommodationCard } from "./AccommodationCard";
 import { ActivityCard } from "./ActivityCard";
+import type { PriorityFilter } from "./FilterBar";
 
 interface StopCardProps {
   stop: Stop;
@@ -12,6 +13,7 @@ interface StopCardProps {
   mode: TransportMode;
   isActive: boolean;
   dimmed: boolean;
+  priorityFilter: PriorityFilter;
   onSelect: (id: string) => void;
   registerRef: (id: string, el: HTMLDivElement | null) => void;
 }
@@ -21,10 +23,14 @@ const listVariants = {
   show: { transition: { staggerChildren: 0.06 } },
 };
 
-export function StopCard({ stop, order, mode, isActive, dimmed, onSelect, registerRef }: StopCardProps) {
+/** Two or more must-see activities marks a stop as a trip highlight, worth a bit more visual weight than a pass-through stay. */
+const HIGHLIGHT_MUST_COUNT = 2;
+
+export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, onSelect, registerRef }: StopCardProps) {
   const [panelOpen, setPanelOpen] = useState(false);
   const coverPhoto = stop.photos?.[0] ?? stop.accommodation?.photos?.[0];
   const panelId = `stop-${stop.id}-panel`;
+  const isHighlight = stop.activities.filter((activity) => activity.priority === "must").length >= HIGHLIGHT_MUST_COUNT;
 
   return (
     <motion.div
@@ -62,13 +68,15 @@ export function StopCard({ stop, order, mode, isActive, dimmed, onSelect, regist
           className={`rounded-2xl border bg-white/70 p-5 shadow-card transition-colors duration-300 sm:p-6 ${
             isActive
               ? "border-terracotta-dark shadow-glow-terracotta ring-2 ring-terracotta/40"
-              : "border-ink/10 hover:border-terracotta-light"
+              : isHighlight
+                ? "border-terracotta-light/60 hover:border-terracotta-light"
+                : "border-ink/10 hover:border-terracotta-light"
           }`}
         >
           <div className="flex items-start gap-4">
             <span
               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-sans text-sm font-semibold transition-colors ${
-                isActive ? "bg-terracotta-dark text-white" : "bg-sand text-ink"
+                isActive ? "bg-terracotta-dark text-white" : isHighlight ? "bg-terracotta-light/30 text-ink" : "bg-sand text-ink"
               }`}
               aria-hidden
             >
@@ -77,7 +85,18 @@ export function StopCard({ stop, order, mode, isActive, dimmed, onSelect, regist
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <h3 className="font-serif text-xl font-semibold text-ink sm:text-2xl">{stop.name}</h3>
+                <h3 className="flex items-center gap-2 font-serif text-xl font-semibold text-ink sm:text-2xl">
+                  {stop.name}
+                  {isHighlight && (
+                    <span
+                      aria-label="Hoogtepunt van de reis"
+                      title="Hoogtepunt van de reis"
+                      className="text-base text-terracotta-dark sm:text-lg"
+                    >
+                      ✨
+                    </span>
+                  )}
+                </h3>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
                     stop.booked ? "bg-forest/10 text-forest-dark" : "bg-terracotta/10 text-terracotta-dark"
@@ -123,7 +142,11 @@ export function StopCard({ stop, order, mode, isActive, dimmed, onSelect, regist
               </div>
             </div>
 
-            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-ink/10 sm:h-16 sm:w-16">
+            <div
+              className={`h-12 w-12 shrink-0 overflow-hidden rounded-xl border sm:h-16 sm:w-16 ${
+                isHighlight ? "border-terracotta-light" : "border-ink/10"
+              }`}
+            >
               {coverPhoto ? (
                 <img src={coverPhoto} alt="" className="h-full w-full object-cover" />
               ) : (
@@ -163,7 +186,11 @@ export function StopCard({ stop, order, mode, isActive, dimmed, onSelect, regist
             className="flex flex-col gap-2"
           >
             {stop.activities.map((activity) => (
-              <ActivityCard key={activity.id} activity={activity} />
+              <ActivityCard
+                key={activity.id}
+                activity={activity}
+                dimmed={priorityFilter !== "all" && activity.priority !== priorityFilter}
+              />
             ))}
           </motion.ul>
         )}

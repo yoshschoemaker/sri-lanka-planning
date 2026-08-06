@@ -4,7 +4,7 @@ import { StopCard } from "./StopCard";
 import { TransportConnector } from "./TransportConnector";
 import { RegionHeader } from "./RegionHeader";
 import { getRegionForStop } from "../data/regions";
-import type { ModeFilter, StatusFilter } from "./FilterBar";
+import type { ModeFilter, PriorityFilter, StatusFilter } from "./FilterBar";
 
 interface ItineraryListProps {
   stops: Stop[];
@@ -14,6 +14,7 @@ interface ItineraryListProps {
   registerRef: (id: string, el: HTMLDivElement | null) => void;
   statusFilter: StatusFilter;
   modeFilter: ModeFilter;
+  priorityFilter: PriorityFilter;
 }
 
 export function ItineraryList({
@@ -24,6 +25,7 @@ export function ItineraryList({
   registerRef,
   statusFilter,
   modeFilter,
+  priorityFilter,
 }: ItineraryListProps) {
   return (
     <ol className="flex flex-col gap-0">
@@ -52,6 +54,7 @@ export function ItineraryList({
                 mode={mode}
                 isActive={selected === stop.id}
                 dimmed={statusDimmed || modeDimmed}
+                priorityFilter={priorityFilter}
                 onSelect={onSelect}
                 registerRef={registerRef}
               />

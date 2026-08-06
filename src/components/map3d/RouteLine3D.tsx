@@ -4,7 +4,7 @@ import { extend, useFrame } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
 import type { TransportMode } from "../../types/trip";
 import type { WorldPoint } from "../../utils/projection3d";
-import { ISLAND_TOP_Y } from "./Island";
+import { getTerrainSurfaceY } from "./Highlands";
 
 const TUBE_RADIUS = 0.028;
 /** Exported so Train3D.tsx can rebuild the exact same curve for train-mode segments. */
@@ -116,14 +116,28 @@ interface RouteLine3DProps {
   prefersReducedMotion: boolean;
 }
 
-/** Shared with Train3D.tsx, so a train riding a train-mode segment follows the exact curve its route line draws, not a visually-close approximation. */
+/**
+ * Shared with Train3D.tsx, so a train riding a train-mode segment follows
+ * the exact curve its route line draws, not a visually-close approximation.
+ *
+ * Terrain-aware rather than assuming flat ISLAND_TOP_Y everywhere: the
+ * Kandy–Ella train leg cuts straight through the hill country, and a curve
+ * pinned to the (lower) lowland height there sits inside the Highlands
+ * tiers — the line and the train riding it both render fully hidden inside
+ * the mountain. Anchoring each endpoint (and the midpoint) to the real
+ * ground height it sits on fixes that, and is a no-op everywhere else since
+ * getTerrainSurfaceY already returns flat ISLAND_TOP_Y off the highlands.
+ */
 export function buildRouteCurve(from: WorldPoint, to: WorldPoint): THREE.QuadraticBezierCurve3 {
-  const start = new THREE.Vector3(from.x, ISLAND_TOP_Y + ROUTE_LIFT, from.z);
-  const end = new THREE.Vector3(to.x, ISLAND_TOP_Y + ROUTE_LIFT, to.z);
+  const start = new THREE.Vector3(from.x, getTerrainSurfaceY(from.x, from.z) + ROUTE_LIFT, from.z);
+  const end = new THREE.Vector3(to.x, getTerrainSurfaceY(to.x, to.z) + ROUTE_LIFT, to.z);
   const mid = start.clone().add(end).multiplyScalar(0.5);
+  const midTerrainY = getTerrainSurfaceY(mid.x, mid.z) + ROUTE_LIFT;
   const length = start.distanceTo(end);
-  // Heel licht gebogen: a gentle hop, capped so long legs don't arc absurdly high.
-  mid.y += Math.min(length * 0.07, 0.4);
+  // Heel licht gebogen: a gentle hop, capped so long legs don't arc absurdly high,
+  // over whichever is higher — the endpoints' midpoint or the actual terrain
+  // it passes over (a ridge between two lower points, say).
+  mid.y = Math.max(mid.y, midTerrainY) + Math.min(length * 0.07, 0.4);
   return new THREE.QuadraticBezierCurve3(start, mid, end);
 }
 

@@ -14,6 +14,8 @@ export interface TripMapSceneProps {
   statusFilter: StatusFilter;
   modeFilter: ModeFilter;
   variant?: TripMapVariant;
+  /** Stops the 3D scene's render loop (no-op for the 2D fallback, which has no continuous loop to begin with) — for instances kept mounted but hidden, e.g. the inline mobile map behind MapModal, so two live WebGL scenes never run at once. */
+  paused?: boolean;
 }
 
 const TripMap3D = lazy(() =>
@@ -64,7 +66,7 @@ class MapErrorBoundary extends Component<MapErrorBoundaryProps, MapErrorBoundary
 }
 
 const PANEL_FRAME_CLASS =
-  "rounded-3xl border border-ink/10 bg-white/50 p-3 sm:p-5 aspect-[3/4] max-w-md mx-auto overflow-hidden";
+  "rounded-3xl border border-ink/10 bg-white/50 aspect-[3/4] max-w-md mx-auto overflow-hidden";
 const HERO_FRAME_CLASS = "h-full w-full";
 
 /**
@@ -74,7 +76,7 @@ const HERO_FRAME_CLASS = "h-full w-full";
  * map. The 3D tree itself is code-split via `React.lazy` so three/fiber/drei
  * never end up in the main bundle.
  */
-export function TripMapScene({ variant = "panel", ...mapProps }: TripMapSceneProps) {
+export function TripMapScene({ variant = "panel", paused = false, ...mapProps }: TripMapSceneProps) {
   if (!webglSupported) {
     return <TripMap {...mapProps} />;
   }
@@ -83,7 +85,7 @@ export function TripMapScene({ variant = "panel", ...mapProps }: TripMapScenePro
     <MapErrorBoundary fallback={<TripMap {...mapProps} />}>
       <div className={variant === "hero" ? HERO_FRAME_CLASS : PANEL_FRAME_CLASS}>
         <Suspense fallback={<MapSkeleton />}>
-          <TripMap3D {...mapProps} />
+          <TripMap3D paused={paused} {...mapProps} />
         </Suspense>
       </div>
     </MapErrorBoundary>

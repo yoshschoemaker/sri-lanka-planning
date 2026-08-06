@@ -5,6 +5,7 @@ import { dimTransition } from "../motion/variants";
 
 interface ActivityCardProps {
   activity: Activity;
+  dimmed?: boolean;
 }
 
 const itemVariants = {
@@ -29,7 +30,7 @@ function PriorityBadge({ priority }: { priority: ActivityPriority }) {
 }
 
 /** A thin strip card per activity (rather than a plain bulleted row), so the priority label and distance both read at a glance. */
-export function ActivityCard({ activity }: ActivityCardProps) {
+export function ActivityCard({ activity, dimmed = false }: ActivityCardProps) {
   const [expanded, setExpanded] = useState(false);
   const hasPhoto = Boolean(activity.photos && activity.photos.length > 0);
   const hasDetail = Boolean(activity.description) || hasPhoto;
@@ -52,49 +53,53 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   );
 
   return (
-    <motion.li
-      variants={itemVariants}
-      className={`flex items-stretch overflow-hidden rounded-lg border border-ink/10 bg-white/50 text-sm text-ink ${activity.daytrip ? "text-ink-soft" : ""}`}
-    >
-      <span aria-hidden className={`w-1 shrink-0 ${barClassName}`} />
-      <div className="min-w-0 flex-1 px-3 py-2">
-        {hasDetail ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setExpanded((prev) => !prev);
-            }}
-            aria-expanded={expanded}
-            className="w-full rounded-lg text-left outline-none"
-          >
-            {row}
-          </button>
-        ) : (
-          row
-        )}
-
-        <AnimatePresence initial={false}>
-          {hasDetail && expanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={dimTransition}
-              className="overflow-hidden"
+    <motion.li variants={itemVariants} className="list-none">
+      {/* Opacity for filter-dimming lives on this inner element, not the motion.li above: whileInView/variants and animate both target opacity, and Framer Motion resolves whileInView above animate, so a variants-driven li could never dim once it had scrolled into view. See the equivalent note in StopCard. */}
+      <motion.div
+        animate={{ opacity: dimmed ? 0.4 : 1 }}
+        transition={dimTransition}
+        className={`flex items-stretch overflow-hidden rounded-lg border border-ink/10 bg-white/50 text-sm text-ink ${activity.daytrip ? "text-ink-soft" : ""}`}
+      >
+        <span aria-hidden className={`w-1 shrink-0 ${barClassName}`} />
+        <div className="min-w-0 flex-1 px-3 py-2">
+          {hasDetail ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((prev) => !prev);
+              }}
+              aria-expanded={expanded}
+              className="w-full rounded-lg text-left outline-none"
             >
-              <div className="mt-2 flex gap-3 pb-1 pl-1">
-                {hasPhoto && (
-                  <img src={activity.photos?.[0]} alt="" className="h-14 w-20 shrink-0 rounded-md object-cover" />
-                )}
-                {activity.description && (
-                  <p className="text-xs not-italic leading-relaxed text-ink-soft">{activity.description}</p>
-                )}
-              </div>
-            </motion.div>
+              {row}
+            </button>
+          ) : (
+            row
           )}
-        </AnimatePresence>
-      </div>
+
+          <AnimatePresence initial={false}>
+            {hasDetail && expanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={dimTransition}
+                className="overflow-hidden"
+              >
+                <div className="mt-2 flex gap-3 pb-1 pl-1">
+                  {hasPhoto && (
+                    <img src={activity.photos?.[0]} alt="" className="h-14 w-20 shrink-0 rounded-md object-cover" />
+                  )}
+                  {activity.description && (
+                    <p className="text-xs not-italic leading-relaxed text-ink-soft">{activity.description}</p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
     </motion.li>
   );
 }
