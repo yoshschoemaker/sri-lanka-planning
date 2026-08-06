@@ -28,6 +28,7 @@ interface MapModalProps {
   transportModes: Record<TransportModeKey, TransportMode>;
   selected: string | null;
   onSelect: (id: string) => void;
+  onTourSelect: (id: string) => void;
   statusFilter: StatusFilter;
   modeFilter: ModeFilter;
 }

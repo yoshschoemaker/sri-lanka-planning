@@ -11,6 +11,8 @@ export interface TripMapSceneProps {
   transportModes: Record<TransportModeKey, TransportMode>;
   selected: string | null;
   onSelect: (id: string) => void;
+  /** Only used by the 3D scene's own tour, which advances `selected` itself — kept distinct from onSelect so a mobile caller can skip onSelect's scroll-into-view for those automated changes (see App.tsx's handleTourSelect). No-op for the 2D fallback, which has no tour. */
+  onTourSelect: (id: string) => void;
   statusFilter: StatusFilter;
   modeFilter: ModeFilter;
   variant?: TripMapVariant;

@@ -50,6 +50,26 @@ function App() {
     [prefersReducedMotion],
   );
 
+  /**
+   * The map's own tour advances `selected` on its own as it visits each
+   * stop. On desktop that's a nice touch — the list scrolls in sync beside
+   * the sticky map. On mobile, list and map share one page scroll, so that
+   * same scrollIntoView would drag the page away from the map mid-tour,
+   * i.e. exactly the thing you're trying to watch. Skip the scroll there.
+   */
+  const handleTourSelect = useCallback(
+    (id: string) => {
+      setSelected(id);
+      if (isDesktop) {
+        cardRefs.current.get(id)?.scrollIntoView({
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+          block: "center",
+        });
+      }
+    },
+    [isDesktop, prefersReducedMotion],
+  );
+
   useEffect(() => {
     const el = mapAnchorRef.current;
     if (!el) return;
@@ -194,6 +214,7 @@ function App() {
               transportModes={transportModes}
               selected={selected}
               onSelect={handleSelect}
+              onTourSelect={handleTourSelect}
               statusFilter={statusFilter}
               modeFilter={modeFilter}
             />
@@ -221,6 +242,7 @@ function App() {
         transportModes={transportModes}
         selected={selected}
         onSelect={handleSelect}
+        onTourSelect={handleTourSelect}
         statusFilter={statusFilter}
         modeFilter={modeFilter}
       />

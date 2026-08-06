@@ -318,6 +318,7 @@ export interface TripMap3DProps {
   transportModes: Record<TransportModeKey, TransportMode>;
   selected: string | null;
   onSelect: (id: string) => void;
+  onTourSelect: (id: string) => void;
   statusFilter: StatusFilter;
   modeFilter: ModeFilter;
   paused?: boolean;
@@ -330,7 +331,16 @@ export interface TripMap3DProps {
  * with hybrid DOM+mesh markers, animated routes, bounded camera controls,
  * and filter-aware dimming across both the WebGL and DOM layers.
  */
-export function TripMap3D({ stops, transportModes, selected, onSelect, statusFilter, modeFilter, paused = false }: TripMap3DProps) {
+export function TripMap3D({
+  stops,
+  transportModes,
+  selected,
+  onSelect,
+  onTourSelect,
+  statusFilter,
+  modeFilter,
+  paused = false,
+}: TripMap3DProps) {
   const prefersReducedMotion = useReducedMotion();
   const cameraRigRef = useRef<CameraRigHandle>(null);
   const [touring, setTouring] = useState(false);
@@ -398,7 +408,17 @@ export function TripMap3D({ stops, transportModes, selected, onSelect, statusFil
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-[inherit]">
-      <Canvas flat frameloop={paused ? "never" : "always"} camera={{ position: [5.7, 11.6, 16.2], fov: 32 }}>
+      <Canvas
+        flat
+        frameloop={paused ? "never" : "always"}
+        // Tight near/far (rather than R3F's default 0.1/1000) so the whole
+        // scene, which never spans more than ~40 units deep, uses most of the
+        // depth buffer's precision: with the default range almost all of it
+        // was wasted on distances nothing ever renders at, which on mobile's
+        // lower-precision depth buffers showed up as z-fighting flicker
+        // between the water plane and ContactShadows' near-coplanar blob.
+        camera={{ position: [5.7, 11.6, 16.2], fov: 32, near: 1, far: 100 }}
+      >
         <DayNightLights
           touring={touring}
           manualEvening={manualEvening}
@@ -455,7 +475,7 @@ export function TripMap3D({ stops, transportModes, selected, onSelect, statusFil
           ref={cameraRigRef}
           stops={stops}
           selected={selected}
-          onSelect={onSelect}
+          onSelect={onTourSelect}
           onTourDay={handleTourDay}
           onTourTransit={handleTourTransit}
           prefersReducedMotion={prefersReducedMotion}
