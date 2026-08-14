@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { CameraControls, type CameraControlsImpl } from "@react-three/drei";
 import type { Stop } from "../../types/trip";
 import { getMarkerWorldPosition } from "../../utils/mapLayout3d";
+import { isStopover } from "../../utils/nights";
 import { ISLAND_TOP_Y } from "./Island";
 
 /**
@@ -42,6 +43,27 @@ const MAX_DISTANCE = 28 / ZOOM_IN_FACTOR;
  * every side.
  */
 const OVERVIEW_TARGET = { x: 0.33, z: -0.12 };
+
+/**
+ * Focusing a stop looks at a point *between* that stop and the overview
+ * center instead of straight at the stop. Targeting a coastal stop dead-on
+ * (Negombo at world x ≈ -2.05, Yala at z ≈ 3.35, against an island spanning
+ * only x ∈ [-2.4, 2.5], z ∈ [-4.3, 4.3]) shoves half the silhouette out of
+ * frame and fills the rest with empty water. Pulling the target back toward
+ * the middle keeps the island as fully in view as possible while the selected
+ * stop still sits clearly off-center in the direction it actually lies.
+ * x is biased harder than z because the panel is portrait: horizontal frame
+ * is the scarce axis, and the island's long axis runs roughly vertical.
+ */
+const FOCUS_CENTER_BIAS = { x: 0.65, z: 0.5 };
+
+/** Blends a stop's world position toward OVERVIEW_TARGET by FOCUS_CENTER_BIAS. Passing OVERVIEW_TARGET itself is a no-op, so the overview framing is unaffected. */
+function focusTarget(x: number, z: number): { x: number; z: number } {
+  return {
+    x: THREE.MathUtils.lerp(x, OVERVIEW_TARGET.x, FOCUS_CENTER_BIAS.x),
+    z: THREE.MathUtils.lerp(z, OVERVIEW_TARGET.z, FOCUS_CENTER_BIAS.z),
+  };
+}
 
 /** World units per zoom-button click; ~1/6th of the full min-max distance range, so a few clicks visibly change the framing without a single click jumping too far. */
 const ZOOM_STEP = 2.2;
@@ -111,13 +133,14 @@ export function CameraRig({ stops, selected, onSelect, onTourDay, onTourTransit,
   const touringRef = useRef(false);
 
   const flyTo = useCallback((x: number, z: number, animate: boolean, offset: THREE.Vector3 = DEFAULT_OFFSET) => {
+    const target = focusTarget(x, z);
     return controlsRef.current?.setLookAt(
-      x + offset.x,
+      target.x + offset.x,
       ISLAND_TOP_Y + offset.y,
-      z + offset.z,
-      x,
+      target.z + offset.z,
+      target.x,
       ISLAND_TOP_Y,
-      z,
+      target.z,
       animate,
     );
   }, []);
@@ -141,10 +164,13 @@ export function CameraRig({ stops, selected, onSelect, onTourDay, onTourTransit,
         // The camera only flies once per stop; a multi-night stay dwells here
         // for one tick per night instead, so "2 nights" visibly reads as two
         // separate day/night cycles at the same place rather than one.
-        const nightsHere = Math.max(1, stop.nights);
-        for (let n = 0; n < nightsHere; n++) {
+        // A stopover (0 nights) still dwells one tick so the tour visibly stops
+        // there, but it shares its calendar day with the next stop's arrival, so
+        // the day counter stays put.
+        const dwellTicks = Math.max(1, stop.nights);
+        for (let n = 0; n < dwellTicks; n++) {
           onTourDay(stop, day);
-          day++;
+          if (!isStopover(stop)) day++;
           await new Promise((resolve) => setTimeout(resolve, DAY_DWELL_MS));
         }
         prevStop = stop;
