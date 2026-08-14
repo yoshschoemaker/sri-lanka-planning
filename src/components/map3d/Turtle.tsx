@@ -48,7 +48,7 @@ const DIVE_DEPTH = BASE_Y - WATER_TROUGH_Y + 0.1;
 /**
  * A small sea turtle drifting just under the surface, a nod to the turtle
  * spotting/nesting-beach activities at Hiriketiya (Rekawa) and Hikkaduwa.
- * Sits just above Water.tsx's plane like FishSchool/WaveCrest. The flippers
+ * Sits just above Water.tsx's plane like FishSchool. The flippers
  * paddle non-stop, it changes heading a little every so often
  * (useIdleMotion), and it slowly swims a bounded patrol loop around its anchor
  * (useSeaWander) rather than treading water in one spot. Like the whale it also

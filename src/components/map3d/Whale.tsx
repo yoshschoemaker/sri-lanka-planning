@@ -42,7 +42,7 @@ const DIVE_DEPTH = BASE_Y - WATER_TROUGH_Y + 0.2;
 /**
  * A small blue whale (back and tail breaking the surface), a nod to
  * Mirissa's whale watching trips. Sits just above Water.tsx's plane like
- * FishSchool/Turtle/WaveCrest, further offshore since whale watching
+ * FishSchool/Turtle, further offshore since whale watching
  * happens well out at sea rather than right off the beach. It slowly swims a
  * bounded patrol loop around its anchor (useSeaWander) instead of hovering on
  * one spot, turning to face wherever it's heading. It is also not permanently

@@ -5,9 +5,12 @@ import { createRoot } from 'react-dom/client'
 import './utils/deferredInstallPrompt'
 import './index.css'
 import App from './App.tsx'
+import { ServiceWorkerProvider } from './components/ServiceWorkerProvider.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ServiceWorkerProvider>
+      <App />
+    </ServiceWorkerProvider>
   </StrictMode>,
 )

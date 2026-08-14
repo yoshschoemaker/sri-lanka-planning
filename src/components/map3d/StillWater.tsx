@@ -50,15 +50,15 @@ import { shaderMaterial } from "@react-three/drei";
  * each other lets the ripple carry the surface instead, and lands the lakes in the
  * same family as Water.tsx's sea, which is the look they should belong to.
  */
-const WATER_SHALLOW = new THREE.Color("#66b6cd");
-const WATER_DEEP = new THREE.Color("#3f8cab");
-const WATER_RIM = new THREE.Color("#cdeaf1");
+const WATER_SHALLOW = new THREE.Color("#22779c");
+const WATER_DEEP = new THREE.Color("#0d4368");
+const WATER_RIM = new THREE.Color("#9cd2e0");
 /**
  * Damp ground at the waterline: a shade or two off the surrounding terrain, not a
  * dark brown. At #7d6f4f it read as a heavy black outline drawn around each lake,
  * which was worse than having no bank at all.
  */
-const WATER_BANK = new THREE.Color("#a89571");
+const WATER_BANK = new THREE.Color("#644d2a");
 
 const StillWaterMaterial = shaderMaterial(
   {
@@ -127,10 +127,20 @@ const StillWaterMaterial = shaderMaterial(
 
       // Same treatment as the sea: darken toward navy last, so the rim and
       // ripple highlights dim along with the base rather than staying lit.
-      vec3 nightColor = mix(color * 0.24, vec3(0.05, 0.08, 0.16), 0.4);
+      // Written in working space like every colour here, so the literal is the
+      // linear form of the #0d1529-ish navy this used to be authored as.
+      vec3 nightColor = mix(color * 0.24, vec3(0.00394, 0.00719, 0.02198), 0.4);
       color = mix(color, nightColor, uNight);
 
       gl_FragColor = vec4(color, alpha);
+
+      // See the palette note above: without this the lakes, the river and the
+      // waterfall all render about two stops darker than authored, while the
+      // meshStandardMaterial terrain they sit on converts correctly. The four
+      // colours above were re-authored to their previously *displayed* values in
+      // the same change, so the water looks the same and the pipeline is no
+      // longer inconsistent with Water.tsx and RouteLine3D.
+      #include <colorspace_fragment>
     }
   `,
 );

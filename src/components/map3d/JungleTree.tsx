@@ -10,9 +10,19 @@ const LIMB_COLOR = "#7d5330";
 const LEAF_COLOR_A = "#3d7462";
 const LEAF_COLOR_B = "#4a8a70";
 
-/** Taller than every other tree on the island, which is the point: these are the emergents the langur lives in, and the monkey needs to read as being *up* in a canopy rather than beside a bush. */
-const TRUNK_HEIGHT = 0.36;
-const CROWN_Y = TRUNK_HEIGHT + 0.04;
+/**
+ * Taller than every other tree on the island, which is the point: these are the
+ * emergents the langur lives in, and the monkey needs to read as being *up* in a
+ * canopy rather than beside a bush.
+ *
+ * The long bare bole under the crown is load-bearing, not decoration. A first
+ * pass sat the crown barely above the swing limb, and from the map's own viewing
+ * angle the foliage covered the monkey completely — the whole animation happened
+ * behind a leaf. The gap between LIMB_BASE_Y and the crown's underside is what
+ * keeps the swing in open air, and it holds at every camera angle the map allows.
+ */
+const TRUNK_HEIGHT = 0.42;
+const CROWN_Y = TRUNK_HEIGHT + 0.05;
 
 /**
  * Height of the bare horizontal limb, above the tree's own ground point. Lower

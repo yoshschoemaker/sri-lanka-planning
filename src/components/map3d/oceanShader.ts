@@ -50,16 +50,26 @@ export interface WaveComponent {
  * Crossing trains at these angles are also what stops the sea reading as
  * corrugated iron: a single direction, however well shaped, gives every crest
  * the same length and spacing.
+ *
+ * The amplitudes are weighted toward the long components on purpose, and it is
+ * the surface *normal* that forces it rather than the silhouette. A component
+ * contributes k * amplitude to the normal, and k is 2*pi over the wavelength —
+ * so equal amplitudes would give the shortest wave six times the tilt of the
+ * longest, and the sea shades as corduroy: uniform fine ribbing with the swell
+ * buried under it. Shifting energy into the long components (while keeping the
+ * sum, and therefore the beach contract below, untouched) brings the four normal
+ * contributions within about 1.8x of each other, which is what reads as ocean
+ * rather than as texture.
  */
 export const WAVE_SPECTRUM: readonly WaveComponent[] = [
   // SSW -> NNE, the long groundswell.
-  { wavelength: 3.4, amplitude: 0.05, direction: [0.3827, -0.9239], steepness: 1.4 },
+  { wavelength: 3.4, amplitude: 0.058, direction: [0.3827, -0.9239], steepness: 1.4 },
   // SW -> NE, the monsoon swell.
-  { wavelength: 2.05, amplitude: 0.033, direction: [0.7218, -0.6921], steepness: 1.4 },
+  { wavelength: 2.05, amplitude: 0.032, direction: [0.7218, -0.6921], steepness: 1.4 },
   // ENE -> WSW, crossing the other two so crest lengths vary.
-  { wavelength: 1.1, amplitude: 0.0195, direction: [-0.829, 0.5592], steepness: 1.2 },
+  { wavelength: 1.1, amplitude: 0.0155, direction: [-0.829, 0.5592], steepness: 1.2 },
   // Local chop, near-westerly. Small enough to read as texture rather than as a wave.
-  { wavelength: 0.58, amplitude: 0.01, direction: [0.95, 0.3122], steepness: 1.0 },
+  { wavelength: 0.58, amplitude: 0.007, direction: [0.95, 0.3122], steepness: 1.0 },
 ];
 
 /**
@@ -211,7 +221,7 @@ OceanAcc oceanSurface(vec2 p, float t, float shore, vec2 shoreDir) {
   // steepness here and the foam in Water.tsx.
   float steep = smoothstep(0.0, 0.30, shore) * (1.0 + 0.75 * oceanShoalBump(shore));
 
-  float refract = 0.85 * (1.0 - smoothstep(0.10, 1.30, shore));
+  float refract = 0.70 * (1.0 - smoothstep(0.10, 1.10, shore));
 
 ${waveCalls}
 

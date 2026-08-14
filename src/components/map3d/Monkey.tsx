@@ -9,10 +9,18 @@ import { useAppearanceCycle } from "../../utils/useAppearanceCycle";
 import type { WorldPoint } from "../../utils/projection3d";
 import { getLimbAnchor } from "./JungleTree";
 
-/** Purple-faced langur: near-black coat, pale grey whisker ruff, bare dark face. */
-const COAT_COLOR = "#4f463d";
-const PALE_COLOR = "#d8cdb8";
-const FACE_COLOR = "#241f1c";
+/**
+ * Purple-faced langur: grey-brown coat, near-white whisker ruff, bare dark face.
+ *
+ * The real animal is darker than this. It was authored at near-black first, and
+ * against the wet zone's dark green canopy the whole monkey simply disappeared at
+ * the size it actually renders at — the same reason Leopard.tsx sits at a warm
+ * #c9903f. The pale ruff carries most of the readability at a distance, so it is
+ * pushed brighter than a photograph would justify too.
+ */
+const COAT_COLOR = "#8a7a68";
+const PALE_COLOR = "#efe6d4";
+const FACE_COLOR = "#2b2521";
 
 /** Body primitives below are authored at 1x; this blows the whole critter up so it reads at diorama viewing distance. Smaller than the ground animals' 2.6, since this one has to fit under a tree limb rather than stand on open grass. */
 const SCALE = 1.5;
@@ -296,29 +304,31 @@ export function Monkey({ trees, prefersReducedMotion }: { trees: WorldPoint[]; p
       {/* Everything below hangs off the limb: this group is the pendulum arm. */}
       <group ref={swingRef} rotation={[CATCH_ANGLE, 0, 0]}>
         <group ref={bodyRef} position={[0, -HANG_LEN, 0]}>
-          <mesh ref={torsoRef} scale={[0.8, 1, 0.7]} material={coatMaterial}>
-            <sphereGeometry args={[0.026, 7, 6]} />
+          <mesh ref={torsoRef} scale={[0.76, 0.98, 0.66]} material={coatMaterial}>
+            <sphereGeometry args={[0.023, 7, 6]} />
           </mesh>
 
-          <mesh position={[0, -0.002, 0.016]} scale={[0.62, 0.72, 0.4]} material={paleMaterial}>
-            <sphereGeometry args={[0.02, 6, 5]} />
+          <mesh position={[0, -0.002, 0.013]} scale={[0.6, 0.7, 0.4]} material={paleMaterial}>
+            <sphereGeometry args={[0.017, 6, 5]} />
           </mesh>
 
-          {/* Head, ruff, face and ears share a pivot at the neck so a look-around carries all four. */}
-          <group ref={headRef} position={[0, 0.034, 0.006]}>
+          {/* Head, ruff, face and ears share a pivot at the neck so a look-around
+              carries all four. Set forward of the shoulders rather than between
+              them, or the raised arms swallow it from above. */}
+          <group ref={headRef} position={[0, 0.028, 0.012]}>
             <mesh material={coatMaterial}>
-              <sphereGeometry args={[0.019, 7, 6]} />
+              <sphereGeometry args={[0.016, 7, 6]} />
             </mesh>
             {/* The whisker ruff is what makes a head this small still read as a langur from above. */}
-            <mesh position={[0, -0.001, 0.008]} scale={[1, 0.95, 0.42]} material={paleMaterial}>
-              <sphereGeometry args={[0.02, 7, 6]} />
+            <mesh position={[0, -0.001, 0.006]} scale={[1, 0.95, 0.4]} material={paleMaterial}>
+              <sphereGeometry args={[0.017, 7, 6]} />
             </mesh>
-            <mesh position={[0, -0.001, 0.016]} scale={[0.9, 0.95, 0.5]} material={faceMaterial}>
-              <sphereGeometry args={[0.013, 6, 5]} />
+            <mesh position={[0, -0.001, 0.013]} scale={[0.9, 0.95, 0.5]} material={faceMaterial}>
+              <sphereGeometry args={[0.011, 6, 5]} />
             </mesh>
             {[-1, 1].map((side) => (
-              <mesh key={side} position={[side * 0.018, 0.004, -0.001]} material={coatMaterial}>
-                <sphereGeometry args={[0.006, 5, 4]} />
+              <mesh key={side} position={[side * 0.015, 0.004, -0.002]} material={coatMaterial}>
+                <sphereGeometry args={[0.005, 5, 4]} />
               </mesh>
             ))}
           </group>
@@ -330,14 +340,14 @@ export function Monkey({ trees, prefersReducedMotion }: { trees: WorldPoint[]; p
               ref={(g) => {
                 armRefs.current[i] = g;
               }}
-              position={[side * 0.02, 0.018, 0]}
-              rotation={[-Math.PI, 0, side * 0.14]}
+              position={[side * 0.016, 0.016, 0]}
+              rotation={[-Math.PI, 0, side * 0.06]}
             >
               <mesh position={[0, -0.015, 0]} material={coatMaterial}>
-                <cylinderGeometry args={[0.0045, 0.0055, 0.03, 5]} />
+                <cylinderGeometry args={[0.004, 0.0048, 0.03, 5]} />
               </mesh>
               <mesh position={[0, -0.032, 0]} material={coatMaterial}>
-                <sphereGeometry args={[0.0065, 5, 4]} />
+                <sphereGeometry args={[0.0055, 5, 4]} />
               </mesh>
             </group>
           ))}
@@ -348,14 +358,14 @@ export function Monkey({ trees, prefersReducedMotion }: { trees: WorldPoint[]; p
               ref={(g) => {
                 legRefs.current[i] = g;
               }}
-              position={[side * 0.013, -0.019, 0.002]}
+              position={[side * 0.011, -0.017, 0.002]}
               rotation={[0, 0, side * 0.1]}
             >
-              <mesh position={[0, -0.013, 0]} material={coatMaterial}>
-                <cylinderGeometry args={[0.005, 0.0065, 0.026, 5]} />
+              <mesh position={[0, -0.011, 0]} material={coatMaterial}>
+                <cylinderGeometry args={[0.0045, 0.0055, 0.022, 5]} />
               </mesh>
-              <mesh position={[0, -0.027, 0.004]} scale={[0.8, 0.6, 1.2]} material={coatMaterial}>
-                <sphereGeometry args={[0.007, 5, 4]} />
+              <mesh position={[0, -0.023, 0.003]} scale={[0.8, 0.6, 1.2]} material={coatMaterial}>
+                <sphereGeometry args={[0.006, 5, 4]} />
               </mesh>
             </group>
           ))}
@@ -365,31 +375,31 @@ export function Monkey({ trees, prefersReducedMotion }: { trees: WorldPoint[]; p
             ref={(g) => {
               tailRefs.current[0] = g;
             }}
-            position={[0, -0.012, -0.021]}
+            position={[0, -0.011, -0.018]}
             rotation={[TAIL_REST[0], 0, 0]}
           >
-            <mesh position={[0, -0.016, 0]} material={coatMaterial}>
-              <cylinderGeometry args={[0.0042, 0.005, 0.032, 5]} />
+            <mesh position={[0, -0.017, 0]} material={coatMaterial}>
+              <cylinderGeometry args={[0.0036, 0.0046, 0.034, 5]} />
             </mesh>
             <group
               ref={(g) => {
                 tailRefs.current[1] = g;
               }}
-              position={[0, -0.032, 0]}
+              position={[0, -0.034, 0]}
               rotation={[TAIL_REST[1], 0, 0]}
             >
-              <mesh position={[0, -0.015, 0]} material={coatMaterial}>
-                <cylinderGeometry args={[0.0034, 0.0042, 0.03, 5]} />
+              <mesh position={[0, -0.016, 0]} material={coatMaterial}>
+                <cylinderGeometry args={[0.003, 0.0036, 0.032, 5]} />
               </mesh>
               <group
                 ref={(g) => {
                   tailRefs.current[2] = g;
                 }}
-                position={[0, -0.03, 0]}
+                position={[0, -0.032, 0]}
                 rotation={[TAIL_REST[2], 0, 0]}
               >
-                <mesh position={[0, -0.013, 0]} material={paleMaterial}>
-                  <cylinderGeometry args={[0.0026, 0.0034, 0.026, 5]} />
+                <mesh position={[0, -0.014, 0]} material={paleMaterial}>
+                  <cylinderGeometry args={[0.0022, 0.003, 0.028, 5]} />
                 </mesh>
               </group>
             </group>

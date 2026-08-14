@@ -9,9 +9,11 @@ import { createSwayMaterial } from "./swayMaterial";
  * however many trees, bushes or boulders it holds.
  *
  * This exists because the rest of the map is built the opposite way — every
- * <mesh> declares its own inline geometry and material, so the 14 WaveCrests
- * alone cost 42 draw calls. That's fine for a handful of hand-placed props and
- * hopeless for the several hundred objects the vegetation scatter produces.
+ * <mesh> declares its own inline geometry and material, which is fine for a
+ * handful of hand-placed props and hopeless for the several hundred objects the
+ * vegetation scatter produces. (The example this used to cite, 14 decorative
+ * WaveCrests at three meshes each, is gone: the sea shader draws its own foam
+ * now, which is what 42 draw calls were buying.)
  * Rain3D.tsx already established instancing as the pattern for "many of the same
  * cheap thing"; this generalises it to static decoration.
  *

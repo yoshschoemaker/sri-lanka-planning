@@ -123,13 +123,33 @@ export function buildSeaGeometry(detail: SeaDetail, field: SeaShoreField): THREE
       // outright. Even if it did not, every term in the shader is a function of
       // world position, so the two sides would still agree exactly.
       const next = (spoke + 1) % spokes;
+      // Wound so the face normal points +Y. Theta increases from +X toward +Z,
+      // which in this right-handed space means the naive (inner, outer,
+      // outer-next) order faces *down* and gets back-face culled — the sea
+      // renders as nothing but the background. The dev check below is here
+      // because that failure looks exactly like "the shader is broken".
       indices[cursor++] = inner + spoke;
+      indices[cursor++] = outer + next;
       indices[cursor++] = outer + spoke;
-      indices[cursor++] = outer + next;
       indices[cursor++] = inner + spoke;
-      indices[cursor++] = outer + next;
       indices[cursor++] = inner + next;
+      indices[cursor++] = outer + next;
     }
+  }
+
+  if (import.meta.env.DEV) {
+    // Every face must point +Y or the material's default FrontSide culls it.
+    let facingDown = 0;
+    for (let t = 0; t < indices.length / 3; t++) {
+      const a = indices[t * 3] * 3;
+      const b = indices[t * 3 + 1] * 3;
+      const c = indices[t * 3 + 2] * 3;
+      const ny =
+        -((positions[b] - positions[a]) * (positions[c + 2] - positions[a + 2]) -
+          (positions[b + 2] - positions[a + 2]) * (positions[c] - positions[a]));
+      if (ny <= 0) facingDown++;
+    }
+    console.assert(facingDown === 0, `${facingDown} sea triangles are wound face-down and will be back-face culled`);
   }
 
   const geometry = new THREE.BufferGeometry();

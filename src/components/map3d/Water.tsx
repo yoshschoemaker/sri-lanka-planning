@@ -25,7 +25,7 @@ import { buildSeaGeometry } from "./seaGeometry";
  * The include is at the bottom of the fragment shader now, so these are the
  * colours that reach the screen.
  */
-const LAGOON_SHALLOW = new THREE.Color("#5fd3d8");
+const LAGOON_SHALLOW = new THREE.Color("#3fb9c6");
 const LAGOON_DEEP = new THREE.Color("#10527c");
 const LAGOON_FOAM = new THREE.Color("#f4fcff");
 
@@ -204,8 +204,11 @@ const LagoonMaterial = shaderMaterial(
       float fade2 = 1.0 - smoothstep(0.5, 1.2, pixelWorld * k2);
       vec2 d1 = vec2(0.86, 0.51);
       vec2 d2 = vec2(-0.42, 0.91);
-      float a1 = cos(dot(d1, p) * k1 - t * 2.3) * 0.020 * fade1;
-      float a2 = cos(dot(d2, p) * k2 - t * 3.1) * 0.008 * fade2;
+      // Small: k1 alone multiplies its amplitude by 9, so 0.02 here tilted the
+      // normal about nine degrees at a 0.7-unit spacing and the whole sea read
+      // as corduroy. This is meant to break up the specular, not to be seen.
+      float a1 = cos(dot(d1, p) * k1 - t * 2.3) * 0.0075 * fade1;
+      float a2 = cos(dot(d2, p) * k2 - t * 3.1) * 0.0030 * fade2;
       n.x -= d1.x * k1 * a1 + d2.x * k2 * a2;
       n.z -= d1.y * k1 * a1 + d2.y * k2 * a2;
       return normalize(n);
@@ -249,36 +252,49 @@ const LagoonMaterial = shaderMaterial(
       // radius-keyed band does however much wobble is added to it.
       float along = dot(p, vec2(-shoreDir.y, shoreDir.x));
       float surge = sin(uTime * 1.15 - shore * 5.5 + along * 2.1) * 0.5 + 0.5;
-      float runup = 1.0 - smoothstep(0.0, 0.16 + 0.10 * surge, shore);
+      // Narrow. A wide band does not read as a wider beach, it reads as a glow
+      // around the island: the eye takes a soft white halo following a
+      // silhouette as light, not as water.
+      float runup = 1.0 - smoothstep(0.0, 0.09 + 0.055 * surge, shore);
       float breakup = oceanNoise(p * 7.0 + vec2(0.0, uTime * 0.35)) * 0.65
                     + oceanNoise(p * 15.0 - vec2(uTime * 0.50, 0.0)) * 0.35;
-      float shoreFoam = smoothstep(0.30, 0.85, runup * (0.55 + 0.70 * breakup));
+      float shoreFoam = smoothstep(0.42, 0.92, runup * (0.55 + 0.70 * breakup));
       // Whitecaps ride steep wave tops, and only outside the run-up band, which
       // owns the shallows. Multiplying by the shore ramp is what puts the surf
       // line just off the beach rather than spread evenly over open water.
-      float whitecap = smoothstep(0.62, 0.95, crest)
+      //
+      // The patchiness noise is deliberately much finer than breakup above: a
+      // crest stays above the threshold along its whole length, so a coarse mask
+      // leaves single unbroken streaks running the width of the frame. Real
+      // whitecaps break in patches a fraction of a crest long.
+      float patchy = oceanNoise(p * 26.0 + vec2(uTime * 0.6, uTime * 0.25));
+      float whitecap = smoothstep(0.74, 0.98, crest)
                      * smoothstep(0.30, 0.90, shore)
-                     * smoothstep(0.35, 0.80, breakup);
-      float foam = clamp(shoreFoam + whitecap, 0.0, 1.0);
+                     * smoothstep(0.45, 0.85, patchy);
+      float foam = clamp(shoreFoam + whitecap * 0.8, 0.0, 1.0);
 
       // ---- the water body -------------------------------------------------
       float depth01 = smoothstep(0.0, 1.45 * shelf, shore);
       vec3 body = mix(uShallow, uDeep, depth01 * 0.92);
 
-      float floorVisible = exp(-depth01 * 4.5);
+      // Falls off fast. A slow falloff makes the shoal a broad pale ring that
+      // follows the island's outline, and a soft bright band tracking a
+      // silhouette reads as a glow around the land rather than as water over
+      // sand — which is what the first pass looked like.
+      float floorVisible = exp(-depth01 * 7.0);
       if (floorVisible > 0.02) {
         // There is no seabed geometry, so this stands in for one. Offsetting the
         // caustic pattern by the surface normal is what makes the veining track
         // the waves overhead instead of sliding independently underneath them.
-        vec3 seabed = uSeabed + uSun * oceanCaustics(p * 6.5 + n.xz * 2.2, uTime) * 0.50 * (1.0 - uNight);
-        body = mix(body, mix(body, seabed, 0.62), floorVisible);
+        vec3 seabed = uSeabed + uSun * oceanCaustics(p * 6.5 + n.xz * 2.2, uTime) * 0.20 * (1.0 - uNight);
+        body = mix(body, mix(body, seabed, 0.48), floorVisible);
       }
 
       // Light coming through the back of a crest, strongest with the camera
       // roughly opposite the sun — which is when a real wave lights up from
       // behind just before it breaks.
       float backlit = clamp(dot(V, normalize(vec3(-L.x, 0.0, -L.z))) * 0.5 + 0.5, 0.0, 1.0);
-      body += uShallow * pow(clamp(crest, 0.0, 1.0), 2.5) * pow(backlit, 3.0) * 0.45 * (1.0 - uNight);
+      body += uShallow * pow(clamp(crest, 0.0, 1.0), 2.5) * pow(backlit, 3.0) * 0.22 * (1.0 - uNight);
 
       body *= mix(0.86, 1.12, lambert);
 
@@ -302,19 +318,20 @@ const LagoonMaterial = shaderMaterial(
       // dozen pixels tall at this framing and costs a second render of the whole
       // scene. Bleeding the sand's own colour outward along the baked shore
       // normal is what the eye reads from those pixels anyway.
-      float bleed = (1.0 - smoothstep(0.0, 0.40, shore))
+      float bleed = (1.0 - smoothstep(0.0, 0.28, shore))
                   * clamp(dot(n.xz, -shoreDir) * 2.0 + 0.35, 0.0, 1.0);
-      reflected = mix(reflected, uSeabed, bleed * 0.45);
+      reflected = mix(reflected, uSeabed, bleed * 0.25);
 
       // Foam is rough and opaque, so it kills both the mirror and the glint.
       float fresnel = (0.02 + 0.98 * pow(1.0 - max(dot(n, V), 0.0), 5.0)) * (1.0 - foam * 0.85);
 
       vec3 color = mix(body, reflected, fresnel);
-      color = mix(color, uFoam * (0.72 + 0.32 * lambert), foam * 0.92);
+      // Short of 1.0 so even solid foam keeps some of the water under it.
+      color = mix(color, uFoam * (0.72 + 0.32 * lambert), foam * 0.78);
 
       // Night before haze, so the haze colour — already day/night blended on the
       // CPU — has the last word rather than being darkened twice.
-      color = mix(color, mix(color * 0.22, uNightTint, 0.4), uNight);
+      color = mix(color, mix(color * 0.16, uNightTint, 0.4), uNight);
 
       color = mix(color, uHorizon, smoothstep(uHazeNear, uHazeFar, viewDist));
 

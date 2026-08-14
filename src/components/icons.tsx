@@ -73,3 +73,58 @@ export function DownloadIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** Tandwiel voor het instellingenknopje in de header. */
+export function SettingsIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="3.1" />
+      <path d="M12 2.8l1.1 2.2 2.4-.5 1.3 2.1-1.5 1.9 1.5 1.9-1.3 2.1-2.4-.5L12 14.3l-1.1-2.2-2.4.5L7.2 10.5l1.5-1.9L7.2 6.7l1.3-2.1 2.4.5z" />
+    </svg>
+  );
+}
+
+/** Cirkelpijl voor de handmatige update-controle. */
+export function RefreshIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M20 12a8 8 0 10-2.8 6.1" />
+      <path d="M20 5.5V12h-6" />
+    </svg>
+  );
+}
+
+export function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M5 12.5l4.5 4.5L19 7" />
+    </svg>
+  );
+}

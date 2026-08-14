@@ -18,24 +18,6 @@ export const PALM_TREE_POSITIONS: WorldPoint[] = [
   { x: 0.15, z: -2.6 }, // northern peninsula — real palmyra-palm country
 ];
 
-/** Sampled around the whole coastline (offset outward from the coastline ring, verified in water), spaced so no two crowd the same stretch of coast. */
-export const WAVE_CREST_POSITIONS: WorldPoint[] = [
-  { x: 2.4, z: 0.85 }, // east coast
-  { x: 0.3, z: 4.7 }, // open water south of the island, off the surf coast
-  { x: 2.64, z: 1.96 }, // northeast coast
-  { x: 0.98, z: 4.06 }, // south coast
-  { x: -1.0, z: 4.53 }, // south coast, near Mirissa/Hikkaduwa
-  { x: -1.89, z: 3.25 }, // southwest coast
-  { x: -2.22, z: 1.91 }, // west coast
-  { x: -2.66, z: -0.45 }, // west coast, north of Negombo
-  { x: -2.11, z: -2.55 }, // northwest coast
-  { x: -1.39, z: -3.82 }, // near the northern peninsula
-  { x: -0.08, z: -3.48 }, // north tip
-  { x: 0.49, z: -2.83 }, // northeast coast
-  { x: 1.15, z: -2.06 }, // northeast coast
-  { x: 1.67, z: -0.53 }, // east coast, north of Trincomalee
-];
-
 export const STUPA_POSITION: WorldPoint = { x: -0.15, z: -1.9 }; // north of the Anuradhapura marker, clear of its pin/label
 export const LEOPARD_POSITION: WorldPoint = { x: -1.3, z: -1.65 }; // near the Wilpattu daytrip marker, clear of its dot
 export const ELEPHANT_POSITION: WorldPoint = { x: 1.55, z: 2.65 }; // near the Yala stop marker, clear of its pin
@@ -51,22 +33,29 @@ export const PEACOCK_POSITION: WorldPoint = { x: 0.18, z: -2.18 };
  * The row of hero rainforest trees the monkey swings along, in the order it
  * visits them (and then back again).
  *
- * On the wet-zone slopes inland of Ratnapura, around 6.6N 80.5E: the northern
- * end of the Sinharaja belt, which is purple-faced langur country and the one
- * stretch of island where habitats.ts already grows dense broadleaf woodland
- * (wetness here is 0.91), so the grove reads as the tall emergents standing over
- * a forest that is really there rather than four trees in a field.
+ * In the wooded lowlands of the Walawe basin, around 6.38N 80.91E — between
+ * Udawalawe and the Sinharaja foothills, and langur country. habitats.ts already
+ * grows broadleaf woodland here (wetness 0.58, over the 0.5 the tree habitat
+ * needs), so the grove reads as the tall emergents standing over a forest that is
+ * really there rather than four trees in a field.
  *
- * A gentle arc rather than a straight row, spaced 0.115 apart — one comfortable
- * leap. All four sit on the same terrain tier, and the spot was picked by search:
- * every trunk clears every stop marker, route line, lake and other prop by at
- * least 0.7 units, and none of them stands within 0.14 of the beach shelf.
+ * The row's *direction* is not a taste decision: it runs broadside to the default
+ * camera's horizontal view direction, the same reasoning NINE_ARCHES_ROTATION
+ * uses. An earlier version ran away from the camera instead, and the nearest tree
+ * simply hid the other three, monkey included.
+ *
+ * A gentle arc rather than a straight line, spaced 0.16 apart: far enough that the
+ * four crowns only just touch instead of merging into one mass, close enough to be
+ * one comfortable leap. All four sit on the same terrain tier, and the spot was
+ * picked by search over the whole island — every trunk clears every stop marker,
+ * route line, lake and other prop by at least 0.45 units even after its own 0.3
+ * glade, and none stands within 0.16 of the beach shelf.
  */
 export const MONKEY_TREE_POSITIONS: WorldPoint[] = [
-  { x: -0.666, z: 2.641 },
-  { x: -0.642, z: 2.755 },
-  { x: -0.598, z: 2.861 },
-  { x: -0.534, z: 2.959 },
+  { x: 0.074, z: 3.41 },
+  { x: 0.23, z: 3.372 },
+  { x: 0.381, z: 3.319 },
+  { x: 0.526, z: 3.25 },
 ];
 
 /** Temple of the Tooth (Kandy) and the Dambulla cave temple daytrip — both real temple visits, so they get Temple.tsx's tiered-roof vihara rather than Stupa.tsx's dagoba dome. */
@@ -141,7 +130,7 @@ export const PROP_CLEARANCE = {
    * clears a glade around the whole row. Dropped in at crown-width the grove
    * vanished into the wet zone's own dense woodland, and a monkey swinging behind
    * a wall of canopy is an easter egg nobody ever gets to see. This opens the row
-   * into one continuous clearing (the circles overlap at 0.115 spacing) with the
+   * into one continuous clearing (the circles overlap at 0.16 spacing) with the
    * four tall trees standing in it.
    *
    * 0.3 rather than something tighter is measured, not guessed: the nearest

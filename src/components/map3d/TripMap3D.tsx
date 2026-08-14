@@ -20,7 +20,6 @@ import {
   TURTLE_POSITION,
   WATERFALL_POSITION,
   WATERFALL_ROTATION,
-  WAVE_CREST_POSITIONS,
   WHALE_POSITION,
 } from "../../data/mapDecor";
 import { getDaytripEntries } from "../../utils/daytrips";
@@ -31,7 +30,6 @@ import { useMapScatter } from "../../utils/useMapScatter";
 import { useReducedMotion } from "../../utils/useReducedMotion";
 import { Island } from "./Island";
 import { Water } from "./Water";
-import { SEA_LEVEL_Y, WAVE_AMPLITUDE } from "./seaLevel";
 import { CameraRig, type CameraRigHandle } from "./CameraRig";
 import { usePinchZoom } from "./usePinchZoom";
 import { StopMarker3D } from "./StopMarker3D";
@@ -39,7 +37,6 @@ import { DaytripMarker3D } from "./DaytripMarker3D";
 import { RouteLine3D } from "./RouteLine3D";
 import { DaytripConnector3D } from "./DaytripConnector3D";
 import { PalmTree } from "./PalmTree";
-import { WaveCrest } from "./WaveCrest";
 import { Highlands, PLATEAU_LAYER1_TOP, getPlateauCenter, getTerrainSurfaceY } from "./Highlands";
 import { Stupa } from "./Stupa";
 import { TeaBushes } from "./TeaBushes";
@@ -213,19 +210,22 @@ function nightBlendFromPhase(phase: number): number {
  * start of every simulated day.
  */
 /**
- * What shows past the far edge of Water's 60x60 plane.
+ * What shows past the far edge of the sea.
  *
  * At the camera's lowest polar angle the top of a 32-degree frame sits several
- * degrees *above* horizontal while the plane's far edge sits below it, so
+ * degrees *above* horizontal while the water's far edge sits below it, so
  * without this the transparent canvas let the cream page background through as
- * a hard seam across the upper third. DAY is the water shader's own far-field
- * colour (its deep/shallow mix at full distance, times the mean lambert term),
- * so the plane edge disappears into it and reads as haze over distant sea.
+ * a hard seam across the upper third.
+ *
+ * Water.tsx reads this colour back off `scene.background` every frame and hazes
+ * its own far field into it, so the two are the same value by construction
+ * rather than by hand-matching, and the edge of the water genuinely stops
+ * existing rather than becoming hard to spot. Change it here and the sea
+ * follows.
  *
  * Not fog: Water, RouteLine3D and StillWater are raw ShaderMaterials and get no
  * fog chunks, so fog would fade the land and leave the sea sitting flat on top
- * of it. Not a bigger plane either: reaching far enough at the current segment
- * density costs tens of thousands of vertex-displaced triangles.
+ * of it.
  */
 const HORIZON_DAY = new THREE.Color("#2d88a6");
 /** Matched to the sea shader's own night mix, so the horizon darkens with the water rather than staying a bright band above it. */
@@ -470,10 +470,12 @@ export function TripMap3D({
         />
 
         <Water nightRef={nightAmountRef} />
-        {/* Centred on the sea and half a swell tall, so the glints track the water's own
-            surface and stop short of the sand shelf above it. The old box was fixed in
-            absolute Y and straddled the shelf, sprinkling glints across the beach. */}
-        <Sparkles count={50} scale={[9, 2 * WAVE_AMPLITUDE, 9]} position={[0, SEA_LEVEL_Y, 0]} size={2.4} speed={0.3} opacity={0.55} color="#ffffff" noise={0.6} />
+        {/* No sea sparkles any more. They were standing in for sunlight on water at
+            a time when the sea shader had no view vector and so could not produce a
+            real highlight; Water.tsx now reflects an actual sun disc through a
+            fresnel term, and 50 floating billboards on top of that read as glitter
+            drawn over the water rather than glinting off it. The fireflies below
+            stay: nothing else produces those. */}
         <Rain3D active={manualEvening} prefersReducedMotion={prefersReducedMotion} />
         {/* Fireflies: real ones are dusk/night creatures, so they're barely there by day and glow once night falls, whether from the manual toggle or the tour's own cycling. */}
         {/* Height comes from getTerrainSurfaceY, not from PLATEAU_LAYER1_TOP: that
@@ -565,9 +567,6 @@ export function TripMap3D({
         <Whale x={WHALE_POSITION.x} z={WHALE_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
         {PALM_TREE_POSITIONS.map((p) => (
           <PalmTree key={`${p.x}-${p.z}`} x={p.x} z={p.z} />
-        ))}
-        {WAVE_CREST_POSITIONS.map((p) => (
-          <WaveCrest key={`${p.x}-${p.z}`} x={p.x} z={p.z} />
         ))}
 
         <CameraRig

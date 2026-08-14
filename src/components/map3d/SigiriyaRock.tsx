@@ -16,7 +16,7 @@ const GARDEN_COLOR = "#6f8f4a";
 
 /**
  * Sigiriya's Lion Rock: a real, named landmark (not a generic decoration like
- * PalmTree/WaveCrest), so it gets its own monolith rather than a hand-wavy
+ * PalmTree), so it gets its own monolith rather than a hand-wavy
  * bump — the real rock is a ~200m volcanic plug rising abruptly out of flat
  * plains, and that abruptness is the whole silhouette.
  *
