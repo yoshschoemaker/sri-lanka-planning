@@ -10,6 +10,7 @@ import {
 import { project } from "../utils/projection";
 import { getMarkerPosition, getLabelPlacement } from "../utils/mapLayout";
 import { getDaytripEntries } from "../utils/daytrips";
+import { isBookingSettled, isStopover, nightsLabel } from "../utils/nights";
 import { useReducedMotion } from "../utils/useReducedMotion";
 import { DIM_DURATION, hoverLift, selectPulse, tapShrink } from "../motion/variants";
 import type { ModeFilter, StatusFilter } from "./FilterBar";
@@ -163,10 +164,13 @@ export function TripMap({ stops, transportModes, selected, onSelect, statusFilte
         {positions.map(({ stop, pos }, i) => {
           const mode = transportModes[stop.transportTo.mode];
           const isActive = selected === stop.id;
-          const statusDimmed = statusFilter === "toBook" && stop.booked;
+          const statusDimmed = statusFilter === "toBook" && isBookingSettled(stop);
           const modeDimmed = modeFilter !== "all" && modeFilter !== stop.transportTo.mode;
           const dimmed = statusDimmed || modeDimmed;
           const label = getLabelPlacement(stop);
+          // Doortocht: gestippelde, lichte marker, net als de gestippelde rand van zijn kaart.
+          const stopover = isStopover(stop);
+          const outlined = stopover && !isActive;
 
           return (
             <motion.g
@@ -182,7 +186,11 @@ export function TripMap({ stops, transportModes, selected, onSelect, statusFilte
               style={{ transformOrigin: `${pos.x}px ${pos.y}px`, cursor: "pointer" }}
               tabIndex={0}
               role="button"
-              aria-label={`${stop.name}, ${stop.nights} nachten, ${stop.booked ? "geboekt" : "nog te boeken"}`}
+              aria-label={
+                isStopover(stop)
+                  ? `${stop.name}, tussenstop zonder overnachting`
+                  : `${stop.name}, ${nightsLabel(stop)}, ${stop.booked ? "geboekt" : "nog te boeken"}`
+              }
               aria-pressed={isActive}
               onClick={() => onSelect(stop.id)}
               onMouseEnter={() => setHoveredStop(stop.id)}
@@ -215,16 +223,17 @@ export function TripMap({ stops, transportModes, selected, onSelect, statusFilte
                 cx={pos.x}
                 cy={pos.y}
                 r={isActive ? MARKER_R + 1.5 : MARKER_R}
-                className={isActive ? "fill-terracotta-dark" : "fill-ink"}
-                stroke="var(--color-cream)"
+                className={isActive ? "fill-terracotta-dark" : outlined ? "fill-cream" : "fill-ink"}
+                stroke={outlined ? "var(--color-ink)" : "var(--color-cream)"}
                 strokeWidth={2}
+                strokeDasharray={outlined ? "3 2.5" : undefined}
               />
               <text
                 x={pos.x}
                 y={pos.y}
                 dominantBaseline="central"
                 textAnchor="middle"
-                className="pointer-events-none fill-cream font-sans font-semibold"
+                className={`pointer-events-none font-sans font-semibold ${outlined ? "fill-ink" : "fill-cream"}`}
                 style={{ fontSize: 11 }}
               >
                 {i + 1}
@@ -250,6 +259,7 @@ export function TripMap({ stops, transportModes, selected, onSelect, statusFilte
               </text>
               <title>
                 {stop.name} · {stop.dates} · {mode.icon} {mode.label}
+                {stopover ? " · tussenstop" : ""}
               </title>
             </motion.g>
           );
@@ -270,9 +280,9 @@ export function TripMap({ stops, transportModes, selected, onSelect, statusFilte
               pos={getMarkerPosition(tooltipStop)}
               lines={[
                 tooltipStop.name,
-                `${tooltipStop.dates} · ${tooltipStop.nights} ${tooltipStop.nights === 1 ? "nacht" : "nachten"}`,
+                `${tooltipStop.dates} · ${nightsLabel(tooltipStop)}`,
                 `${transportModes[tooltipStop.transportTo.mode].icon} ${transportModes[tooltipStop.transportTo.mode].label} · ${tooltipStop.transportTo.duration}`,
-                tooltipStop.booked ? "✓ Geboekt" : "○ Nog te boeken",
+                isStopover(tooltipStop) ? "⏱ Tussenstop, geen verblijf" : tooltipStop.booked ? "✓ Geboekt" : "○ Nog te boeken",
               ]}
             />
           )

@@ -5,6 +5,7 @@ import { dimTransition } from "../motion/variants";
 import { PhotoGallery, CameraIcon } from "./PhotoGallery";
 import { AccommodationCard } from "./AccommodationCard";
 import { ActivityCard } from "./ActivityCard";
+import { isStopover, nightsLabel } from "../utils/nights";
 import type { PriorityFilter } from "./FilterBar";
 
 interface StopCardProps {
@@ -31,6 +32,7 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
   const coverPhoto = stop.photos?.[0] ?? stop.accommodation?.photos?.[0];
   const panelId = `stop-${stop.id}-panel`;
   const isHighlight = stop.activities.filter((activity) => activity.priority === "must").length >= HIGHLIGHT_MUST_COUNT;
+  const stopover = isStopover(stop);
 
   return (
     <motion.div
@@ -45,7 +47,7 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
       tabIndex={0}
       role="button"
       aria-pressed={isActive}
-      aria-label={`Stop ${order}: ${stop.name}`}
+      aria-label={`Stop ${order}: ${stop.name}${stopover ? ", tussenstop zonder overnachting" : ""}`}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -66,6 +68,10 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
       <motion.div animate={{ opacity: dimmed ? 0.4 : 1 }} transition={dimTransition} className="flex flex-col gap-2.5">
         <div
           className={`rounded-2xl border bg-white/70 p-5 shadow-card transition-colors duration-300 sm:p-6 ${
+            // Een doortocht krijgt een gestippelde rand: hij hoort in de route,
+            // maar is geen verblijf zoals de omliggende kaarten.
+            stopover ? "border-dashed" : ""
+          } ${
             isActive
               ? "border-terracotta-dark shadow-glow-terracotta ring-2 ring-terracotta/40"
               : isHighlight
@@ -99,15 +105,19 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
                 </h3>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                    stop.booked ? "bg-forest/10 text-forest-dark" : "bg-terracotta/10 text-terracotta-dark"
+                    stopover
+                      ? "bg-ink/5 text-ink-soft"
+                      : stop.booked
+                        ? "bg-forest/10 text-forest-dark"
+                        : "bg-terracotta/10 text-terracotta-dark"
                   }`}
                 >
-                  {stop.booked ? "✓ Geboekt" : "○ Nog te boeken"}
+                  {stopover ? "⏱ Tussenstop" : stop.booked ? "✓ Geboekt" : "○ Nog te boeken"}
                 </span>
               </div>
 
               <p className="mt-1 text-sm text-ink-soft">
-                {stop.dates} · {stop.nights} {stop.nights === 1 ? "nacht" : "nachten"}
+                {stop.dates} · {nightsLabel(stop)}
               </p>
 
               {stop.note && <p className="mt-2 text-sm text-ink-soft">{stop.note}</p>}
@@ -123,7 +133,7 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
                   <span aria-hidden style={{ color: mode.color }}>
                     {mode.icon}
                   </span>
-                  aangekomen via {mode.label.toLowerCase()}
+                  {stopover ? "onderweg via" : "aangekomen via"} {mode.label.toLowerCase()}
                 </p>
 
                 <button
@@ -136,7 +146,7 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
                   aria-controls={panelId}
                   className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-ink-soft outline-none transition-colors hover:bg-ink/5 hover:text-ink"
                 >
-                  Foto&apos;s &amp; verblijf
+                  {stopover ? "Foto's" : "Foto's & verblijf"}
                   <ChevronIcon expanded={panelOpen} className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -170,7 +180,7 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
               >
                 <div className="mt-4 flex flex-col gap-4 border-t border-ink/10 pt-4">
                   <PhotoGallery photos={stop.photos} alt={stop.name} />
-                  <AccommodationCard accommodation={stop.accommodation} />
+                  {!stopover && <AccommodationCard accommodation={stop.accommodation} />}
                 </div>
               </motion.div>
             )}

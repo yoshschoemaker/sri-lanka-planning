@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { ISLAND_MAIN_RING, ISLAND_ISLET_RINGS } from "../../data/srilankaShape3d";
+import { getWetness } from "../../utils/climateZone3d";
 
 /**
  * Low-poly "paper diorama" extrusion: straight line segments only (no spline
@@ -41,6 +42,12 @@ const TOP_CENTER_COLOR = new THREE.Color("#e7d5ac"); // sand
 const TOP_EDGE_COLOR = new THREE.Color("#c2683f"); // terracotta
 const SIDE_COLOR = "#9c5030"; // terracotta-dark, the "cut" faces
 
+/** Lowland climate tints: a humid green for the wet southwest, the existing sandy ochre for the dry north and east. */
+const LOWLAND_WET = new THREE.Color("#8fa863");
+const LOWLAND_DRY = new THREE.Color("#d8bd8a");
+/** Held well below 1: the terrain is a backdrop for markers and route lines, and a fully saturated green would fight them. */
+const LOWLAND_ZONE_STRENGTH = 0.45;
+
 type Ring = readonly (readonly [number, number])[];
 
 function buildIslandGeometry(ring: Ring): THREE.ExtrudeGeometry {
@@ -64,6 +71,11 @@ function buildIslandGeometry(ring: Ring): THREE.ExtrudeGeometry {
   const geometry = new THREE.ExtrudeGeometry(shape, settings);
   geometry.rotateX(-Math.PI / 2);
   addRadialGradient(geometry);
+  // Islets are a fraction of a world unit across, so a climate gradient over them
+  // would be a single flat shift — and they're all in the dry north anyway.
+  if (settings === MAIN_EXTRUDE_SETTINGS) {
+    applyZoneTint(geometry, LOWLAND_WET, LOWLAND_DRY, LOWLAND_ZONE_STRENGTH);
+  }
   return geometry;
 }
 
@@ -99,6 +111,50 @@ export function addRadialGradient(
   }
 
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+}
+
+/**
+ * Blends the existing per-vertex terrain color toward a wet-zone or dry-zone tint,
+ * per vertex, using src/utils/climateZone3d.ts's reconstruction of Sri Lanka's real
+ * wet/dry boundary.
+ *
+ * The island read as one flat ochre plateau, which is the single most wrong thing
+ * about it: the real contrast between the green southwest quarter and the dry
+ * brown north and east is the island's most recognisable feature. This adds that
+ * as a second dimension on top of addRadialGradient's centre-to-edge gradient
+ * (rather than replacing it), and costs nothing at all to render — it only
+ * rewrites an attribute that was already there, so no extra geometry, no extra
+ * material, no extra draw call.
+ *
+ * Both this and the vegetation scatter read the same getWetness, so the forest
+ * always lands on the green ground and the scrub on the brown.
+ *
+ * `strength` caps how far the tint can pull: the terrain is a backdrop for
+ * markers and route lines, so full-saturation green would fight them.
+ */
+export function applyZoneTint(
+  geometry: THREE.ExtrudeGeometry,
+  wetColor: THREE.Color,
+  dryColor: THREE.Color,
+  strength: number,
+  tier = -1,
+): void {
+  const position = geometry.attributes.position;
+  const colorAttribute = geometry.attributes.color as THREE.BufferAttribute | undefined;
+  if (!colorAttribute) return;
+
+  const base = new THREE.Color();
+  const target = new THREE.Color();
+
+  for (let i = 0; i < position.count; i++) {
+    const wetness = getWetness(position.getX(i), position.getZ(i), tier);
+    base.fromBufferAttribute(colorAttribute, i);
+    target.copy(dryColor).lerp(wetColor, wetness);
+    base.lerp(target, strength);
+    colorAttribute.setXYZ(i, base.r, base.g, base.b);
+  }
+
+  colorAttribute.needsUpdate = true;
 }
 
 /** One extruded mesh: material-0 is the top/bottom cap (three.js's own group order), material-1 the cut side walls. */

@@ -5,6 +5,7 @@ import { HeroBanner } from "./components/HeroBanner";
 import { SplashScreen } from "./components/SplashScreen";
 import { DailyCountdownConfetti } from "./components/DailyCountdownConfetti";
 import { TripStats } from "./components/TripStats";
+import { RouteSummary } from "./components/RouteSummary";
 import { FlightCard } from "./components/FlightCard";
 import { FilterBar, type ModeFilter, type PriorityFilter, type StatusFilter } from "./components/FilterBar";
 import { ItineraryList } from "./components/ItineraryList";
@@ -169,7 +170,9 @@ function App() {
       <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
         <TripStats trip={trip} stops={stops} transportModes={transportModes} onJumpToStop={handleSelect} />
 
-        <section className="mt-12 mb-10 sm:mt-14">
+        <RouteSummary trip={trip} stops={stops} />
+
+        <section className="mb-10">
           <h2 className="mb-4 font-serif text-2xl font-semibold text-ink">Vluchten</h2>
           <div className="flex flex-col gap-4 sm:flex-row">
             <FlightCard flight={trip.flights.outbound} direction="heen" />

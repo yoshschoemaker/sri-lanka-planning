@@ -28,9 +28,9 @@ export interface LabelPlacement {
 const LABEL_OVERRIDES: Record<string, LabelPlacement> = {
   "negombo-arrival": { dx: 0, dy: -16, anchor: "middle" },
   "negombo-departure": { dx: 0, dy: 22, anchor: "middle" },
-  // Tangalle / Mirissa / Hikkaduwa sit close together on the south coast;
+  // Hiriketiya / Mirissa / Hikkaduwa sit close together on the south coast;
   // default right-side labels would overlap, so each is nudged to its own spot.
-  tangalle: { dx: 14, dy: 18, anchor: "start" },
+  hiriketiya: { dx: 14, dy: 18, anchor: "start" },
   mirissa: { dx: 0, dy: 20, anchor: "middle" },
 };
 

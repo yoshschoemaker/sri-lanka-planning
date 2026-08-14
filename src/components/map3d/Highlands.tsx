@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { TERRAIN_BANDS } from "../../data/terrainBands";
+import { pointInRing } from "../../utils/geometry3d";
 import type { WorldPoint } from "../../utils/projection3d";
-import { addRadialGradient, ISLAND_TOP_Y } from "./Island";
+import { addRadialGradient, applyZoneTint, ISLAND_TOP_Y } from "./Island";
 
 const BASE_TOP_CENTER = new THREE.Color("#c2b877");
 const BASE_TOP_EDGE = new THREE.Color("#9c8a4f");
@@ -11,6 +12,12 @@ const BASE_SIDE_COLOR = new THREE.Color("#6e5c34");
 const PEAK_TOP_CENTER = new THREE.Color("#8f9478");
 const PEAK_TOP_EDGE = new THREE.Color("#68705a");
 const PEAK_SIDE_COLOR = new THREE.Color("#4f5442");
+
+/** Hill-country climate tints: tea green on the wet windward slopes, dry olive in the eastern lee. */
+const HILL_WET = new THREE.Color("#6f9159");
+const HILL_DRY = new THREE.Color("#a89a6c");
+/** Weaker than the lowlands', since the per-tier elevation lerp above is already carrying most of this terrain's colour. */
+const HILL_ZONE_STRENGTH = 0.32;
 
 /** Each of the 7 real elevation bands (src/data/terrainBands.ts) gets an equally thin slice of this budget, so more bands read as a finer-stepped relief rather than a taller one. */
 const TIER_DEPTH = 0.045;
@@ -31,14 +38,48 @@ export function getPlateauCenter(): WorldPoint {
   return { x, z };
 }
 
-function pointInRing(x: number, z: number, ring: readonly (readonly [number, number])[]): boolean {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, zi] = ring[i];
-    const [xj, zj] = ring[j];
-    if (zi > z !== zj > z && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) inside = !inside;
+/**
+ * Every terrain ring paired with its bounding box, highest tier first.
+ *
+ * The bounding boxes are a prefilter, and the ordering an early exit: the tier
+ * lookup is called once per candidate point by the vegetation scatter (thousands
+ * of times at mount), and walking all 18 rings' ~700 vertices for each of them
+ * was the single most expensive thing in that pass. Most points miss most rings
+ * entirely — the high tiers are small — so a 4-comparison box test rejects them
+ * before any crossing math runs, and because the highest matching tier is the
+ * answer, scanning downward lets a hit return immediately.
+ */
+const RINGS_BY_TIER_DESC = TERRAIN_BANDS.map((band, tier) => ({
+  tier,
+  rings: band.rings.map((ring) => {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+    for (const [x, z] of ring) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (z < minZ) minZ = z;
+      if (z > maxZ) maxZ = z;
+    }
+    return { ring, minX, maxX, minZ, maxZ };
+  }),
+})).reverse();
+
+/**
+ * Index of the highest terrain tier covering a world (x, z), or -1 on the flat
+ * lowlands. Exported alongside getTerrainSurfaceY (which is just this plus the
+ * height math) because the scatter's habitat predicates reason in tiers, not
+ * in world Y: "tea grows on the mid band", "patana grass only above tier 4".
+ */
+export function getTerrainTier(x: number, z: number): number {
+  for (const band of RINGS_BY_TIER_DESC) {
+    for (const b of band.rings) {
+      if (x < b.minX || x > b.maxX || z < b.minZ || z > b.maxZ) continue;
+      if (pointInRing(x, z, b.ring)) return band.tier;
+    }
   }
-  return inside;
+  return -1;
 }
 
 /**
@@ -50,17 +91,19 @@ function pointInRing(x: number, z: number, ring: readonly (readonly [number, num
  * than floating above it or sinking into it.
  */
 export function getTerrainSurfaceY(x: number, z: number): number {
-  let tier = -1;
-  for (let i = 0; i < TERRAIN_BANDS.length; i++) {
-    if (TERRAIN_BANDS[i].rings.some((ring) => pointInRing(x, z, ring))) tier = i;
-  }
-  return ISLAND_TOP_Y + (tier + 1) * TIER_HEIGHT;
+  return ISLAND_TOP_Y + (getTerrainTier(x, z) + 1) * TIER_HEIGHT;
 }
+
+/** Number of real elevation bands, so habitat predicates can express "the top two tiers" without importing TERRAIN_BANDS themselves. */
+export const TERRAIN_TIER_COUNT = TERRAIN_BANDS.length;
+
+export { TIER_HEIGHT };
 
 function buildRingGeometry(
   ring: readonly (readonly [number, number])[],
   centerColor: THREE.Color,
   edgeColor: THREE.Color,
+  tier: number,
 ): THREE.ExtrudeGeometry {
   const shape = new THREE.Shape();
   ring.forEach(([x, z], i) => {
@@ -73,6 +116,14 @@ function buildRingGeometry(
   const geometry = new THREE.ExtrudeGeometry(shape, TIER_SETTINGS);
   geometry.rotateX(-Math.PI / 2);
   addRadialGradient(geometry, centerColor, edgeColor);
+  // The hill country gets the same wet/dry treatment as the base island, but
+  // pulled toward tea green rather than lowland green, and weaker: the elevation
+  // lerp below is already doing most of the colour work up here, and stacking a
+  // strong climate tint on top of it flattens the tiers back into one mass.
+  // `tier` is passed through so getWetness applies the orographic bonus that makes
+  // the wet zone bulge inland over these slopes, exactly as it does for the
+  // vegetation standing on them.
+  applyZoneTint(geometry, HILL_WET, HILL_DRY, HILL_ZONE_STRENGTH, tier);
   return geometry;
 }
 
@@ -109,7 +160,7 @@ export function Highlands() {
         return {
           y: ISLAND_TOP_Y + i * TIER_HEIGHT,
           sideColor,
-          geometries: band.rings.map((ring) => buildRingGeometry(ring, centerColor, edgeColor)),
+          geometries: band.rings.map((ring) => buildRingGeometry(ring, centerColor, edgeColor, i)),
         };
       }),
     [],

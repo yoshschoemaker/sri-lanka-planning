@@ -4,6 +4,7 @@ import { StopCard } from "./StopCard";
 import { TransportConnector } from "./TransportConnector";
 import { RegionHeader } from "./RegionHeader";
 import { getRegionForStop } from "../data/regions";
+import { isBookingSettled } from "../utils/nights";
 import type { ModeFilter, PriorityFilter, StatusFilter } from "./FilterBar";
 
 interface ItineraryListProps {
@@ -32,7 +33,7 @@ export function ItineraryList({
       {stops.map((stop, i) => {
         const order = i + 1;
         const mode = transportModes[stop.transportTo.mode];
-        const statusDimmed = statusFilter === "toBook" && stop.booked;
+        const statusDimmed = statusFilter === "toBook" && isBookingSettled(stop);
         const modeDimmed = modeFilter !== "all" && modeFilter !== stop.transportTo.mode;
         const region = getRegionForStop(order);
         const previousRegion = i > 0 ? getRegionForStop(order - 1) : undefined;
