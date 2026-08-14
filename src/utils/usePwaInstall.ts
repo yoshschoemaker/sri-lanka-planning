@@ -5,7 +5,7 @@ import {
   subscribeDeferredPrompt,
 } from "./deferredInstallPrompt";
 import { isInstallPromptSnoozed, snoozeInstallPrompt } from "./installDismissal";
-import { isIosSafari, isStandaloneDisplay } from "./pwaDisplayMode";
+import { canInstallOnIos, isStandaloneDisplay } from "./pwaDisplayMode";
 import { useMediaQuery } from "./useMediaQuery";
 
 export type InstallState =
@@ -13,9 +13,9 @@ export type InstallState =
   | "installed"
   /** Chromium heeft een beforeinstallprompt klaarstaan. */
   | "installable"
-  /** iOS Safari: installeren kan alleen handmatig via het deelmenu. */
+  /** iOS: installeren kan alleen handmatig via het deelmenu. */
   | "ios-manual"
-  /** Browser die niet kan installeren (desktop Firefox, iOS Chrome, ...). */
+  /** Browser die niet kan installeren (desktop Firefox, in-app webviews, ...). */
   | "unavailable";
 
 export interface PwaInstall {
@@ -53,7 +53,7 @@ export function usePwaInstall(): PwaInstall {
     state = "installed";
   } else if (deferred) {
     state = "installable";
-  } else if (isIosSafari()) {
+  } else if (canInstallOnIos()) {
     state = "ios-manual";
   } else {
     state = "unavailable";

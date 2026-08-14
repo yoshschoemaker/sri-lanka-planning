@@ -36,11 +36,28 @@ export function isIpad(): boolean {
   return /iPad/.test(ua()) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 
-/**
- * Alleen Safari op iOS kan "Zet op beginscherm"; Chrome/Firefox/Edge/Opera en de
- * Google-app draaien daar wel op WebKit maar hebben die menu-optie niet. De
- * instructiemodal zou daar naar iets wijzen dat niet bestaat.
- */
-export function isIosSafari(): boolean {
-  return isIosDevice() && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(ua());
+/** Welke route naar het beginscherm deze iOS-browser heeft. */
+export type IosInstallRoute =
+  /** Safari: "Zet op beginscherm" staat vast in het deelmenu. */
+  | "safari"
+  /**
+   * Chrome, Edge en Firefox mogen sinds iOS 16.4 dezelfde actie in het
+   * systeem-deelmenu aanbieden. Alleen staat de deelknop ergens anders, en de
+   * actie kan onder "Wijzig acties" verstopt zitten.
+   */
+  | "share-sheet"
+  /** Google-app en in-app webviews: geen deelmenu met die actie. */
+  | "none";
+
+export function iosInstallRoute(): IosInstallRoute {
+  if (!isIosDevice()) return "none";
+  const agent = ua();
+  if (/CriOS|EdgiOS|FxiOS/.test(agent)) return "share-sheet";
+  if (/GSA|FBAN|FBAV|Instagram|LinkedInApp|OPiOS|OPT\//.test(agent)) return "none";
+  return "safari";
+}
+
+/** True zodra deze iOS-browser de app op het beginscherm kán zetten. */
+export function canInstallOnIos(): boolean {
+  return iosInstallRoute() !== "none";
 }

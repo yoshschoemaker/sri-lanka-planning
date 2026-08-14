@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useReducedMotion } from "../utils/useReducedMotion";
-import { isIosSafari, isIpad } from "../utils/pwaDisplayMode";
+import { iosInstallRoute, isIpad } from "../utils/pwaDisplayMode";
 import { AddToHomeScreenIcon, CloseIcon, IosShareIcon } from "./icons";
 
 interface IosInstallSheetProps {
@@ -16,12 +16,13 @@ interface Step {
 
 /**
  * iOS kent geen beforeinstallprompt: installeren kan daar uitsluitend handmatig
- * via het deelmenu van Safari. Deze sheet wijst de weg, omdat die route anders
- * onvindbaar is voor wie hem niet kent.
+ * via het deelmenu. Deze sheet wijst de weg, omdat die route anders onvindbaar
+ * is voor wie hem niet kent. Sinds iOS 16.4 kunnen ook Chrome, Edge en Firefox
+ * de actie tonen, alleen zit de deelknop daar elders.
  */
 export function IosInstallSheet({ open, onClose }: IosInstallSheetProps) {
   const prefersReducedMotion = useReducedMotion();
-  const safari = isIosSafari();
+  const route = iosInstallRoute();
 
   useEffect(() => {
     if (!open) return;
@@ -41,10 +42,14 @@ export function IosInstallSheet({ open, onClose }: IosInstallSheetProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
 
-  const steps: Step[] = [
-    {
-      icon: <IosShareIcon className="h-5 w-5" />,
-      text: isIpad() ? (
+  const shareStep: Step = {
+    icon: <IosShareIcon className="h-5 w-5" />,
+    text:
+      route === "share-sheet" ? (
+        <>
+          Tik naast de adresbalk op <strong className="font-semibold">Deel</strong>
+        </>
+      ) : isIpad() ? (
         <>
           Tik rechtsboven in Safari op <strong className="font-semibold">Deel</strong>
         </>
@@ -53,7 +58,10 @@ export function IosInstallSheet({ open, onClose }: IosInstallSheetProps) {
           Tik onderin in Safari op <strong className="font-semibold">Deel</strong>
         </>
       ),
-    },
+  };
+
+  const steps: Step[] = [
+    shareStep,
     {
       icon: <AddToHomeScreenIcon className="h-5 w-5" />,
       text: (
@@ -116,7 +124,7 @@ export function IosInstallSheet({ open, onClose }: IosInstallSheetProps) {
                 </button>
               </div>
 
-              {safari ? (
+              {route !== "none" ? (
                 <ol className="mt-6 space-y-4">
                   {steps.map((step, i) => (
                     <li key={i} className="flex items-center gap-3">
@@ -134,9 +142,17 @@ export function IosInstallSheet({ open, onClose }: IosInstallSheetProps) {
                 </ol>
               ) : (
                 <p className="mt-6 rounded-2xl bg-cream-dark px-4 py-3 text-sm text-ink">
-                  Open deze pagina in <strong className="font-semibold">Safari</strong> om hem op
-                  je beginscherm te kunnen zetten. Andere browsers op iPhone en iPad hebben die
-                  optie niet.
+                  Open deze pagina in <strong className="font-semibold">Safari</strong>, Chrome of
+                  Edge om hem op je beginscherm te kunnen zetten. Vanuit een app zoals Instagram
+                  of Facebook lukt dat niet.
+                </p>
+              )}
+
+              {route === "share-sheet" && (
+                <p className="mt-5 rounded-2xl bg-cream-dark px-4 py-3 text-sm text-ink-soft">
+                  Staat <strong className="font-semibold">Zet op beginscherm</strong> er niet
+                  tussen? Scroll in het deelmenu helemaal omlaag, tik op{" "}
+                  <strong className="font-semibold">Wijzig acties</strong> en zet hem daar aan.
                 </p>
               )}
             </div>
