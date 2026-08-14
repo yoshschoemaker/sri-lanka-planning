@@ -111,6 +111,16 @@ export function JungleTree({ x, z, heading }: { x: number; z: number; heading: n
         <meshStandardMaterial color={LIMB_COLOR} roughness={0.95} flatShading />
       </mesh>
 
+      {/* Leaf tufts on the limb's two ends. Without them the bare limb reads as
+          scaffolding bolted to a pole; with them it reads as a branch — and they
+          sit at the ends, well clear of the middle the monkey hangs from. */}
+      {[-1, 1].map((end) => (
+        <mesh key={end} position={[0, limbY + 0.012, end * LIMB_HALF_LENGTH * 0.92]} scale={[1, 0.7, 1]}>
+          <icosahedronGeometry args={[0.026, 0]} />
+          <meshStandardMaterial color={end < 0 ? LEAF_COLOR_A : LEAF_COLOR_B} roughness={0.9} flatShading />
+        </mesh>
+      ))}
+
       {/* A second, shorter limb across the row, purely so the tree doesn't read as a T from above. */}
       <mesh position={[0, limbY + 0.045, 0]} rotation={[0, 0, Math.PI / 2 + 0.25]}>
         <cylinderGeometry args={[0.005, 0.005, LIMB_HALF_LENGTH * 1.1, 5]} />

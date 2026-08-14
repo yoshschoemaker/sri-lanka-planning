@@ -59,8 +59,14 @@ const VISIBLE_FOR = 16;
 const MIN_GAP = 40;
 const MAX_GAP = 95;
 
-/** Rest pose of the three tail segments, root outward: out and down behind, then curling back up. */
-const TAIL_REST = [0.9, 0.55, 0.55];
+/**
+ * Rest pose of the three tail segments, root outward: dropping from the rump,
+ * then curling back and up toward the tip. Cumulative, so these read as 26, 54
+ * and 89 degrees off vertical. An earlier pose started much closer to horizontal
+ * and the tail read as a twig stuck to the animal rather than as a tail hanging
+ * off it.
+ */
+const TAIL_REST = [0.45, 0.5, 0.6];
 
 interface Anchor {
   x: number;
@@ -228,7 +234,12 @@ export function Monkey({ trees, prefersReducedMotion }: { trees: WorldPoint[]; p
     }
 
     if (torsoRef.current) {
-      torsoRef.current.scale.set(0.8 + breath * 0.03, 1 + breath * 0.04 - airborne * 0.06, 0.7 + breath * 0.03);
+      // Same resting scale as the JSX below, plus the breath and the tuck it pulls into mid-leap.
+      torsoRef.current.scale.set(
+        0.76 + breath * 0.03,
+        0.98 + breath * 0.04 - airborne * 0.06,
+        0.66 + breath * 0.03,
+      );
     }
 
     if (headRef.current) {
@@ -398,7 +409,10 @@ export function Monkey({ trees, prefersReducedMotion }: { trees: WorldPoint[]; p
                 position={[0, -0.032, 0]}
                 rotation={[TAIL_REST[2], 0, 0]}
               >
-                <mesh position={[0, -0.014, 0]} material={paleMaterial}>
+                {/* Coat-coloured, not pale. A real langur's tail does end lighter,
+                    but at this size the bright ruff tone turned the last segment
+                    into a white stick that read as a twig rather than a tail. */}
+                <mesh position={[0, -0.014, 0]} material={coatMaterial}>
                   <cylinderGeometry args={[0.0022, 0.003, 0.028, 5]} />
                 </mesh>
               </group>
