@@ -10,14 +10,15 @@ interface TripInfoAccordionProps {
   trip: Trip;
   stops: Stop[];
   openQuestions: string[];
+  todos: string[];
   notes: string[];
   onJumpToStop: (id: string) => void;
 }
 
 /** Collapsed by default: todo's and practical notes matter, but the route + map below are the centerpiece and should land in view without scrolling past a wall of text first. */
-export function TripInfoAccordion({ trip, stops, openQuestions, notes, onJumpToStop }: TripInfoAccordionProps) {
+export function TripInfoAccordion({ trip, stops, openQuestions, todos, notes, onJumpToStop }: TripInfoAccordionProps) {
   const [open, setOpen] = useState(false);
-  const checklist = buildTripChecklist(trip, stops, openQuestions);
+  const checklist = buildTripChecklist(trip, stops, openQuestions, todos);
   const panelId = "trip-info-panel";
 
   if (checklist.totalCount === 0 && notes.length === 0) return null;

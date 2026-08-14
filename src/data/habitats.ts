@@ -57,8 +57,18 @@ const TEA_TIER_MAX = 5;
  */
 const PATANA_TIER_MIN = 6;
 
-/** How close to the sea coconut palms cluster, and how far in from the coastline anything at all may stand. */
+/** How far in from the coastline the broad inland habitats start. */
 const COAST_STRIP_MAX = 0.28;
+
+/**
+ * How deep the coconut belt reaches behind the beach.
+ *
+ * Measured from the sand's inner edge rather than from the coastline, because
+ * the shelf is 0.30 wide along the southwest surf coast — exactly
+ * COAST_STRIP_MAX — so a belt keyed on distance-to-sea would vanish precisely
+ * where Sri Lanka's coconut palms are thickest.
+ */
+const PALM_BELT_MAX = 0.22;
 
 /**
  * Ordered narrowest-habitat-first: the shared scatter hands each candidate to the
@@ -90,7 +100,7 @@ export function getHabitatSpecs(detail: DetailLevel): HabitatSpec<SpeciesKey>[] 
       count: count("palm"),
       minSpacing: 0.085,
       scaleRange: [0.8, 1.25],
-      accept: ({ coastDistance, tier }) => tier < 0 && coastDistance <= COAST_STRIP_MAX,
+      accept: ({ inlandDistance, tier }) => tier < 0 && inlandDistance <= PALM_BELT_MAX,
     },
     {
       key: "paddy",
@@ -100,7 +110,7 @@ export function getHabitatSpecs(detail: DetailLevel): HabitatSpec<SpeciesKey>[] 
       // climate zones. An earlier version restricted paddy to the wet zone, which
       // is backwards: the dry zone is Sri Lanka's rice bowl, and the reason the
       // ancient tanks in src/data/inlandWater.ts exist at all is to irrigate it.
-      accept: ({ tier, coastDistance }) => tier <= 0 && coastDistance > COAST_STRIP_MAX,
+      accept: ({ tier, inlandDistance }) => tier <= 0 && inlandDistance > PALM_BELT_MAX,
       scaleRange: [0.85, 1.3],
     },
     {
@@ -109,8 +119,8 @@ export function getHabitatSpecs(detail: DetailLevel): HabitatSpec<SpeciesKey>[] 
       minSpacing: 0.058,
       // Broadleaf forest: the wet southwest and the wetter mid slopes, but not
       // the exposed tops (patana) and not on the beach.
-      accept: ({ tier, wetness, coastDistance }) =>
-        wetness > 0.5 && tier < PATANA_TIER_MIN && coastDistance > COAST_STRIP_MAX * 0.6,
+      accept: ({ tier, wetness, inlandDistance }) =>
+        wetness > 0.5 && tier < PATANA_TIER_MIN && inlandDistance > COAST_STRIP_MAX * 0.6,
       scaleRange: [0.75, 1.35],
     },
     {

@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { TERRAIN_BANDS } from "../../data/terrainBands";
-import { pointInRing } from "../../utils/geometry3d";
+import { isInland, pointInRing } from "../../utils/geometry3d";
 import type { WorldPoint } from "../../utils/projection3d";
-import { addRadialGradient, applyZoneTint, ISLAND_TOP_Y } from "./Island";
+import { addRadialGradient, applyZoneTint, ISLAND_BEACH_Y, ISLAND_TOP_Y } from "./Island";
 
 const BASE_TOP_CENTER = new THREE.Color("#c2b877");
 const BASE_TOP_EDGE = new THREE.Color("#9c8a4f");
@@ -83,15 +83,23 @@ export function getTerrainTier(x: number, z: number): number {
 }
 
 /**
- * Real ground height at a given world (x, z): ISLAND_TOP_Y on the flat
- * lowlands, or the top of the highest terrain tier whose ring actually
- * covers that point. Landmarks placed inland (e.g. Temple.tsx near Kandy,
- * which real-world sits in the hill country) use this instead of assuming
- * flat ISLAND_TOP_Y, so they sit on the terrace they're really on rather
- * than floating above it or sinking into it.
+ * Real ground height at a given world (x, z): ISLAND_BEACH_Y out on the sand
+ * shelf, ISLAND_TOP_Y on the flat lowlands, or the top of the highest terrain
+ * tier whose ring actually covers that point. Landmarks placed inland (e.g.
+ * Temple.tsx near Kandy, which real-world sits in the hill country) use this
+ * instead of assuming flat ISLAND_TOP_Y, so they sit on the terrace they're
+ * really on rather than floating above it or sinking into it — and so do the
+ * six stops that sit on the beach (Mirissa, Hiriketiya, Hikkaduwa, Yala,
+ * Galle Fort, the Negombo arrival).
  */
 export function getTerrainSurfaceY(x: number, z: number): number {
-  return ISLAND_TOP_Y + (getTerrainTier(x, z) + 1) * TIER_HEIGHT;
+  const tier = getTerrainTier(x, z);
+  // No terrain contour comes within 0.433 world units of the coastline and the
+  // widest the shelf ever gets is MAX_BEACH_WIDTH (0.30), so a point on a tier
+  // is inland by construction and needs no ring test. scripts/build-map.mjs
+  // asserts that gap on every regen.
+  if (tier >= 0) return ISLAND_TOP_Y + (tier + 1) * TIER_HEIGHT;
+  return isInland(x, z) ? ISLAND_TOP_Y : ISLAND_BEACH_Y;
 }
 
 /** Number of real elevation bands, so habitat predicates can express "the top two tiers" without importing TERRAIN_BANDS themselves. */

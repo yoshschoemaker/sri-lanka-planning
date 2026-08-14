@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useReducedMotion } from "../utils/useReducedMotion";
+import { requestPersistentStorage } from "../utils/persistentStorage";
 import { CloseIcon } from "./icons";
 
 /** Hoe vaak een openstaande tab bij de server naar een nieuwe versie vraagt. */
@@ -28,6 +29,9 @@ export function UpdatePrompt({ raised = false }: UpdatePromptProps) {
   } = useRegisterSW({
     onRegisteredSW(_swUrl, swRegistration) {
       setRegistration(swRegistration ?? null);
+      // Pas hier zinvol: vóór de registratie valt er nog geen precache te
+      // beschermen. Draait elke start opnieuw tot het systeem ja zegt.
+      void requestPersistentStorage();
     },
     onRegisterError(error) {
       console.error("Service worker registratie mislukt:", error);

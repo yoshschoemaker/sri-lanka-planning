@@ -80,9 +80,10 @@ export function TripMap({ stops, transportModes, selected, onSelect, statusFilte
               x2={dp.x}
               y2={dp.y}
               stroke="#8a8072"
-              strokeWidth={1}
-              strokeDasharray="2 3"
-              opacity={0.5}
+              strokeWidth={0.7}
+              strokeLinecap="round"
+              strokeDasharray="0.1 2.6"
+              opacity={0.32}
             />
           );
         })}

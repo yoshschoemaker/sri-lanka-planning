@@ -48,10 +48,11 @@ export const WATER_BODIES: WaterBody[] = [
   { x: 1.085, z: 3.5, radius: 0.1, seed: 44 },
   // Muthurajawela, the coastal marsh south of Negombo's lagoon and a real Negombo
   // activity in the itinerary. Offset south of the two Negombo markers that share
-  // that stretch of coast, and 0.08 inland of its true position: the real marsh
-  // opens straight into the sea, which here would leave water overhanging the
-  // island's cut edge.
-  { x: -1.835, z: 2.189, radius: 0.085, seed: 55 },
+  // that stretch of coast, and 0.19 inland of its true position. The real marsh
+  // opens straight into the sea; here its rim has to clear the beach shelf's
+  // inner edge entirely, since a body whose surface snaps to the lowest ground
+  // under it would otherwise sit 0.09 sunk into the lowland on its landward half.
+  { x: -1.725, z: 2.189, radius: 0.085, seed: 55 },
 ];
 
 /**
@@ -70,7 +71,12 @@ export const MAHAWELI_POINTS: WorldPoint[] = [
   { x: 0.6, z: 0.45 },
   { x: 0.78, z: -0.02 }, // the dry-zone plain, east of Sigiriya
   { x: 0.9, z: -0.75 },
-  { x: 0.99, z: -1.28 }, // the mouth at Trincomalee
+  // The mouth at Trincomalee, and the only control point out on the beach shelf.
+  // Left there deliberately: a river that stops at the treeline instead of
+  // reaching the sea looks broken in a way a river stepping down onto the sand
+  // does not, and the ribbon samples terrain height per step so it takes the
+  // step cleanly.
+  { x: 0.99, z: -1.28 },
 ];
 
 /** Half-width of the river at its narrowest (headwaters) and widest (mouth). */

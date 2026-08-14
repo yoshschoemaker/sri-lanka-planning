@@ -4,8 +4,10 @@ import {
   ELEPHANT_POSITION,
   GALLE_FORT_POSITION,
   LEOPARD_POSITION,
+  MONKEY_TREE_POSITIONS,
   NINE_ARCHES_POSITION,
   PALM_TREE_POSITIONS,
+  PEACOCK_POSITION,
   PROP_CLEARANCE,
   SIGIRIYA_ROCK_POSITION,
   STUPA_POSITION,
@@ -92,11 +94,18 @@ export function buildMapExclusions(stops: Stop[]): Exclusion[] {
   }
 
   for (const p of PALM_TREE_POSITIONS) exclusions.push({ ...p, r: PROP_CLEARANCE.palmTree });
+  // Wide enough to clear each hero tree's own crown *and* to keep the gaps
+  // between them open: the monkey swings through those gaps, so a scattered tree
+  // growing into one would have it flying through foliage.
+  for (const p of MONKEY_TREE_POSITIONS) exclusions.push({ ...p, r: PROP_CLEARANCE.monkeyTree });
   for (const p of TEMPLE_POSITIONS) exclusions.push({ ...p, r: PROP_CLEARANCE.temple });
   exclusions.push({ ...STUPA_POSITION, r: PROP_CLEARANCE.stupa });
   exclusions.push({ ...SIGIRIYA_ROCK_POSITION, r: PROP_CLEARANCE.sigiriyaRock });
   exclusions.push({ ...LEOPARD_POSITION, r: PROP_CLEARANCE.critter });
   exclusions.push({ ...ELEPHANT_POSITION, r: PROP_CLEARANCE.critter });
+  // Narrower than the walking critters': the peacock stays on its spot, it only
+  // needs room for the fan.
+  exclusions.push({ ...PEACOCK_POSITION, r: PROP_CLEARANCE.peacock });
   exclusions.push({ ...NINE_ARCHES_POSITION, r: PROP_CLEARANCE.landmark });
   exclusions.push({ ...GALLE_FORT_POSITION, r: PROP_CLEARANCE.landmark });
   exclusions.push({ ...WATERFALL_POSITION, r: PROP_CLEARANCE.waterfall });

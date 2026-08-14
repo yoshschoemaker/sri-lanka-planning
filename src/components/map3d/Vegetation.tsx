@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { mergeParts } from "../../utils/mergeParts";
 import type { MapScatter } from "../../utils/useMapScatter";
 import { ScatteredInstances } from "./ScatteredInstances";
+import { buildFrondGeometry } from "./frondGeometry";
 
 /**
  * The island's procedural greenery: light woodland in the wet southwest, thorn
@@ -96,14 +97,14 @@ function buildScrubGeometry(): THREE.BufferGeometry {
 }
 
 /**
- * A coconut palm, baked from exactly the same primitives and transforms
+ * A coconut palm, baked from exactly the same trunk and the same frond blade
  * PalmTree.tsx builds its hand-placed hero palms from (minus the coconuts and the
  * per-frame sway, neither of which survives being one static buffer).
  *
- * Deliberately a faithful bake rather than a "simplified version". A first pass
- * used a thinner frond without PalmTree's 2.1x stretch along the frond's own
- * length, and the result read as a flat spiky asterisk rather than a palm: it's
- * the broad drooping leaf, not the radial arrangement, that makes the silhouette.
+ * Deliberately a faithful bake rather than a "simplified version": it's the broad
+ * arched leaf, not the radial arrangement, that makes the silhouette read as a
+ * palm, so the blade comes from frondGeometry.ts rather than being approximated
+ * with something cheaper here.
  *
  * An InstancedMesh has no group hierarchy, so PalmTree's nested
  * <group rotation> / <mesh position rotation scale> structure has to be applied
@@ -111,7 +112,7 @@ function buildScrubGeometry(): THREE.BufferGeometry {
  * translate, then the parent groups outward).
  */
 const PALM_TRUNK_HEIGHT = 0.32;
-const PALM_FROND_COUNT = 5;
+const PALM_FROND_COUNT = 7;
 
 function buildPalmGeometry(): THREE.BufferGeometry {
   const trunk = new THREE.CylinderGeometry(0.014, 0.024, PALM_TRUNK_HEIGHT, 5);
@@ -121,14 +122,15 @@ function buildPalmGeometry(): THREE.BufferGeometry {
   const parts = [tint(trunk, TRUNK_TINT)];
 
   for (let i = 0; i < PALM_FROND_COUNT; i++) {
-    const frond = new THREE.ConeGeometry(0.065, 0.24, 4);
-    // Squashed across the leaf and stretched along it, which is what turns a cone
-    // into a frond, then tipped over so it droops outward from the crown.
-    frond.scale(0.55, 1, 2.1);
-    frond.rotateX(Math.PI / 2.4);
-    frond.translate(0, 0.01, 0.07);
+    const frond = buildFrondGeometry();
+    // Same per-frond pitch, length and spacing variation PalmTree gives its
+    // fronds, so an instanced palm isn't a tidier plant than a hero one.
+    const scale = 0.92 + ((i * 7) % 5) * 0.045;
+    frond.scale(scale, scale, scale);
+    frond.rotateX(0.1 - (i % 3) * 0.14);
+    frond.translate(0, 0.005, 0.012);
     // The compass direction this frond points in...
-    frond.rotateY((i / PALM_FROND_COUNT) * Math.PI * 2);
+    frond.rotateY((i / PALM_FROND_COUNT) * Math.PI * 2 + (i % 2) * 0.18);
     // ...then the crown's own offset on top of the trunk.
     frond.translate(0.02, PALM_TRUNK_HEIGHT, 0);
     parts.push(tint(frond, UNTINTED));
@@ -216,6 +218,10 @@ export function Vegetation({
         geometry={geometries.palm}
         colorA={FROND_GREEN_DARK}
         colorB={FROND_GREEN}
+        // The hand-placed hero palms are meant to be noticed; a hundred of them
+        // along the coast are meant to be a fringe, so the scattered ones are
+        // held a step below the geometry's authored size.
+        baseScale={0.85}
         maxTilt={0.1}
         sway={SWAY.palm.amount}
         swaySpeed={SWAY.palm.speed}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { ContactShadows, Sparkles } from "@react-three/drei";
+import { Sparkles } from "@react-three/drei";
 import type { Stop, TransportMode, TransportModeKey } from "../../types/trip";
 import type { ModeFilter, StatusFilter } from "../FilterBar";
 import {
@@ -9,9 +9,11 @@ import {
   FISH_SCHOOL_POSITION,
   GALLE_FORT_POSITION,
   LEOPARD_POSITION,
+  MONKEY_TREE_POSITIONS,
   NINE_ARCHES_POSITION,
   NINE_ARCHES_ROTATION,
   PALM_TREE_POSITIONS,
+  PEACOCK_POSITION,
   SIGIRIYA_ROCK_POSITION,
   STUPA_POSITION,
   TEMPLE_POSITIONS,
@@ -29,7 +31,9 @@ import { useMapScatter } from "../../utils/useMapScatter";
 import { useReducedMotion } from "../../utils/useReducedMotion";
 import { Island } from "./Island";
 import { Water } from "./Water";
+import { SEA_LEVEL_Y, WAVE_AMPLITUDE } from "./seaLevel";
 import { CameraRig, type CameraRigHandle } from "./CameraRig";
+import { usePinchZoom } from "./usePinchZoom";
 import { StopMarker3D } from "./StopMarker3D";
 import { DaytripMarker3D } from "./DaytripMarker3D";
 import { RouteLine3D } from "./RouteLine3D";
@@ -41,6 +45,11 @@ import { Stupa } from "./Stupa";
 import { TeaBushes } from "./TeaBushes";
 import { Leopard } from "./Leopard";
 import { Elephant } from "./Elephant";
+import { JungleTree, getRowHeadings } from "./JungleTree";
+import { Monkey } from "./Monkey";
+import { Birds } from "./Birds";
+import { Peacock } from "./Peacock";
+import { WaterBuffalo } from "./WaterBuffalo";
 import { Train3D } from "./Train3D";
 import { Temple } from "./Temple";
 import { FishSchool } from "./FishSchool";
@@ -203,6 +212,25 @@ function nightBlendFromPhase(phase: number): number {
  * `cyclePhaseRef`, which CameraRig's onTourDay callback resets to 0 at the
  * start of every simulated day.
  */
+/**
+ * What shows past the far edge of Water's 60x60 plane.
+ *
+ * At the camera's lowest polar angle the top of a 32-degree frame sits several
+ * degrees *above* horizontal while the plane's far edge sits below it, so
+ * without this the transparent canvas let the cream page background through as
+ * a hard seam across the upper third. DAY is the water shader's own far-field
+ * colour (its deep/shallow mix at full distance, times the mean lambert term),
+ * so the plane edge disappears into it and reads as haze over distant sea.
+ *
+ * Not fog: Water, RouteLine3D and StillWater are raw ShaderMaterials and get no
+ * fog chunks, so fog would fade the land and leave the sea sitting flat on top
+ * of it. Not a bigger plane either: reaching far enough at the current segment
+ * density costs tens of thousands of vertex-displaced triangles.
+ */
+const HORIZON_DAY = new THREE.Color("#2d88a6");
+/** Matched to the sea shader's own night mix, so the horizon darkens with the water rather than staying a bright band above it. */
+const HORIZON_NIGHT = new THREE.Color("#0a1a25");
+
 function DayNightLights({
   touring,
   manualEvening,
@@ -221,7 +249,9 @@ function DayNightLights({
   const fillRef = useRef<THREE.DirectionalLight>(null);
   const ambientRef = useRef<THREE.AmbientLight>(null);
 
-  useFrame((_state, delta) => {
+  const background = useMemo(() => HORIZON_DAY.clone(), []);
+
+  useFrame((state, delta) => {
     if (touring && !prefersReducedMotion) {
       cyclePhaseRef.current = (cyclePhaseRef.current + delta / CYCLE_DURATION) % 1;
     }
@@ -249,6 +279,9 @@ function DayNightLights({
     }
     const ambient = ambientRef.current;
     if (ambient) ambient.intensity = THREE.MathUtils.lerp(DAY_LIGHTS.ambient, NIGHT_LIGHTS.ambient, t);
+
+    background.copy(HORIZON_DAY).lerp(HORIZON_NIGHT, t);
+    state.scene.background = background;
   });
 
   return (
@@ -333,11 +366,14 @@ export function TripMap3D({
 }: TripMap3DProps) {
   const prefersReducedMotion = useReducedMotion();
   const cameraRigRef = useRef<CameraRigHandle>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const [touring, setTouring] = useState(false);
   /** Deliberate user toggle — independent of the tour's own automatic cycling below, so an evening shower never comes and goes on its own while touring. */
   const [manualEvening, setManualEvening] = useState(false);
   const daytripEntries = useMemo(() => getDaytripEntries(stops), [stops]);
   const plateauCenter = useMemo(getPlateauCenter, []);
+  /** Which way each tree in the monkey's grove turns its swing limb — along the row, so the leaps always have branch at both ends. */
+  const monkeyTreeHeadings = useMemo(() => getRowHeadings(MONKEY_TREE_POSITIONS), []);
   /**
    * All procedural decoration (woodland, scrub, palms, tea, patana grass,
    * boulders, paddy) placed in one seeded pass, keyed off the live stop list so
@@ -393,6 +429,9 @@ export function TripMap3D({
     [stops],
   );
 
+  const dollyBy = useCallback((amount: number) => cameraRigRef.current?.dollyBy(amount), []);
+  usePinchZoom(frameRef, dollyBy);
+
   const daytripLayout = useMemo(
     () =>
       daytripEntries.map((entry) => ({
@@ -404,7 +443,7 @@ export function TripMap3D({
   );
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-[inherit]">
+    <div ref={frameRef} className="relative h-full w-full overflow-hidden rounded-[inherit]">
       <Canvas
         flat
         frameloop={paused ? "never" : "always"}
@@ -431,7 +470,10 @@ export function TripMap3D({
         />
 
         <Water nightRef={nightAmountRef} />
-        <Sparkles count={50} scale={[9, 0.4, 9]} position={[0, -0.05, 0]} size={2.4} speed={0.3} opacity={0.55} color="#ffffff" noise={0.6} />
+        {/* Centred on the sea and half a swell tall, so the glints track the water's own
+            surface and stop short of the sand shelf above it. The old box was fixed in
+            absolute Y and straddled the shelf, sprinkling glints across the beach. */}
+        <Sparkles count={50} scale={[9, 2 * WAVE_AMPLITUDE, 9]} position={[0, SEA_LEVEL_Y, 0]} size={2.4} speed={0.3} opacity={0.55} color="#ffffff" noise={0.6} />
         <Rain3D active={manualEvening} prefersReducedMotion={prefersReducedMotion} />
         {/* Fireflies: real ones are dusk/night creatures, so they're barely there by day and glow once night falls, whether from the manual toggle or the tour's own cycling. */}
         {/* Height comes from getTerrainSurfaceY, not from PLATEAU_LAYER1_TOP: that
@@ -490,12 +532,35 @@ export function TripMap3D({
           prefersReducedMotion={prefersReducedMotion}
         />
         <TeaBushes x={plateauCenter.x} z={plateauCenter.z} baseY={PLATEAU_LAYER1_TOP} />
+        {/* The land wildlife comes and goes on its own timers (see
+            useAppearanceCycle): the elephant strolls its patch of Yala for a
+            while, the leopard is a rarer few-second sighting, and a flock
+            crosses the island overhead every so often. LEOPARD_POSITION /
+            ELEPHANT_POSITION are their home positions, i.e. the middle of the
+            short walk each takes, not a fixed spot they stand on. */}
         <Leopard x={LEOPARD_POSITION.x} z={LEOPARD_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
         <Elephant x={ELEPHANT_POSITION.x} z={ELEPHANT_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
+        <Birds prefersReducedMotion={prefersReducedMotion} />
+        {/* The langur's grove: four hero rainforest trees standing over the wet-zone
+            woodland, and the monkey that swings its way along their limbs and back
+            every minute or so. The trees are permanent scenery; only the monkey
+            cycles, which is the whole point of it being a treat to catch. */}
+        {MONKEY_TREE_POSITIONS.map((p, i) => (
+          <JungleTree key={`${p.x}-${p.z}`} x={p.x} z={p.z} heading={monkeyTreeHeadings[i]} />
+        ))}
+        <Monkey trees={MONKEY_TREE_POSITIONS} prefersReducedMotion={prefersReducedMotion} />
+        {/* The two residents, as opposed to the sightings above: a peacock in the
+            dry-zone scrub that puts its fan up when you touch it, and a water
+            buffalo standing in whichever paddy field the scatter put nearest the
+            wet lowlands. Both are always there — livestock and dooryard peafowl
+            don't come and go — which is what makes the cycling animals feel like
+            luck rather than a schedule. */}
+        <Peacock x={PEACOCK_POSITION.x} z={PEACOCK_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
+        <WaterBuffalo scatter={scatter} prefersReducedMotion={prefersReducedMotion} />
         {TEMPLE_POSITIONS.map((p) => (
           <Temple key={`${p.x}-${p.z}`} x={p.x} z={p.z} />
         ))}
-        <FishSchool x={FISH_SCHOOL_POSITION.x} z={FISH_SCHOOL_POSITION.z} />
+        <FishSchool x={FISH_SCHOOL_POSITION.x} z={FISH_SCHOOL_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
         <Turtle x={TURTLE_POSITION.x} z={TURTLE_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
         <Whale x={WHALE_POSITION.x} z={WHALE_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
         {PALM_TREE_POSITIONS.map((p) => (
@@ -568,7 +633,11 @@ export function TripMap3D({
           <DaytripMarker3D key={entry.activity.id} stop={entry.stop} activity={entry.activity} />
         ))}
 
-        <ContactShadows position={[0, -0.001, 0]} opacity={0.5} blur={2.2} far={4.5} scale={12} color="#2c2319" />
+        {/* No ContactShadows any more. It lived in the gap between the water plane and
+            the island's underside, faking the separation between the two. The island now
+            sinks below the waves' trough instead, so there is no gap to draw into and the
+            blob would slice straight through the sand slab. The beach's own wet-to-dry
+            side wall does that job now. */}
       </Canvas>
 
       {/* Disabled as a group while touring: the tour drives the camera itself, and a

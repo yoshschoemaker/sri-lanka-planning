@@ -3,7 +3,7 @@ import { Html } from "@react-three/drei";
 import type { DaytripEntry } from "../../utils/daytrips";
 import { projectToWorld } from "../../utils/projection3d";
 import { handleActivateKey } from "../../utils/keyboardActivate";
-import { ISLAND_TOP_Y } from "./Island";
+import { getTerrainSurfaceY } from "./Highlands";
 import { DAYTRIP_HTML_Z } from "./htmlLayers";
 
 const PIN_HEIGHT = 0.1;
@@ -34,6 +34,9 @@ export function DaytripMarker3D({ stop, activity }: DaytripEntry) {
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
   const { x, z } = projectToWorld(activity.lat, activity.lon);
+  // Dambulla and Nine Arches are on terrain tiers, Galle Fort is on the beach
+  // shelf; a flat ISLAND_TOP_Y buries the first two and floats the third.
+  const groundY = getTerrainSurfaceY(x, z);
   const expanded = hovered || pinned;
   const labelOffset = LABEL_OFFSET_OVERRIDES[activity.id] ?? 0;
 
@@ -41,12 +44,12 @@ export function DaytripMarker3D({ stop, activity }: DaytripEntry) {
 
   return (
     <group position={[x, 0, z]}>
-      <mesh position={[0, ISLAND_TOP_Y + PIN_HEIGHT / 2, 0]}>
+      <mesh position={[0, groundY + PIN_HEIGHT / 2, 0]}>
         <cylinderGeometry args={[PIN_RADIUS, PIN_RADIUS, PIN_HEIGHT, 6]} />
         <meshStandardMaterial color="#5c5044" roughness={0.9} flatShading />
       </mesh>
 
-      <Html position={[0, ISLAND_TOP_Y + PIN_HEIGHT, 0]} center zIndexRange={DAYTRIP_HTML_Z}>
+      <Html position={[0, groundY + PIN_HEIGHT, 0]} center zIndexRange={DAYTRIP_HTML_Z}>
         <div
           tabIndex={0}
           role="button"

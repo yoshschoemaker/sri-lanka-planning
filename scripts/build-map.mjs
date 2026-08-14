@@ -168,6 +168,323 @@ function ringLiteral(points, indent) {
   return `[\n${points.map(([x, z]) => `${pad}  [${x}, ${z}],`).join("\n")}\n${pad}]`;
 }
 
+// --- third pass: the inland ring, i.e. the coastline eroded by a beach shelf ---
+//
+// The 3D island used to be a single slab with a vertical coastline, so it read
+// as a cake with no shore at all. The beach is now a lower step whose inner
+// edge is this ring, in exactly the same stacked-contour style Highlands uses.
+//
+// The shelf is deliberately NOT a constant width: Sri Lanka's surf coast really
+// does have the broad sand (Hikkaduwa through Tangalle) while Jaffna and
+// Trincomalee are narrow strips against lagoon and rock.
+//
+// Variable-width erosion is done as a level set rather than as an offset: build
+// the field f = signedDistanceToCoast - beachWidth and contour it at zero. The
+// varying width falls out for free, and marching squares cannot self-intersect
+// by construction. That matters here — the coastline's minimum clearance
+// between non-adjacent segments is 0.0054 world units and 45 of its 176
+// vertices sit under 0.05, so any per-vertex bisector offset of the width we
+// want (0.09..0.30) would fold dozens of features inside out.
+
+/**
+ * How wide the sand shelf is, in world units, at each named stretch of coast.
+ * Keyed on places rather than on coordinates or on a bearing from the island's
+ * centroid: a bearing wraps, and it would file Arugam Bay in between Yala and
+ * Bentota. Anchors sit ~0.6-1.5 world units apart; keep new ones in that range
+ * or the blend below either flattens out (too dense) or lumps (too sparse).
+ */
+const BEACH_WIDTH_ANCHORS = [
+  { name: "Kalpitiya", lat: 8.23, lon: 79.76, width: 0.1 },
+  { name: "Puttalam", lat: 8.03, lon: 79.83, width: 0.11 },
+  { name: "Negombo", lat: 7.21, lon: 79.84, width: 0.16 },
+  { name: "Colombo", lat: 6.93, lon: 79.86, width: 0.19 },
+  { name: "Bentota", lat: 6.42, lon: 79.99, width: 0.24 },
+  { name: "Hikkaduwa", lat: 6.14, lon: 80.1, width: 0.28 },
+  { name: "Galle", lat: 6.03, lon: 80.22, width: 0.29 },
+  { name: "Mirissa", lat: 5.95, lon: 80.46, width: 0.3 },
+  { name: "Dondra", lat: 5.92, lon: 80.59, width: 0.3 },
+  { name: "Tangalle", lat: 6.02, lon: 80.79, width: 0.28 },
+  { name: "Hambantota", lat: 6.12, lon: 81.12, width: 0.2 },
+  { name: "Yala coast", lat: 6.3, lon: 81.55, width: 0.14 },
+  { name: "Arugam Bay", lat: 6.84, lon: 81.83, width: 0.12 },
+  { name: "Batticaloa", lat: 7.72, lon: 81.7, width: 0.11 },
+  { name: "Trincomalee", lat: 8.57, lon: 81.23, width: 0.11 },
+  { name: "Mullaitivu", lat: 9.27, lon: 80.81, width: 0.1 },
+  { name: "Point Pedro", lat: 9.82, lon: 80.23, width: 0.09 },
+  { name: "Jaffna", lat: 9.66, lon: 80.02, width: 0.09 },
+  { name: "Mannar", lat: 8.98, lon: 79.9, width: 0.1 },
+];
+
+/**
+ * Gaussian rather than inverse-distance weighting: IDW has a cusp at every
+ * anchor, and a kink in the width field becomes a kink in the contour. At this
+ * sigma the widest neck of the island is ~4.8 units across, so the nearest
+ * opposite-coast anchor contributes a weight of about e^-2.
+ */
+const BEACH_WIDTH_SIGMA = 0.9;
+
+const anchorsWorld = BEACH_WIDTH_ANCHORS.map((a) => {
+  const [x, z] = toWorld([a.lon, a.lat]);
+  return { ...a, x, z };
+});
+
+function beachWidth(x, z) {
+  let num = 0;
+  let den = 0;
+  for (const a of anchorsWorld) {
+    const w = Math.exp(-((x - a.x) ** 2 + (z - a.z) ** 2) / (2 * BEACH_WIDTH_SIGMA ** 2));
+    num += w * a.width;
+    den += w;
+  }
+  return num / den;
+}
+
+function pointInRing(x, z, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, zi] = ring[i];
+    const [xj, zj] = ring[j];
+    if (zi > z !== zj > z && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+function distanceToSegment(x, z, x1, z1, x2, z2) {
+  const dx = x2 - x1;
+  const dz = z2 - z1;
+  const lengthSq = dx * dx + dz * dz;
+  if (lengthSq === 0) return Math.hypot(x - x1, z - z1);
+  const t = Math.max(0, Math.min(1, ((x - x1) * dx + (z - z1) * dz) / lengthSq));
+  return Math.hypot(x - (x1 + t * dx), z - (z1 + t * dz));
+}
+
+function distanceToRing(x, z, ring) {
+  let min = Infinity;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, zi] = ring[i];
+    const [xj, zj] = ring[j];
+    const d = distanceToSegment(x, z, xj, zj, xi, zi);
+    if (d < min) min = d;
+  }
+  return min;
+}
+
+function signedArea(ring) {
+  let sum = 0;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    sum += ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
+  }
+  return sum / 2;
+}
+
+/** One Chaikin corner-cutting pass over a closed ring. */
+function chaikin(ring) {
+  const out = [];
+  for (let i = 0; i < ring.length; i++) {
+    const [x1, z1] = ring[i];
+    const [x2, z2] = ring[(i + 1) % ring.length];
+    out.push([x1 + (x2 - x1) * 0.25, z1 + (z2 - z1) * 0.25]);
+    out.push([x1 + (x2 - x1) * 0.75, z1 + (z2 - z1) * 0.75]);
+  }
+  return out;
+}
+
+/** Douglas-Peucker on a closed ring: run it on the ring re-closed as a polyline. */
+function simplifyRing(ring, epsilon) {
+  const simplified = douglasPeucker([...ring, ring[0]], epsilon);
+  return simplified.slice(0, -1);
+}
+
+const CELL = 0.015;
+const FIELD_PAD = 0.4; // > max beach width, so the field is defined well outside the coast
+const MIN_RING_AREA = 0.02;
+const CHAIKIN_ITERATIONS = 2;
+const INLAND_EPSILON = 0.015;
+
+function buildInlandRings(coast) {
+  const xs = coast.map(([x]) => x);
+  const zs = coast.map(([, z]) => z);
+  const minX = Math.min(...xs) - FIELD_PAD;
+  const minZ = Math.min(...zs) - FIELD_PAD;
+  const cols = Math.ceil((Math.max(...xs) + FIELD_PAD - minX) / CELL) + 1;
+  const rows = Math.ceil((Math.max(...zs) + FIELD_PAD - minZ) / CELL) + 1;
+
+  const gx = (i) => minX + i * CELL;
+  const gz = (j) => minZ + j * CELL;
+
+  // f > 0 means "inland of the beach shelf".
+  const field = new Float64Array(cols * rows);
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      const x = gx(i);
+      const z = gz(j);
+      const d = distanceToRing(x, z, coast);
+      field[i * rows + j] = (pointInRing(x, z, coast) ? d : -d) - beachWidth(x, z);
+    }
+  }
+  const at = (i, j) => field[i * rows + j];
+
+  // Both cells sharing an edge must land on the bitwise-identical crossing
+  // point, or the loops won't stitch. These two helpers are the only place a
+  // crossing is ever computed, and they're always called with the same
+  // (i, j) for a given edge, so the arithmetic is literally the same.
+  const hEdge = (i, j) => {
+    const a = at(i, j);
+    const b = at(i + 1, j);
+    return [gx(i) + (CELL * a) / (a - b), gz(j)];
+  };
+  const vEdge = (i, j) => {
+    const a = at(i, j);
+    const b = at(i, j + 1);
+    return [gx(i), gz(j) + (CELL * a) / (a - b)];
+  };
+
+  const segments = [];
+  for (let i = 0; i < cols - 1; i++) {
+    for (let j = 0; j < rows - 1; j++) {
+      const a = at(i, j) > 0;
+      const b = at(i + 1, j) > 0;
+      const c = at(i + 1, j + 1) > 0;
+      const d = at(i, j + 1) > 0;
+      const code = (a ? 1 : 0) | (b ? 2 : 0) | (c ? 4 : 0) | (d ? 8 : 0);
+      if (code === 0 || code === 15) continue;
+
+      const B = () => hEdge(i, j);
+      const T = () => hEdge(i, j + 1);
+      const L = () => vEdge(i, j);
+      const R = () => vEdge(i + 1, j);
+      const push = (from, to) => segments.push([from(), to()]);
+
+      // Every segment is oriented with the inland side on its right.
+      switch (code) {
+        case 1: push(L, B); break;
+        case 2: push(B, R); break;
+        case 3: push(L, R); break;
+        case 4: push(R, T); break;
+        case 6: push(B, T); break;
+        case 7: push(L, T); break;
+        case 8: push(T, L); break;
+        case 9: push(T, B); break;
+        case 11: push(T, R); break;
+        case 12: push(R, L); break;
+        case 13: push(R, B); break;
+        case 14: push(B, L); break;
+        // Saddles: the two diagonal corners agree, so the cell alone can't say
+        // whether they're joined through the middle. Break the tie on the sign
+        // of the four-corner mean.
+        case 5: {
+          const center = (at(i, j) + at(i + 1, j) + at(i + 1, j + 1) + at(i, j + 1)) / 4;
+          if (center > 0) { push(R, B); push(L, T); } else { push(L, B); push(R, T); }
+          break;
+        }
+        case 10: {
+          const center = (at(i, j) + at(i + 1, j) + at(i + 1, j + 1) + at(i, j + 1)) / 4;
+          if (center > 0) { push(B, L); push(T, R); } else { push(B, R); push(T, L); }
+          break;
+        }
+      }
+    }
+  }
+
+  const key = ([x, z]) => `${x.toExponential(17)}|${z.toExponential(17)}`;
+  const bySource = new Map();
+  for (const seg of segments) {
+    const k = key(seg[0]);
+    if (bySource.has(k)) throw new Error(`marching squares: two segments start at ${k}`);
+    bySource.set(k, seg);
+  }
+
+  const loops = [];
+  const visited = new Set();
+  for (const [startKey, startSeg] of bySource) {
+    if (visited.has(startKey)) continue;
+    const loop = [];
+    let k = startKey;
+    while (!visited.has(k)) {
+      const seg = bySource.get(k);
+      if (!seg) throw new Error("marching squares: open contour, expected closed loops only");
+      visited.add(k);
+      loop.push(seg[0]);
+      k = key(seg[1]);
+    }
+    if (k !== startKey) throw new Error("marching squares: contour rejoined itself mid-loop");
+    loops.push(loop);
+    void startSeg;
+  }
+
+  const kept = loops.filter((loop) => Math.abs(signedArea(loop)) >= MIN_RING_AREA);
+  const dropped = loops.length - kept.length;
+  if (dropped > 0) console.log(`inland: dropped ${dropped} loop(s) under ${MIN_RING_AREA} area`);
+
+  const orientations = new Set(kept.map((loop) => Math.sign(signedArea(loop))));
+  if (orientations.size > 1) {
+    console.warn(
+      "WARNING: inland loops disagree on orientation — one of them is a hole and needs THREE.Shape.holes",
+    );
+  }
+
+  // Match the coastline's winding: ExtrudeGeometry reads the contour's signed
+  // area to decide which way to push the bevel, so a flipped ring would bevel
+  // inward and cut a visible notch instead of a chamfer.
+  const coastSign = Math.sign(signedArea(coast));
+  return kept.map((loop) => {
+    let ring = loop;
+    for (let n = 0; n < CHAIKIN_ITERATIONS; n++) ring = chaikin(ring);
+    ring = simplifyRing(ring, INLAND_EPSILON);
+    if (Math.sign(signedArea(ring)) !== coastSign) ring.reverse();
+    return ring.map(([x, z]) => [Math.round(x * 10000) / 10000, Math.round(z * 10000) / 10000]);
+  });
+}
+
+/** Smallest gap between two non-adjacent segments of a ring — how much bevel it can take. */
+function minSelfClearance(ring) {
+  let min = Infinity;
+  for (let i = 0; i < ring.length; i++) {
+    const [x, z] = ring[i];
+    for (let j = 0; j < ring.length; j++) {
+      const next = (j + 1) % ring.length;
+      if (j === i || next === i || j === (i + 1) % ring.length || next === (i - 1 + ring.length) % ring.length) continue;
+      const d = distanceToSegment(x, z, ring[j][0], ring[j][1], ring[next][0], ring[next][1]);
+      if (d < min) min = d;
+    }
+  }
+  return min;
+}
+
+const inlandRings = buildInlandRings(mainRing3d);
+const MAX_BEACH_WIDTH = Math.max(...BEACH_WIDTH_ANCHORS.map((a) => a.width));
+
+inlandRings.forEach((ring, i) =>
+  console.log(
+    `inland ring ${i}: ${ring.length} pts, area ${signedArea(ring).toFixed(3)}, min self-clearance ${minSelfClearance(ring).toFixed(4)}`,
+  ),
+);
+console.log(
+  `island area ${signedArea(mainRing3d).toFixed(3)} -> inland ${inlandRings.reduce((s, r) => s + Math.abs(signedArea(r)), 0).toFixed(3)}`,
+);
+
+// Highlands.getTerrainSurfaceY short-circuits on tier >= 0 without testing the
+// inland rings, which is only sound while no terrain contour reaches into the
+// beach shelf. Assert it here so a future terrain regen can't quietly break it.
+{
+  const bandPoints = [
+    ...fs
+      .readFileSync("src/data/terrainBands.ts", "utf8")
+      .matchAll(/\[(-?\d+\.?\d*),\s*(-?\d+\.?\d*)\]/g),
+  ].map((m) => [Number(m[1]), Number(m[2])]);
+  let min = Infinity;
+  for (const [x, z] of bandPoints) {
+    const d = distanceToRing(x, z, mainRing3d);
+    if (d < min) min = d;
+  }
+  console.log(
+    `terrain bands: ${bandPoints.length} pts, closest to coast ${min.toFixed(3)} (must exceed MAX_BEACH_WIDTH ${MAX_BEACH_WIDTH})`,
+  );
+  if (min <= MAX_BEACH_WIDTH) {
+    console.warn("WARNING: a terrain contour reaches into the beach shelf — getTerrainSurfaceY's tier fast path is no longer sound");
+  }
+}
+
 const out3d = `// AUTO-GENERATED by scripts/build-map.mjs — do not hand-edit.
 // Same source geometry and projection as src/data/srilankaShape.ts, but with
 // a coarser Douglas-Peucker pass (epsilon ${EPSILON_3D}) for a low-poly,
@@ -183,8 +500,29 @@ export const ISLAND_MAIN_RING: [number, number][] = ${ringLiteral(mainRing3d, 0)
 export const ISLAND_ISLET_RINGS: [number, number][][] = [
 ${isletRings3d.map((r) => `  ${ringLiteral(r, 2)},`).join("\n")}
 ];
+
+/**
+ * Inner edge of the beach shelf: ISLAND_MAIN_RING eroded by a per-coast sand
+ * width, so the island can be built as a low sand step with the green lowland
+ * one contour higher. Widest along the southwest surf coast (Hikkaduwa through
+ * Tangalle), narrowest around Jaffna and Trincomalee.
+ *
+ * Plural because the erosion pinches the western Jaffna lobe (Kayts /
+ * Karainagar) off at Elephant Pass — which is geographically right, so it's
+ * kept as its own ring rather than merged or dropped.
+ */
+export const ISLAND_INLAND_RINGS: [number, number][][] = [
+${inlandRings.map((r) => `  ${ringLiteral(r, 2)},`).join("\n")}
+];
+
+/** Widest the beach shelf ever gets. Anything farther inland than this is inland by construction. */
+export const MAX_BEACH_WIDTH = ${MAX_BEACH_WIDTH};
 `;
 
 fs.writeFileSync("src/data/srilankaShape3d.ts", out3d);
 console.log("wrote src/data/srilankaShape3d.ts");
-console.log({ mainRingPoints: mainRing3d.length, isletRingCounts: isletRings3d.map((r) => r.length) });
+console.log({
+  mainRingPoints: mainRing3d.length,
+  isletRingCounts: isletRings3d.map((r) => r.length),
+  inlandRingCounts: inlandRings.map((r) => r.length),
+});

@@ -76,6 +76,11 @@ export interface Stop {
   /** Stable hand-authored slug. Never reuse or change once set; display order is derived from array position. */
   id: string;
   name: string;
+  /**
+   * Check-in tot check-out, zoals je het in een boeking invult: "wo 27 tot vr 29 jan".
+   * De einddatum is dus de vertrekdag, niet de laatste overnachting, en valt samen
+   * met de check-in van de volgende stop. Een doortocht (0 nachten) noemt één dag.
+   */
   dates: string;
   nights: number;
   booked: boolean;

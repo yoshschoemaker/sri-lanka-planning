@@ -1,4 +1,6 @@
-import { ISLAND_MAIN_RING } from "../data/srilankaShape3d";
+import { ISLAND_MAIN_RING, ISLAND_INLAND_RINGS, MAX_BEACH_WIDTH } from "../data/srilankaShape3d";
+
+export { MAX_BEACH_WIDTH };
 
 export type Ring = readonly (readonly [number, number])[];
 
@@ -22,6 +24,22 @@ export function pointInRing(x: number, z: number, ring: Ring): boolean {
 /** Whether a world (x, z) falls on the main island. Deliberately ignores the four islets: they're far too small to scatter anything onto. */
 export function isOnLand(x: number, z: number): boolean {
   return pointInRing(x, z, ISLAND_MAIN_RING);
+}
+
+/**
+ * Whether a world (x, z) is inland of the beach shelf rather than on the sand.
+ * The two are at different heights, so anything anchored to the ground needs
+ * this (via Highlands.getTerrainSurfaceY) or it floats in the coastal strip.
+ *
+ * Callers that already have the coast distance should pass it: past
+ * MAX_BEACH_WIDTH a point is inland by construction, which skips the ring walk
+ * for the ~86% of the island that isn't beach. The shortcut is exact rather
+ * than approximate because COAST_DISTANCE_CUTOFF is comfortably above
+ * MAX_BEACH_WIDTH, so distanceToCoast never saturates inside the shelf.
+ */
+export function isInland(x: number, z: number, coastDistance = distanceToCoast(x, z)): boolean {
+  if (coastDistance > MAX_BEACH_WIDTH) return true;
+  return ISLAND_INLAND_RINGS.some((ring) => pointInRing(x, z, ring));
 }
 
 /** Shortest distance from a point to a line segment, in world units. */
@@ -67,7 +85,22 @@ export function distanceToRing(x: number, z: number, ring: Ring): number {
  * `cutoff` must exceed every threshold callers test against, or a point just
  * outside the grid's reach would compare as if it were exactly at the cutoff.
  */
-export function createRingDistanceField(ring: Ring, cutoff: number): (x: number, z: number) => number {
+export function createRingDistanceField(
+  rings: readonly Ring[],
+  cutoff: number,
+): (x: number, z: number) => number {
+  // Takes a set of rings rather than one because the beach shelf's inner edge
+  // is two rings (the Jaffna lobe pinches off at Elephant Pass) and the
+  // distance a caller wants is to whichever is nearer.
+  //
+  // Flattened up front so one bucket can hold segments from different rings.
+  const segments: [number, number, number, number][] = [];
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      segments.push([ring[j][0], ring[j][1], ring[i][0], ring[i][1]]);
+    }
+  }
+
   // One cell per cutoff means a segment reachable from a query point is always
   // in that point's own cell, since inserts fan out over the segment's bounding
   // box expanded by the cutoff.
@@ -75,31 +108,28 @@ export function createRingDistanceField(ring: Ring, cutoff: number): (x: number,
   const buckets = new Map<number, number[]>();
   const key = (cx: number, cz: number) => (cx + 512) * 4096 + (cz + 512);
 
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, zi] = ring[i];
-    const [xj, zj] = ring[j];
-    const minX = Math.floor((Math.min(xi, xj) - cutoff) / cell);
-    const maxX = Math.floor((Math.max(xi, xj) + cutoff) / cell);
-    const minZ = Math.floor((Math.min(zi, zj) - cutoff) / cell);
-    const maxZ = Math.floor((Math.max(zi, zj) + cutoff) / cell);
+  segments.forEach(([x1, z1, x2, z2], index) => {
+    const minX = Math.floor((Math.min(x1, x2) - cutoff) / cell);
+    const maxX = Math.floor((Math.max(x1, x2) + cutoff) / cell);
+    const minZ = Math.floor((Math.min(z1, z2) - cutoff) / cell);
+    const maxZ = Math.floor((Math.max(z1, z2) + cutoff) / cell);
     for (let cx = minX; cx <= maxX; cx++) {
       for (let cz = minZ; cz <= maxZ; cz++) {
         const k = key(cx, cz);
         const bucket = buckets.get(k);
-        if (bucket) bucket.push(i);
-        else buckets.set(k, [i]);
+        if (bucket) bucket.push(index);
+        else buckets.set(k, [index]);
       }
     }
-  }
+  });
 
   return (x, z) => {
     const candidates = buckets.get(key(Math.floor(x / cell), Math.floor(z / cell)));
     if (!candidates) return cutoff;
     let min = cutoff;
-    for (const i of candidates) {
-      const [xi, zi] = ring[i];
-      const [xj, zj] = ring[(i - 1 + ring.length) % ring.length];
-      const d = distanceToSegment(x, z, xj, zj, xi, zi);
+    for (const index of candidates) {
+      const [x1, z1, x2, z2] = segments[index];
+      const d = distanceToSegment(x, z, x1, z1, x2, z2);
       if (d < min) min = d;
     }
     return min;
@@ -118,7 +148,15 @@ export const COAST_DISTANCE_CUTOFF = 0.45;
  * COAST_DISTANCE_CUTOFF. Use distanceToRing directly if you genuinely need the
  * unbounded distance.
  */
-export const distanceToCoast = createRingDistanceField(ISLAND_MAIN_RING, COAST_DISTANCE_CUTOFF);
+export const distanceToCoast = createRingDistanceField([ISLAND_MAIN_RING], COAST_DISTANCE_CUTOFF);
+
+/**
+ * Distance to the beach shelf's inner edge, saturating at
+ * COAST_DISTANCE_CUTOFF. What the coconut belt is placed against: the shelf's
+ * width varies from 0.09 to 0.30 by coast, so a habitat keyed on
+ * distanceToCoast would starve exactly where the sand is widest.
+ */
+export const distanceToInland = createRingDistanceField(ISLAND_INLAND_RINGS, COAST_DISTANCE_CUTOFF);
 
 export interface Bounds {
   minX: number;

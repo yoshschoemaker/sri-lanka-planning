@@ -126,8 +126,9 @@ const RIVER_BANK_WIDTH = 0.9;
 /**
  * The Mahaweli as a flat ribbon that follows the terrain down.
  *
- * Built by hand rather than with TubeGeometry (which RouteLine3D uses for route
- * lines): a tube is a closed pipe, and a river is a strip lying on the ground.
+ * Built by hand rather than with TubeGeometry: a tube is a closed pipe, and a
+ * river is a strip lying on the ground. (RouteLine3D builds its route ribbons
+ * the same way, and for the same reason.)
  * Each sample's height comes from getTerrainSurfaceY, so the ribbon steps down
  * terrace by terrace exactly like the real river descends the hill country.
  * Width tapers from headwater to mouth.

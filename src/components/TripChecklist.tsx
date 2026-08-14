@@ -8,8 +8,9 @@ interface TripChecklistProps {
 /** Renders the three checklist groups only; the surrounding card/header lives in TripInfoAccordion so this stays reusable. */
 export function TripChecklist({ checklist, onJumpToStop }: TripChecklistProps) {
   return (
-    <div className="flex flex-col gap-4 sm:grid sm:grid-cols-3 sm:gap-6">
+    <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
       <ChecklistGroup title="Boekingen" icon="🧳" items={checklist.toBook} onJumpToStop={onJumpToStop} />
+      <ChecklistGroup title="Te regelen" icon="📋" items={checklist.toArrange} onJumpToStop={onJumpToStop} />
       <ChecklistGroup title="Let op" icon="⚠" items={checklist.warnings} onJumpToStop={onJumpToStop} />
       <ChecklistGroup title="Nog te bespreken" icon="?" items={checklist.questions} onJumpToStop={onJumpToStop} />
     </div>

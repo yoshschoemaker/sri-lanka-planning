@@ -1,7 +1,7 @@
 import { ISLAND_TOP_Y } from "../components/map3d/Island";
 import { getTerrainTier, TIER_HEIGHT } from "../components/map3d/Highlands";
 import { getWetness } from "./climateZone3d";
-import { distanceToCoast, ISLAND_BOUNDS, isOnLand } from "./geometry3d";
+import { distanceToCoast, distanceToInland, isInland, ISLAND_BOUNDS, isOnLand } from "./geometry3d";
 
 /**
  * Deterministic scatter engine for the diorama's procedural decoration
@@ -40,6 +40,13 @@ export interface PlacementContext {
   wetness: number;
   /** World-unit distance to the coastline. */
   coastDistance: number;
+  /**
+   * World-unit distance to the beach shelf's inner edge. What coastal habitats
+   * should key on rather than coastDistance: the shelf runs from 0.09 wide at
+   * Jaffna to 0.30 at Mirissa, so "within X of the sea" means a different
+   * thing on every coast, while "within X of where the sand ends" doesn't.
+   */
+  inlandDistance: number;
 }
 
 export interface ScatterItem {
@@ -195,12 +202,20 @@ export function scatterHabitats<K extends string>({
     if (!isOnLand(x, z)) continue;
     const coastDistance = distanceToCoast(x, z);
     if (coastDistance < minCoastDistance) continue;
+    // Nothing grows on bare sand, and nothing may straddle the step down onto
+    // it. That emptiness is most of what makes the shelf read as a beach.
+    if (!isInland(x, z, coastDistance)) continue;
 
     const nearbyExclusions = gridAt(exclusionGrid, x, z);
     if (nearbyExclusions?.some((e) => (x - e.x) ** 2 + (z - e.z) ** 2 < e.r * e.r)) continue;
 
     const tier = getTerrainTier(x, z);
-    const context: PlacementContext = { tier, wetness: getWetness(x, z, tier), coastDistance };
+    const context: PlacementContext = {
+      tier,
+      wetness: getWetness(x, z, tier),
+      coastDistance,
+      inlandDistance: distanceToInland(x, z),
+    };
 
     for (const spec of specs) {
       if ((remaining.get(spec.key) ?? 0) <= 0) continue;

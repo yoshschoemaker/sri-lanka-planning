@@ -39,6 +39,35 @@ export const WAVE_CREST_POSITIONS: WorldPoint[] = [
 export const STUPA_POSITION: WorldPoint = { x: -0.15, z: -1.9 }; // north of the Anuradhapura marker, clear of its pin/label
 export const LEOPARD_POSITION: WorldPoint = { x: -1.3, z: -1.65 }; // near the Wilpattu daytrip marker, clear of its dot
 export const ELEPHANT_POSITION: WorldPoint = { x: 1.55, z: 2.65 }; // near the Yala stop marker, clear of its pin
+/**
+ * Peafowl in the dry-zone scrub north of the Anuradhapura stupa, where wild
+ * peacocks genuinely are everywhere. Kept 0.43 from the stupa and well over the
+ * stop marker's own 0.42 clearance from the Anuradhapura pin, so the display fan
+ * never opens through either.
+ */
+export const PEACOCK_POSITION: WorldPoint = { x: 0.18, z: -2.18 };
+
+/**
+ * The row of hero rainforest trees the monkey swings along, in the order it
+ * visits them (and then back again).
+ *
+ * On the wet-zone slopes inland of Ratnapura, around 6.6N 80.5E: the northern
+ * end of the Sinharaja belt, which is purple-faced langur country and the one
+ * stretch of island where habitats.ts already grows dense broadleaf woodland
+ * (wetness here is 0.91), so the grove reads as the tall emergents standing over
+ * a forest that is really there rather than four trees in a field.
+ *
+ * A gentle arc rather than a straight row, spaced 0.115 apart — one comfortable
+ * leap. All four sit on the same terrain tier, and the spot was picked by search:
+ * every trunk clears every stop marker, route line, lake and other prop by at
+ * least 0.7 units, and none of them stands within 0.14 of the beach shelf.
+ */
+export const MONKEY_TREE_POSITIONS: WorldPoint[] = [
+  { x: -0.666, z: 2.641 },
+  { x: -0.642, z: 2.755 },
+  { x: -0.598, z: 2.861 },
+  { x: -0.534, z: 2.959 },
+];
 
 /** Temple of the Tooth (Kandy) and the Dambulla cave temple daytrip — both real temple visits, so they get Temple.tsx's tiered-roof vihara rather than Stupa.tsx's dagoba dome. */
 export const TEMPLE_POSITIONS: WorldPoint[] = [
@@ -49,6 +78,10 @@ export const TEMPLE_POSITIONS: WorldPoint[] = [
 // Each nudged further offshore from the coastline ring than they first were
 // (the local coast sits at z≈3.58/4.08/4.34 respectively at these x's) — they
 // were reading as beached rather than swimming.
+// These three are anchors, not fixed spots: each critter swims a bounded
+// patrol loop around its anchor (useSeaWander, radii tuned per component and
+// checked to stay clear of the coastline for the whole loop). Moving an anchor
+// means re-checking that clearance.
 export const FISH_SCHOOL_POSITION: WorldPoint = { x: -1.65, z: 4.15 }; // just off Hikkaduwa's Coral Sanctuary snorkel spot
 export const TURTLE_POSITION: WorldPoint = { x: 0.28, z: 4.45 }; // off the south coast near Hiriketiya, by Rekawa's turtle beach
 export const WHALE_POSITION: WorldPoint = { x: -0.4, z: 4.85 }; // open water south of Mirissa, where the whale-watching boats actually go (kept just inside the camera's default framing)
@@ -103,7 +136,27 @@ export const PROP_CLEARANCE = {
   stupa: 0.3,
   temple: 0.22,
   sigiriyaRock: 0.28,
-  critter: 0.24,
+  /**
+   * Much wider than the hero tree's own ~0.09 crown, and deliberately so: it
+   * clears a glade around the whole row. Dropped in at crown-width the grove
+   * vanished into the wet zone's own dense woodland, and a monkey swinging behind
+   * a wall of canopy is an easter egg nobody ever gets to see. This opens the row
+   * into one continuous clearing (the circles overlap at 0.115 spacing) with the
+   * four tall trees standing in it.
+   *
+   * 0.3 rather than something tighter is measured, not guessed: the nearest
+   * scattered crown then sits far enough out that at the camera's steepest
+   * allowed angle its silhouette still passes below the hanging monkey instead of
+   * covering it.
+   */
+  monkeyTree: 0.3,
+  // Wide enough to cover the whole stroll the land critters take around their
+  // home position (see walkPath3d.ts), not just where they stand: they're
+  // animals, so brushing past a bush is fine, but walking through a tree trunk
+  // is not. Keep this at or above half of Elephant/Leopard's WALK_LENGTH.
+  critter: 0.5,
+  /** The peacock holds its spot; this is its body plus a fully opened fan, and nothing more. */
+  peacock: 0.22,
   landmark: 0.45,
   waterfall: 0.3,
 } as const;

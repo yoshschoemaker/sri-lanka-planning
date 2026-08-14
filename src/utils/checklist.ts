@@ -10,12 +10,18 @@ export interface ChecklistItem {
 
 export interface TripChecklist {
   toBook: ChecklistItem[];
+  toArrange: ChecklistItem[];
   warnings: ChecklistItem[];
   questions: ChecklistItem[];
   totalCount: number;
 }
 
-export function buildTripChecklist(trip: Trip, stops: Stop[], openQuestions: string[]): TripChecklist {
+export function buildTripChecklist(
+  trip: Trip,
+  stops: Stop[],
+  openQuestions: string[],
+  todos: string[] = [],
+): TripChecklist {
   const toBook: ChecklistItem[] = [
     ...(!trip.flights.outbound.booked
       ? [{ key: "flight-out", label: "Vlucht heen", detail: trip.flights.outbound.date }]
@@ -28,6 +34,9 @@ export function buildTripChecklist(trip: Trip, stops: Stop[], openQuestions: str
       .filter((stop) => !isBookingSettled(stop))
       .map((stop) => ({ key: `book-${stop.id}`, label: stop.name, detail: stop.dates, stopId: stop.id })),
   ];
+
+  // Losse regeldingen die niet aan een stop hangen (visum, verzekering, ...).
+  const toArrange: ChecklistItem[] = todos.map((todo, i) => ({ key: `todo-${i}`, label: todo }));
 
   const warnings: ChecklistItem[] = stops.flatMap((stop) => {
     const items: ChecklistItem[] = [];
@@ -47,5 +56,11 @@ export function buildTripChecklist(trip: Trip, stops: Stop[], openQuestions: str
 
   const questions: ChecklistItem[] = openQuestions.map((question, i) => ({ key: `question-${i}`, label: question }));
 
-  return { toBook, warnings, questions, totalCount: toBook.length + warnings.length + questions.length };
+  return {
+    toBook,
+    toArrange,
+    warnings,
+    questions,
+    totalCount: toBook.length + toArrange.length + warnings.length + questions.length,
+  };
 }

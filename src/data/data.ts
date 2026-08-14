@@ -30,7 +30,7 @@ export const trip: Trip = {
     },
   },
   bookingSummary: {
-    booked: "vluchten + Negombo (Jetwing Sea)",
+    booked: "vluchten + Negombo (The Beach Apartments)",
     toBook: "8 verblijven",
   },
 };
@@ -45,14 +45,18 @@ export const stops: Stop[] = [
   {
     id: "negombo-arrival",
     name: "Negombo",
-    dates: "di 26 jan",
+    dates: "di 26 tot wo 27 jan",
     nights: 1,
     booked: true,
     lat: 7.21,
     lon: 79.84,
     transportTo: { mode: "car", label: "Taxi vanaf luchthaven (CMB)", duration: "15-25 min" },
     note: "Aankomst 06:10",
-    accommodation: { name: "Jetwing Sea", note: "Geboekt · 1 nacht" },
+    accommodation: {
+      name: "The Beach Apartments",
+      note: "Geboekt · 1 nacht",
+      photos: ["/negombo-the-beach-apartments.jpg"],
+    },
     photos: ["/negombo-arrival.webp"],
     activities: [
       { id: "nederlands-fort", name: "Nederlands fort", dist: "in stad", photos: [], priority: "nice" },
@@ -63,7 +67,7 @@ export const stops: Stop[] = [
   {
     id: "anuradhapura",
     name: "Anuradhapura",
-    dates: "wo 27 – do 28 jan",
+    dates: "wo 27 tot vr 29 jan",
     nights: 2,
     booked: false,
     lat: 8.31,
@@ -96,7 +100,7 @@ export const stops: Stop[] = [
   {
     id: "sigiriya",
     name: "Sigiriya",
-    dates: "vr 29 – zo 31 jan",
+    dates: "vr 29 jan tot ma 1 feb",
     nights: 3,
     booked: false,
     lat: 7.95,
@@ -128,7 +132,7 @@ export const stops: Stop[] = [
   {
     id: "kandy",
     name: "Kandy",
-    dates: "ma 1 – di 2 feb",
+    dates: "ma 1 tot wo 3 feb",
     nights: 2,
     booked: false,
     lat: 7.29,
@@ -145,7 +149,7 @@ export const stops: Stop[] = [
   {
     id: "ella",
     name: "Ella",
-    dates: "wo 3 – za 6 feb",
+    dates: "wo 3 tot zo 7 feb",
     nights: 4,
     booked: false,
     lat: 6.87,
@@ -185,7 +189,7 @@ export const stops: Stop[] = [
   {
     id: "hiriketiya",
     name: "Hiriketiya",
-    dates: "zo 7 – wo 10 feb",
+    dates: "zo 7 tot do 11 feb",
     nights: 4,
     booked: false,
     lat: 5.96,
@@ -203,7 +207,7 @@ export const stops: Stop[] = [
   {
     id: "mirissa",
     name: "Mirissa",
-    dates: "do 11 – za 13 feb",
+    dates: "do 11 tot zo 14 feb",
     nights: 3,
     booked: false,
     lat: 5.95,
@@ -220,7 +224,7 @@ export const stops: Stop[] = [
   {
     id: "hikkaduwa",
     name: "Hikkaduwa",
-    dates: "zo 14 – di 16 feb",
+    dates: "zo 14 tot wo 17 feb",
     nights: 3,
     booked: false,
     lat: 6.14,
@@ -246,7 +250,7 @@ export const stops: Stop[] = [
   {
     id: "negombo-departure",
     name: "Negombo",
-    dates: "wo 17 feb",
+    dates: "wo 17 tot do 18 feb",
     nights: 1,
     booked: false,
     lat: 7.21,
@@ -280,10 +284,12 @@ if (import.meta.env.DEV) {
 }
 
 export const notes: string[] = [
-  "Nachtenverdeling is een voorstel; alleen de vluchten en Negombo (Jetwing Sea) zijn geboekt.",
+  "Nachtenverdeling is een voorstel; alleen de vluchten en Negombo (The Beach Apartments) zijn geboekt.",
   "Luchthaven is CMB (Bandaranaike), ~10 min van Negombo.",
   "Totaal moet uitkomen op 23 nachten (26 jan t/m 17 feb).",
   "Yala is een tussenstop zonder overnachting: safari op de doortocht van Ella naar Hiriketiya (zo 7 feb).",
 ];
 
 export const openQuestions: string[] = [];
+
+export const todos: string[] = ["Visum regelen"];

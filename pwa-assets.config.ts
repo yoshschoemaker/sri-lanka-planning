@@ -25,8 +25,11 @@ export default defineConfig({
     // home-screen-app; padding houdt het palmicoon klein genoeg om op elk
     // schermformaat als logo te lezen in plaats van als paginavullende plaat.
     padding: 0.3,
-    resizeOptions: { background: "#faf5ea", fit: "contain" },
-    darkResizeOptions: { background: "#faf5ea", fit: "contain" },
+    // Dezelfde terracotta als het icoonvlak zelf: op een cream achtergrond zou
+    // het vierkant van het icoon zichtbaar aftekenen. Nu loopt het icoon door in
+    // de achtergrond en zweeft alleen de palm (met zijn lichtere zon) in beeld.
+    resizeOptions: { background: "#c2683f", fit: "contain" },
+    darkResizeOptions: { background: "#c2683f", fit: "contain" },
     linkMediaOptions: { log: false, addMediaScreen: true, basePath: "/", xhtml: false },
   }),
   images: ["public/favicon.svg"],

@@ -9,23 +9,37 @@ import { getTerrainSurfaceY } from "./Highlands";
  * that people photograph more than the temples.
  *
  * Nine arches is not decoration — it's the name and the whole silhouette, so the
- * count is literal. All nine spans plus the deck are merged into a single
- * geometry, which turns what would be ~28 separate meshes into one draw call. The
- * rest of the scene builds props from stacked JSX primitives (Temple.tsx,
- * SigiriyaRock.tsx), which is fine at three or four meshes and wasteful at
- * twenty-eight.
+ * count is literal.
+ *
+ * The whole viaduct wall is one extruded shape with nine holes cut in it, rather
+ * than the stacked primitives the rest of the diorama uses (Temple.tsx,
+ * SigiriyaRock.tsx). Outlining each opening with a half-torus and two boxes was
+ * the earlier approach and it never read as a bridge: seen from the map's camera
+ * angle you got a row of thin white posts under a rail, because the thing that
+ * makes a viaduct legible is the solid spandrel wall *between* the openings, and
+ * an outline has no wall. THREE.Shape holes give the real solid-with-voids
+ * silhouette without needing CSG, and still cost a single draw call.
  */
 
 const ARCH_COUNT = 9;
 /** Span of one arch, so the whole viaduct is ARCH_COUNT of these wide. */
 const ARCH_SPAN = 0.045;
-const PIER_WIDTH = 0.014;
-/** Height from the ground to the springing line of the arches. */
-const PIER_HEIGHT = 0.09;
-/** Rise of the arch above the piers. */
-const ARCH_RISE = 0.026;
-const DECK_HEIGHT = 0.014;
-const DEPTH = 0.03;
+/** Solid left between two openings. The rest of the span is the opening itself. */
+const PIER_WIDTH = 0.013;
+const OPENING_WIDTH = ARCH_SPAN - PIER_WIDTH;
+/** Height of the straight part of a pier, where the arch starts to curve. */
+const SPRING_HEIGHT = 0.05;
+/** Rise of the arch above the springing line. Half the opening = a semicircle. */
+const ARCH_RISE = OPENING_WIDTH / 2;
+/** Solid wall carried above the crown of the arches. */
+const SPANDREL_HEIGHT = 0.016;
+const WALL_TOP = SPRING_HEIGHT + ARCH_RISE + SPANDREL_HEIGHT;
+const DECK_HEIGHT = 0.007;
+const PARAPET_HEIGHT = 0.009;
+const PARAPET_THICKNESS = 0.004;
+const DEPTH = 0.032;
+/** Lowpoly, but enough segments that the arch curve doesn't read as a triangle. */
+const ARCH_SEGMENTS = 7;
 
 // A cool grey rather than the warm stone tan this started as: the viaduct sits on
 // tan highland terrain, and at first render the two colours were close enough that
@@ -35,49 +49,64 @@ const STONE_COLOR = "#cfcabe";
 const STONE_SHADOW = "#8a8377";
 
 const TOTAL_LENGTH = ARCH_COUNT * ARCH_SPAN;
+/** The wall runs half a pier past the outer arches, so it ends on solid stone. */
+const WALL_HALF_LENGTH = TOTAL_LENGTH / 2 + PIER_WIDTH / 2;
 
-/**
- * One arch's opening, as the solid *around* it: a half-torus for the curve plus
- * the two piers it springs from. Modelling the void directly would need CSG;
- * outlining it with primitives is how the rest of the diorama is built and reads
- * identically at this scale.
- */
-function buildSpan(index: number): THREE.BufferGeometry[] {
-  const centerX = (index - (ARCH_COUNT - 1) / 2) * ARCH_SPAN;
-  const parts: THREE.BufferGeometry[] = [];
+function archCenterX(index: number): number {
+  return (index - (ARCH_COUNT - 1) / 2) * ARCH_SPAN;
+}
 
-  // The arch curve. A torus with arc = PI is already the upper half, lying in the
-  // XY plane with its thickness along Z — exactly an arch, no rotation needed.
-  // Radius is half a span so its two ends land on the neighbouring piers, then Y
-  // is scaled to give the arch its intended rise rather than a perfect semicircle.
-  const arch = new THREE.TorusGeometry(ARCH_SPAN / 2, ARCH_RISE / 2.4, 4, 8, Math.PI);
-  arch.scale(1, (ARCH_RISE * 2) / ARCH_SPAN, 1);
-  arch.translate(centerX, PIER_HEIGHT, 0);
-  parts.push(arch);
+/** One opening: straight legs up to the springing line, then a semicircular head. */
+function buildOpening(index: number): THREE.Path {
+  const centerX = archCenterX(index);
+  const half = OPENING_WIDTH / 2;
+  const hole = new THREE.Path();
 
-  // Pier on this span's left edge. The rightmost pier is added once by the
-  // caller, so spans don't each contribute a duplicate at the shared edge.
-  const pier = new THREE.BoxGeometry(PIER_WIDTH, PIER_HEIGHT, DEPTH);
-  pier.translate(centerX - ARCH_SPAN / 2, PIER_HEIGHT / 2, 0);
-  parts.push(pier);
+  hole.moveTo(centerX - half, 0);
+  hole.lineTo(centerX - half, SPRING_HEIGHT);
+  // From the left springing point over the crown to the right one. Going from PI
+  // to 0 clockwise is the upper half; the lower half would cut the piers away.
+  hole.absarc(centerX, SPRING_HEIGHT, half, Math.PI, 0, true);
+  hole.lineTo(centerX + half, 0);
+  hole.closePath();
 
-  return parts;
+  return hole;
 }
 
 function buildBridgeGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < ARCH_COUNT; i++) parts.push(...buildSpan(i));
+  const wall = new THREE.Shape();
+  wall.moveTo(-WALL_HALF_LENGTH, 0);
+  wall.lineTo(WALL_HALF_LENGTH, 0);
+  wall.lineTo(WALL_HALF_LENGTH, WALL_TOP);
+  wall.lineTo(-WALL_HALF_LENGTH, WALL_TOP);
+  wall.closePath();
 
-  // Closing pier at the far end.
-  const lastPier = new THREE.BoxGeometry(PIER_WIDTH, PIER_HEIGHT, DEPTH);
-  lastPier.translate(TOTAL_LENGTH / 2, PIER_HEIGHT / 2, 0);
-  parts.push(lastPier);
+  for (let i = 0; i < ARCH_COUNT; i++) wall.holes.push(buildOpening(i));
 
-  // The deck the track runs on, overhanging the arches slightly at each end the
-  // way the real parapet does.
-  const deck = new THREE.BoxGeometry(TOTAL_LENGTH + PIER_WIDTH * 2, DECK_HEIGHT, DEPTH * 1.15);
-  deck.translate(0, PIER_HEIGHT + ARCH_RISE + DECK_HEIGHT / 2, 0);
+  const wallGeometry = new THREE.ExtrudeGeometry(wall, {
+    depth: DEPTH,
+    bevelEnabled: false,
+    curveSegments: ARCH_SEGMENTS,
+  });
+  // ExtrudeGeometry builds along +Z from the shape's plane; the prop is placed by
+  // its centre, so recentre the extrusion on it.
+  wallGeometry.translate(0, 0, -DEPTH / 2);
+
+  const parts: THREE.BufferGeometry[] = [wallGeometry];
+
+  // The deck, overhanging the wall on both sides the way the real cornice does.
+  const deck = new THREE.BoxGeometry(WALL_HALF_LENGTH * 2 + PARAPET_THICKNESS, DECK_HEIGHT, DEPTH * 1.2);
+  deck.translate(0, WALL_TOP + DECK_HEIGHT / 2, 0);
   parts.push(deck);
+
+  // Parapets along both edges. They carry the silhouette at this scale far more
+  // than the arches do — without them the deck is a bare slab.
+  const deckTop = WALL_TOP + DECK_HEIGHT;
+  for (const side of [-1, 1]) {
+    const parapet = new THREE.BoxGeometry(WALL_HALF_LENGTH * 2, PARAPET_HEIGHT, PARAPET_THICKNESS);
+    parapet.translate(0, deckTop + PARAPET_HEIGHT / 2, (side * (DEPTH * 1.2 - PARAPET_THICKNESS)) / 2);
+    parts.push(parapet);
+  }
 
   return mergeParts(parts, "nine arches");
 }
@@ -105,10 +134,10 @@ export function NineArchesBridge({ x, z, rotation }: { x: number; z: number; rot
       <mesh geometry={geometry}>
         <meshStandardMaterial color={STONE_COLOR} roughness={0.9} flatShading />
       </mesh>
-      {/* A darker sliver under the deck, so the arches read against the valley
-          behind them instead of flattening into one pale band at this scale. */}
-      <mesh position={[0, PIER_HEIGHT + ARCH_RISE - 0.002, 0]}>
-        <boxGeometry args={[TOTAL_LENGTH, 0.005, DEPTH * 1.2]} />
+      {/* A darker band under the cornice, so the deck reads as a separate course
+          of stone instead of merging into the wall below it. */}
+      <mesh position={[0, WALL_TOP - 0.002, 0]}>
+        <boxGeometry args={[WALL_HALF_LENGTH * 2, 0.004, DEPTH * 1.06]} />
         <meshStandardMaterial color={STONE_SHADOW} roughness={0.95} flatShading />
       </mesh>
     </group>

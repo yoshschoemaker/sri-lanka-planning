@@ -8,7 +8,7 @@ import { getMarkerWorldPosition, getLabelDirection } from "../../utils/mapLayout
 import { handleActivateKey } from "../../utils/keyboardActivate";
 import { isStopover, nightsLabel } from "../../utils/nights";
 import { selectPulse } from "../../motion/variants";
-import { ISLAND_TOP_Y } from "./Island";
+import { getTerrainSurfaceY } from "./Highlands";
 import { STOP_HTML_Z } from "./htmlLayers";
 
 const PIN_HEIGHT = 0.16;
@@ -41,6 +41,11 @@ export function StopMarker3D({ stop, order, isActive, dimmed, prefersReducedMoti
   const [hovered, setHovered] = useState(false);
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
   const { x, z } = getMarkerWorldPosition(stop);
+  // Real ground, not the flat lowland plane: Ella and Kandy sit on hill-country
+  // terraces well above it (their pins used to be buried entirely, hidden only
+  // by the always-on-top HTML badge), and Mirissa, Hikkaduwa, Hiriketiya and
+  // Yala sit a step below it on the beach shelf.
+  const groundY = getTerrainSurfaceY(x, z);
   const labelDirection = getLabelDirection(stop.id);
   const expanded = isActive || hovered;
   // Doortocht: omgekeerde, gestippelde badge, net als de 2D-marker en de kaart in de route.
@@ -58,7 +63,7 @@ export function StopMarker3D({ stop, order, isActive, dimmed, prefersReducedMoti
 
   return (
     <group position={[x, 0, z]}>
-      <mesh position={[0, ISLAND_TOP_Y + PIN_HEIGHT / 2, 0]}>
+      <mesh position={[0, groundY + PIN_HEIGHT / 2, 0]}>
         <cylinderGeometry args={[PIN_RADIUS, PIN_RADIUS, PIN_HEIGHT, 6]} />
         <meshStandardMaterial
           ref={materialRef}
@@ -69,7 +74,7 @@ export function StopMarker3D({ stop, order, isActive, dimmed, prefersReducedMoti
         />
       </mesh>
 
-      <Html position={[0, ISLAND_TOP_Y + PIN_HEIGHT, 0]} center zIndexRange={STOP_HTML_Z}>
+      <Html position={[0, groundY + PIN_HEIGHT, 0]} center zIndexRange={STOP_HTML_Z}>
         <div
           tabIndex={0}
           role="button"

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { trip, stops, transportModes, notes, openQuestions } from "./data/data";
+import { trip, stops, transportModes, notes, openQuestions, todos } from "./data/data";
 import { Header } from "./components/Header";
 import { HeroBanner } from "./components/HeroBanner";
 import { SplashScreen } from "./components/SplashScreen";
@@ -184,6 +184,7 @@ function App() {
           trip={trip}
           stops={stops}
           openQuestions={openQuestions}
+          todos={todos}
           notes={notes}
           onJumpToStop={handleSelect}
         />
@@ -200,7 +201,7 @@ function App() {
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-start lg:gap-10">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-start lg:gap-6">
           <div className="order-2 lg:order-1">
             <h2 className="mb-4 font-serif text-2xl font-semibold text-ink">Route</h2>
             <ItineraryList

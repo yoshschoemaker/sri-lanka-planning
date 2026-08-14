@@ -120,6 +120,24 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
                 {stop.dates} · {nightsLabel(stop)}
               </p>
 
+              {/*
+                Het verblijf staat ook ingeklapt op de kaart: bij het plannen wil
+                je in één blik zien waar je slaapt, zonder elke stop open te
+                klappen. De uitklap houdt de volledige kaart met foto's en link.
+              */}
+              {!stopover &&
+                (stop.accommodation ? (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink">
+                    <span aria-hidden>🛏</span>
+                    <span className="min-w-0 truncate font-medium">{stop.accommodation.name}</span>
+                  </p>
+                ) : (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink-soft">
+                    <span aria-hidden>🛏</span>
+                    <span>Verblijf nog niet gekozen</span>
+                  </p>
+                ))}
+
               {stop.note && <p className="mt-2 text-sm text-ink-soft">{stop.note}</p>}
 
               {stop.warn && (
