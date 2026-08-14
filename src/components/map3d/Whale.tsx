@@ -2,7 +2,9 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Html, Sparkles } from "@react-three/drei";
+import { CRITTER_HTML_Z } from "./htmlLayers";
 import { useClickReaction } from "../../utils/useClickReaction";
+import { useIdleMotion } from "../../utils/useIdleMotion";
 
 const BODY_COLOR = "#2c5b6e";
 const BODY_COLOR_LIGHT = "#3d7a8f";
@@ -26,14 +28,23 @@ export function Whale({ x, z, prefersReducedMotion }: { x: number; z: number; pr
   const tailRef = useRef<THREE.Mesh>(null);
   const phase = useRef(Math.random() * Math.PI * 2);
   const { trigger, reacting, envelope } = useClickReaction(REACTION_DURATION);
+  const idle = useIdleMotion({ speed: 0.7, minGap: 7, maxGap: 16, duration: 2.2 });
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime * 0.4 + phase.current;
     const e = prefersReducedMotion ? null : envelope();
-    if (groupRef.current) groupRef.current.position.y = BASE_Y + (prefersReducedMotion ? 0 : Math.sin(t) * 0.012);
+    const { t: it, fidget, fidgetElapsed } = idle(clock.elapsedTime, !prefersReducedMotion);
+
+    if (groupRef.current) {
+      // The fidget is a shallow dive: the back sinks and the whole body rolls into it.
+      groupRef.current.position.y = BASE_Y + (prefersReducedMotion ? 0 : Math.sin(t) * 0.012) - 0.012 * fidget;
+      groupRef.current.rotation.z = Math.sin(it * 0.8) * 0.05 + Math.sin(fidgetElapsed * 1.4) * 0.07 * fidget;
+      groupRef.current.rotation.x = -0.06 * fidget;
+    }
     if (tailRef.current) {
       const ambient = prefersReducedMotion ? 0 : Math.sin(t * 1.3) * 0.15;
-      tailRef.current.rotation.z = e ? ambient + Math.sin(e.elapsed * 10) * 0.5 * e.strength : ambient;
+      tailRef.current.rotation.z =
+        ambient + Math.sin(fidgetElapsed * 3.2) * 0.28 * fidget + (e ? Math.sin(e.elapsed * 10) * 0.5 * e.strength : 0);
     }
   });
 
@@ -75,8 +86,8 @@ export function Whale({ x, z, prefersReducedMotion }: { x: number; z: number; pr
       )}
 
       {reacting && (
-        <Html position={[0, 0.1, 0.02]} center>
-          <div className="pointer-events-none whitespace-nowrap rounded-full bg-ink/95 px-2.5 py-1 font-serif text-xs font-semibold text-cream shadow-[var(--shadow-card)]">
+        <Html position={[0, 0.1, 0.02]} center zIndexRange={CRITTER_HTML_Z}>
+          <div className="marker-label-glass pointer-events-none whitespace-nowrap rounded-full px-3 py-1 font-serif text-xs font-semibold text-cream">
             Pfffft! 🐋
           </div>
         </Html>

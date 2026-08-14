@@ -4,11 +4,30 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { ContactShadows, Sparkles } from "@react-three/drei";
 import type { Stop, TransportMode, TransportModeKey } from "../../types/trip";
 import type { ModeFilter, StatusFilter } from "../FilterBar";
+import {
+  ELEPHANT_POSITION,
+  FISH_SCHOOL_POSITION,
+  GALLE_FORT_POSITION,
+  LEOPARD_POSITION,
+  NINE_ARCHES_POSITION,
+  NINE_ARCHES_ROTATION,
+  PALM_TREE_POSITIONS,
+  SIGIRIYA_ROCK_POSITION,
+  STUPA_POSITION,
+  TEMPLE_POSITIONS,
+  TURTLE_POSITION,
+  WATERFALL_POSITION,
+  WATERFALL_ROTATION,
+  WAVE_CREST_POSITIONS,
+  WHALE_POSITION,
+} from "../../data/mapDecor";
 import { getDaytripEntries } from "../../utils/daytrips";
 import { getMarkerWorldPosition } from "../../utils/mapLayout3d";
+import { isBookingSettled } from "../../utils/nights";
 import { projectToWorld } from "../../utils/projection3d";
+import { useMapScatter } from "../../utils/useMapScatter";
 import { useReducedMotion } from "../../utils/useReducedMotion";
-import { Island, ISLAND_TOP_Y } from "./Island";
+import { Island } from "./Island";
 import { Water } from "./Water";
 import { CameraRig, type CameraRigHandle } from "./CameraRig";
 import { StopMarker3D } from "./StopMarker3D";
@@ -17,7 +36,7 @@ import { RouteLine3D } from "./RouteLine3D";
 import { DaytripConnector3D } from "./DaytripConnector3D";
 import { PalmTree } from "./PalmTree";
 import { WaveCrest } from "./WaveCrest";
-import { Highlands, PLATEAU_LAYER1_TOP, getPlateauCenter } from "./Highlands";
+import { Highlands, PLATEAU_LAYER1_TOP, getPlateauCenter, getTerrainSurfaceY } from "./Highlands";
 import { Stupa } from "./Stupa";
 import { TeaBushes } from "./TeaBushes";
 import { Leopard } from "./Leopard";
@@ -30,45 +49,13 @@ import { Whale } from "./Whale";
 import { SigiriyaRock } from "./SigiriyaRock";
 import { Rain3D } from "./Rain3D";
 import { RoadVehicle3D } from "./RoadVehicle3D";
-
-/** Empty coastal/inland spots the stop/daytrip/route layout never touches, so these purely decorative elements never collide with real UI. */
-const PALM_TREE_POSITIONS = [
-  { x: 1.55, z: 0.75 }, // east coast, Trincomalee-ish
-  { x: -1.0, z: 3.95 }, // south coast dunes near Mirissa/Hikkaduwa
-  { x: 0.15, z: -2.6 }, // northern peninsula — real palmyra-palm country
-];
-/** Sampled around the whole coastline (offset outward from the coastline ring, verified in water), spaced so no two crowd the same stretch of coast. */
-const WAVE_CREST_POSITIONS = [
-  { x: 2.4, z: 0.85 }, // east coast
-  { x: 0.3, z: 4.7 }, // open water south of the island, off the surf coast
-  { x: 2.64, z: 1.96 }, // northeast coast
-  { x: 0.98, z: 4.06 }, // south coast
-  { x: -1.0, z: 4.53 }, // south coast, near Mirissa/Hikkaduwa
-  { x: -1.89, z: 3.25 }, // southwest coast
-  { x: -2.22, z: 1.91 }, // west coast
-  { x: -2.66, z: -0.45 }, // west coast, north of Negombo
-  { x: -2.11, z: -2.55 }, // northwest coast
-  { x: -1.39, z: -3.82 }, // near the northern peninsula
-  { x: -0.08, z: -3.48 }, // north tip
-  { x: 0.49, z: -2.83 }, // northeast coast
-  { x: 1.15, z: -2.06 }, // northeast coast
-  { x: 1.67, z: -0.53 }, // east coast, north of Trincomalee
-];
-const STUPA_POSITION = { x: -0.15, z: -1.9 }; // north of the Anuradhapura marker, clear of its pin/label
-const LEOPARD_POSITION = { x: -1.3, z: -1.65 }; // near the Wilpattu daytrip marker, clear of its dot
-const ELEPHANT_POSITION = { x: 0.65, z: 3.05 }; // near the Udawalawe stop marker, clear of its pin
-/** Temple of the Tooth (Kandy) and the Dambulla cave temple daytrip — both real temple visits, so they get Temple.tsx's tiered-roof vihara rather than Stupa.tsx's dagoba dome. */
-const TEMPLE_POSITIONS = [
-  { x: -0.15, z: 1.42 }, // Kandy
-  { x: -0.38, z: 0.1 }, // Dambulla cave temple daytrip
-];
-// Each nudged further offshore from the coastline ring than they first were
-// (the local coast sits at z≈3.58/4.08/4.34 respectively at these x's) — they
-// were reading as beached rather than swimming.
-const FISH_SCHOOL_POSITION = { x: -1.65, z: 4.15 }; // just off Hikkaduwa's Coral Sanctuary snorkel spot
-const TURTLE_POSITION = { x: 0.28, z: 4.45 }; // off Tangalle, near Rekawa's turtle beach
-const WHALE_POSITION = { x: -0.4, z: 4.85 }; // open water south of Mirissa, where the whale-watching boats actually go (kept just inside the camera's default framing)
-const SIGIRIYA_ROCK_POSITION = { x: 0.45, z: -0.03 }; // east of the Sigiriya marker, clear of both its pin circle and the Dambulla temple nearby
+import { Vegetation } from "./Vegetation";
+import { Boulders } from "./Boulders";
+import { PaddyFields } from "./PaddyFields";
+import { InlandWater } from "./InlandWater";
+import { NineArchesBridge } from "./NineArchesBridge";
+import { GalleFort } from "./GalleFort";
+import { Waterfall } from "./Waterfall";
 
 function RecenterIcon({ className }: { className?: string }) {
   return (
@@ -142,8 +129,11 @@ function EveningIcon({ className }: { className?: string }) {
 }
 
 /** Shared visual chrome for every floating circular map button, so recenter/zoom/tour stay one consistent toolbar. */
+/* z-10 hoort hier bij: de drei-<Html>-markers portalen naast de canvas in
+   dezelfde wrapper, dus zonder eigen z-index verliest een knop van de badges.
+   Zie htmlLayers.ts, dat de markers onder deze 10 houdt. */
 const MAP_BUTTON_CLASS =
-  "flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/90 text-ink shadow-[var(--shadow-card)] backdrop-blur transition hover:bg-white active:scale-95 disabled:pointer-events-none disabled:opacity-50";
+  "z-10 flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/90 text-ink shadow-[var(--shadow-card)] backdrop-blur transition hover:bg-white active:scale-95 disabled:pointer-events-none disabled:opacity-50";
 
 const DAY_LIGHTS = {
   hemiSky: new THREE.Color("#fff1dd"),
@@ -348,6 +338,13 @@ export function TripMap3D({
   const [manualEvening, setManualEvening] = useState(false);
   const daytripEntries = useMemo(() => getDaytripEntries(stops), [stops]);
   const plateauCenter = useMemo(getPlateauCenter, []);
+  /**
+   * All procedural decoration (woodland, scrub, palms, tea, patana grass,
+   * boulders, paddy) placed in one seeded pass, keyed off the live stop list so
+   * nothing grows through a marker or a route line. Density follows the viewport
+   * via useDetailLevel inside the hook.
+   */
+  const scatter = useMapScatter(stops);
 
   /** Advanced by DayNightLights' own useFrame; reset to 0 by handleTourDay at the start of every simulated day. Not React state — read at 60fps by a ref, not a re-render. */
   const cyclePhaseRef = useRef(0);
@@ -411,6 +408,12 @@ export function TripMap3D({
       <Canvas
         flat
         frameloop={paused ? "never" : "always"}
+        // Capped at 2x rather than left to follow devicePixelRatio unbounded,
+        // which on a 3x phone means rendering 2.25x the pixels of a 2x one for a
+        // difference the eye can barely find on a flat-shaded diorama. This is
+        // the cheapest headroom available, and it pays for the vegetation added
+        // alongside it.
+        dpr={[1, 2]}
         // Tight near/far (rather than R3F's default 0.1/1000) so the whole
         // scene, which never spans more than ~40 units deep, uses most of the
         // depth buffer's precision: with the default range almost all of it
@@ -431,20 +434,31 @@ export function TripMap3D({
         <Sparkles count={50} scale={[9, 0.4, 9]} position={[0, -0.05, 0]} size={2.4} speed={0.3} opacity={0.55} color="#ffffff" noise={0.6} />
         <Rain3D active={manualEvening} prefersReducedMotion={prefersReducedMotion} />
         {/* Fireflies: real ones are dusk/night creatures, so they're barely there by day and glow once night falls, whether from the manual toggle or the tour's own cycling. */}
+        {/* Height comes from getTerrainSurfaceY, not from PLATEAU_LAYER1_TOP: that
+            constant is measured *relative* to ISLAND_TOP_Y (TeaBushes adds the two
+            together itself), so using it as an absolute world Y put these
+            fireflies roughly 0.3 units inside the mountain. */}
         <Sparkles
           count={22}
           scale={[0.9, 0.5, 0.9]}
-          position={[plateauCenter.x, PLATEAU_LAYER1_TOP + 0.08, plateauCenter.z]}
+          position={[plateauCenter.x, getTerrainSurfaceY(plateauCenter.x, plateauCenter.z) + 0.08, plateauCenter.z]}
           size={2.8}
           speed={0.25}
           noise={1.2}
           color="#ffd873"
           opacity={nightFlavor ? 0.85 : 0.1}
         />
+        {/* Same correction as above: the Kandy temple stands up in the hill
+            country on getTerrainSurfaceY, so anchoring its fireflies to flat
+            ISLAND_TOP_Y left them sunk below the terrace the temple is on. */}
         <Sparkles
           count={16}
           scale={[0.35, 0.35, 0.35]}
-          position={[TEMPLE_POSITIONS[0].x, ISLAND_TOP_Y + 0.08, TEMPLE_POSITIONS[0].z]}
+          position={[
+            TEMPLE_POSITIONS[0].x,
+            getTerrainSurfaceY(TEMPLE_POSITIONS[0].x, TEMPLE_POSITIONS[0].z) + 0.08,
+            TEMPLE_POSITIONS[0].z,
+          ]}
           size={2.4}
           speed={0.2}
           noise={1.2}
@@ -453,8 +467,28 @@ export function TripMap3D({
         />
         <Island />
         <Highlands />
+        {/* Inland water goes on directly after the terrain and before anything
+            standing on it: lakes and the river are flat surfaces lifted a hair
+            above the ground, so drawing them here keeps the ordering intuitive
+            even though the depth buffer is what actually resolves it. */}
+        <InlandWater nightRef={nightAmountRef} />
+        {/* Procedural decoration. Seven species, six draw calls total — see
+            ScatteredInstances.tsx for why these are instanced when the rest of
+            the scene's props are not. */}
+        <Vegetation scatter={scatter} prefersReducedMotion={prefersReducedMotion} />
+        <Boulders scatter={scatter} />
+        <PaddyFields scatter={scatter} />
         <Stupa x={STUPA_POSITION.x} z={STUPA_POSITION.z} />
         <SigiriyaRock x={SIGIRIYA_ROCK_POSITION.x} z={SIGIRIYA_ROCK_POSITION.z} />
+        <NineArchesBridge x={NINE_ARCHES_POSITION.x} z={NINE_ARCHES_POSITION.z} rotation={NINE_ARCHES_ROTATION} />
+        <GalleFort x={GALLE_FORT_POSITION.x} z={GALLE_FORT_POSITION.z} />
+        <Waterfall
+          x={WATERFALL_POSITION.x}
+          z={WATERFALL_POSITION.z}
+          rotation={WATERFALL_ROTATION}
+          nightRef={nightAmountRef}
+          prefersReducedMotion={prefersReducedMotion}
+        />
         <TeaBushes x={plateauCenter.x} z={plateauCenter.z} baseY={PLATEAU_LAYER1_TOP} />
         <Leopard x={LEOPARD_POSITION.x} z={LEOPARD_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
         <Elephant x={ELEPHANT_POSITION.x} z={ELEPHANT_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
@@ -515,7 +549,7 @@ export function TripMap3D({
           ))}
 
         {stops.map((stop, i) => {
-          const statusDimmed = statusFilter === "toBook" && stop.booked;
+          const statusDimmed = statusFilter === "toBook" && isBookingSettled(stop);
           const modeDimmed = modeFilter !== "all" && modeFilter !== stop.transportTo.mode;
           return (
             <StopMarker3D

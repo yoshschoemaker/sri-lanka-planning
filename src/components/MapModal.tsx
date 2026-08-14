@@ -4,22 +4,7 @@ import type { Stop, TransportMode, TransportModeKey } from "../types/trip";
 import type { ModeFilter, StatusFilter } from "./FilterBar";
 import { TripMapScene } from "./TripMapScene";
 import { useReducedMotion } from "../utils/useReducedMotion";
-
-function CloseIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M6 6l12 12M18 6L6 18" />
-    </svg>
-  );
-}
+import { CloseIcon } from "./icons";
 
 interface MapModalProps {
   open: boolean;
@@ -62,18 +47,20 @@ export function MapModal({ open, onClose, ...mapProps }: MapModalProps) {
           exit={{ opacity: 0 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.25 }}
         >
-          <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3">
-            <span className="font-serif text-lg font-semibold text-ink">Kaart</span>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Kaart sluiten"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-ink transition hover:bg-ink/5 active:scale-95"
-            >
-              <CloseIcon className="h-5 w-5" />
-            </button>
+          <div className="pt-safe px-safe shrink-0">
+            <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3">
+              <span className="font-serif text-lg font-semibold text-ink">Kaart</span>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Kaart sluiten"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-ink transition hover:bg-ink/5 active:scale-95"
+              >
+                <CloseIcon className="h-5 w-5" />
+              </button>
+            </div>
           </div>
-          <div className="relative flex-1">
+          <div className="pb-safe px-safe relative flex-1">
             <TripMapScene variant="hero" {...mapProps} />
           </div>
         </motion.div>

@@ -26,7 +26,7 @@ export type LabelDirection = "left" | "right";
  * canvas edge in its default direction (expands to the right of the badge).
  * Unlike 2D's LABEL_OVERRIDES, this should almost never be needed: only one
  * 3D label is ever visible at a time (hover/focus/selection), so the
- * Tangalle/Mirissa/Hikkaduwa-style permanent collisions don't exist here.
+ * Hiriketiya/Mirissa/Hikkaduwa-style permanent collisions don't exist here.
  */
 const LABEL_DIRECTION_OVERRIDES: Record<string, LabelDirection> = {
   // Westmost stop, with the rest of the route fanning out east of it — the

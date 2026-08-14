@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Bron voor alle PWA-icons en tevens de SVG-favicon (pnpm generate-pwa-assets).
+       Bewust geen <text>/emoji: sharp heeft geen emoji-font en zou tofu renderen.
+       Bewust een dekkende achtergrond over het hele canvas: iOS vult transparantie
+       in een apple-touch-icon zwart op, en de maskable-variant snijdt de randen weg. -->
+  <rect width="1024" height="1024" fill="#c2683f" />
+
+  <!-- Zon achter de kroon, geeft diepte binnen de maskable safe zone -->
+  <circle cx="536" cy="446" r="196" fill="#d1875f" />
+
+  <g transform="translate(25 15)" fill="#faf5ea">
+    <!-- Stam -->
+    <path d="M472 812 C486 700 476 556 444 408 L500 398 C520 556 536 700 560 812 Z" />
+
+    <!-- Bladeren, met de klok mee vanaf linksonder -->
+    <path d="M470 402 C370 380 250 400 176 486 C262 424 372 418 470 428 Z" />
+    <path d="M470 400 C390 320 300 268 206 262 C290 300 386 348 468 420 Z" />
+    <path d="M470 398 C452 310 480 232 540 178 C520 268 512 330 496 404 Z" />
+    <path d="M472 400 C560 322 680 292 776 320 C672 328 560 372 480 424 Z" />
+    <path d="M472 404 C570 400 690 434 764 502 C664 452 556 428 470 428 Z" />
+
+    <!-- Kokosnoten -->
+    <circle cx="446" cy="446" r="26" />
+    <circle cx="504" cy="434" r="22" />
+    <circle cx="478" cy="486" r="18" />
+  </g>
+</svg>

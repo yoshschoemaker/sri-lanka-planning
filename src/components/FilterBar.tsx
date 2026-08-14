@@ -1,5 +1,6 @@
 import type { ActivityPriority, TransportModeKey, TransportMode } from "../types/trip";
 import { stops } from "../data/data";
+import { isBookingSettled } from "../utils/nights";
 
 export type StatusFilter = "all" | "toBook";
 export type ModeFilter = TransportModeKey | "all";
@@ -33,7 +34,7 @@ export function FilterBar({
   const modeEntries = Object.entries(transportModes) as [TransportModeKey, TransportMode][];
 
   const matchCount = stops.filter((stop) => {
-    const statusDimmed = statusFilter === "toBook" && stop.booked;
+    const statusDimmed = statusFilter === "toBook" && isBookingSettled(stop);
     const modeDimmed = modeFilter !== "all" && modeFilter !== stop.transportTo.mode;
     return !statusDimmed && !modeDimmed;
   }).length;

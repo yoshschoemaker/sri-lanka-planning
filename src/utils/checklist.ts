@@ -1,4 +1,5 @@
 import type { Stop, Trip } from "../types/trip";
+import { isBookingSettled } from "./nights";
 
 export interface ChecklistItem {
   key: string;
@@ -23,7 +24,8 @@ export function buildTripChecklist(trip: Trip, stops: Stop[], openQuestions: str
       ? [{ key: "flight-return", label: "Vlucht terug", detail: trip.flights.return.date }]
       : []),
     ...stops
-      .filter((stop) => !stop.booked)
+      // Een doortocht heeft geen verblijf, dus hij hoort niet in de boekingslijst.
+      .filter((stop) => !isBookingSettled(stop))
       .map((stop) => ({ key: `book-${stop.id}`, label: stop.name, detail: stop.dates, stopId: stop.id })),
   ];
 

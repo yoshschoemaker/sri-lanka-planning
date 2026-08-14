@@ -5,12 +5,15 @@ import { HeroBanner } from "./components/HeroBanner";
 import { SplashScreen } from "./components/SplashScreen";
 import { DailyCountdownConfetti } from "./components/DailyCountdownConfetti";
 import { TripStats } from "./components/TripStats";
+import { RouteSummary } from "./components/RouteSummary";
 import { FlightCard } from "./components/FlightCard";
 import { FilterBar, type ModeFilter, type PriorityFilter, type StatusFilter } from "./components/FilterBar";
 import { ItineraryList } from "./components/ItineraryList";
 import { TripMapScene } from "./components/TripMapScene";
 import { MapModal } from "./components/MapModal";
 import { TripInfoAccordion } from "./components/TripInfoAccordion";
+import { InstallPrompt } from "./components/InstallPrompt";
+import { UpdatePrompt } from "./components/UpdatePrompt";
 import { useReducedMotion } from "./utils/useReducedMotion";
 import { useMediaQuery } from "./utils/useMediaQuery";
 
@@ -27,6 +30,8 @@ function App() {
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   const [mapOutOfView, setMapOutOfView] = useState(false);
   const [mapModalOpen, setMapModalOpen] = useState(false);
+  /** De install-banner bezet de onderrand; FAB en update-toast wijken ervoor uit. */
+  const [installBannerVisible, setInstallBannerVisible] = useState(false);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const mapAnchorRef = useRef<HTMLDivElement>(null);
   /** Fallback for closeMapModal when nothing is selected — mobile has no scroll-linked selection (see the isDesktop-gated observer below), so there's no card to land back on. */
@@ -156,6 +161,8 @@ function App() {
     <div className="min-h-screen bg-cream">
       <SplashScreen />
       <DailyCountdownConfetti trip={trip} />
+      <InstallPrompt onVisibilityChange={setInstallBannerVisible} />
+      <UpdatePrompt raised={installBannerVisible} />
       <Header trip={trip} />
 
       <HeroBanner />
@@ -163,7 +170,9 @@ function App() {
       <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
         <TripStats trip={trip} stops={stops} transportModes={transportModes} onJumpToStop={handleSelect} />
 
-        <section className="mt-12 mb-10 sm:mt-14">
+        <RouteSummary trip={trip} stops={stops} />
+
+        <section className="mb-10">
           <h2 className="mb-4 font-serif text-2xl font-semibold text-ink">Vluchten</h2>
           <div className="flex flex-col gap-4 sm:flex-row">
             <FlightCard flight={trip.flights.outbound} direction="heen" />
@@ -227,7 +236,13 @@ function App() {
           type="button"
           onClick={openMapModal}
           aria-label="Kaart openen"
-          className="fixed bottom-5 right-5 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-terracotta-dark text-cream shadow-lg shadow-ink/20 transition-transform active:scale-95 lg:hidden"
+          style={{
+            right: "calc(1.25rem + env(safe-area-inset-right, 0px))",
+            bottom: installBannerVisible
+              ? "calc(9.5rem + env(safe-area-inset-bottom, 0px))"
+              : "calc(1.25rem + env(safe-area-inset-bottom, 0px))",
+          }}
+          className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-terracotta-dark text-cream shadow-lg shadow-ink/20 transition-all active:scale-95 lg:hidden"
         >
           <span aria-hidden className="text-xl leading-none">
             🗺

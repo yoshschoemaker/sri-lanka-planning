@@ -4,6 +4,7 @@ import type { DaytripEntry } from "../../utils/daytrips";
 import { projectToWorld } from "../../utils/projection3d";
 import { handleActivateKey } from "../../utils/keyboardActivate";
 import { ISLAND_TOP_Y } from "./Island";
+import { DAYTRIP_HTML_Z } from "./htmlLayers";
 
 const PIN_HEIGHT = 0.1;
 const PIN_RADIUS = 0.014;
@@ -45,7 +46,7 @@ export function DaytripMarker3D({ stop, activity }: DaytripEntry) {
         <meshStandardMaterial color="#5c5044" roughness={0.9} flatShading />
       </mesh>
 
-      <Html position={[0, ISLAND_TOP_Y + PIN_HEIGHT, 0]} center>
+      <Html position={[0, ISLAND_TOP_Y + PIN_HEIGHT, 0]} center zIndexRange={DAYTRIP_HTML_Z}>
         <div
           tabIndex={0}
           role="button"
@@ -57,14 +58,19 @@ export function DaytripMarker3D({ stop, activity }: DaytripEntry) {
           onMouseLeave={() => setHovered(false)}
           onFocus={() => setHovered(true)}
           onBlur={() => setHovered(false)}
-          className={`relative flex cursor-pointer items-center justify-center rounded-full border-[1.5px] border-ink-soft bg-cream shadow-sm outline-none transition-all ${
-            expanded ? "h-3.5 w-3.5" : "h-2.5 w-2.5"
+          className={`marker-glass marker-glass-light marker-glass-dot flex cursor-pointer items-center justify-center rounded-full outline-none transition-all duration-200 ${
+            expanded ? "h-4 w-4" : "h-3 w-3"
           }`}
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute top-full mt-1.5 whitespace-nowrap rounded-xl bg-ink/95 px-2.5 py-1.5 text-center shadow-[var(--shadow-card)] transition-opacity duration-200"
-            style={{ left: `calc(50% + ${labelOffset}px)`, transform: "translateX(-50%)", opacity: expanded ? 1 : 0 }}
+            className="marker-label-glass pointer-events-none absolute top-full mt-2 whitespace-nowrap rounded-2xl px-3 py-1.5 text-center transition-all duration-200"
+            style={{
+              left: `calc(50% + ${labelOffset}px)`,
+              transform: `translateX(-50%) scale(${expanded ? 1 : 0.9})`,
+              transformOrigin: "top center",
+              opacity: expanded ? 1 : 0,
+            }}
           >
             <p className="font-serif text-xs font-semibold text-cream">{activity.name}</p>
             <p className="text-[10px] text-cream/80">

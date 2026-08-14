@@ -1,0 +1,4 @@
+allowBuilds:
+  # sharp levert prebuilt binaries; het install-script verifieert alleen libvips.
+  # Nodig voor @vite-pwa/assets-generator (pnpm generate-pwa-assets).
+  sharp: true
