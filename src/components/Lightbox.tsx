@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import type { PhotoUrl } from "../types/trip";
 import { dimTransition } from "../motion/variants";
+import { CloseIcon } from "./icons";
 
 interface LightboxProps {
   photos: PhotoUrl[];
@@ -41,7 +42,7 @@ export function Lightbox({ photos, index, alt, onClose, onIndexChange }: Lightbo
       role="dialog"
       aria-modal="true"
       aria-label={`${alt} - fotoweergave`}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4 sm:p-8"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90"
     >
       <button
         type="button"
@@ -51,7 +52,11 @@ export function Lightbox({ photos, index, alt, onClose, onIndexChange }: Lightbo
         }}
         aria-label="Sluiten"
         autoFocus
-        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-cream/80 outline-none transition-colors hover:bg-cream/10 hover:text-cream"
+        style={{
+          top: "calc(1rem + env(safe-area-inset-top, 0px))",
+          right: "calc(1rem + env(safe-area-inset-right, 0px))",
+        }}
+        className="absolute flex h-10 w-10 items-center justify-center rounded-full text-cream/80 outline-none transition-colors hover:bg-cream/10 hover:text-cream"
       >
         <CloseIcon className="h-5 w-5" />
       </button>
@@ -64,22 +69,29 @@ export function Lightbox({ photos, index, alt, onClose, onIndexChange }: Lightbo
             onIndexChange((index - 1 + count) % count);
           }}
           aria-label="Vorige foto"
-          className="absolute left-2 flex h-11 w-11 items-center justify-center rounded-full text-cream/80 outline-none transition-colors hover:bg-cream/10 hover:text-cream sm:left-4"
+          style={{ left: "calc(0.5rem + env(safe-area-inset-left, 0px))" }}
+          className="absolute flex h-11 w-11 items-center justify-center rounded-full text-cream/80 outline-none transition-colors hover:bg-cream/10 hover:text-cream"
         >
           <ChevronIcon direction="left" className="h-6 w-6" />
         </button>
       )}
 
-      <motion.img
-        key={index}
-        src={photos[index]}
-        alt={`${alt} - foto ${index + 1} van ${count}`}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-        onClick={(e) => e.stopPropagation()}
-        className="max-h-full max-w-full rounded-lg object-contain shadow-float"
-      />
+      {/* Eigen laag met de safe-area-insets, zodat de foto in standalone-modus
+          niet onder de notch of de home-indicator verdwijnt. De knoppen hieromheen
+          zijn absoluut gepositioneerd en negeren deze padding, dus die dragen hun
+          eigen inset in hun style. */}
+      <div className="pt-safe pb-safe px-safe flex h-full w-full items-center justify-center">
+        <motion.img
+          key={index}
+          src={photos[index]}
+          alt={`${alt} - foto ${index + 1} van ${count}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          onClick={(e) => e.stopPropagation()}
+          className="max-h-[calc(100%-2rem)] max-w-[calc(100%-2rem)] rounded-lg object-contain shadow-float sm:max-h-[calc(100%-4rem)] sm:max-w-[calc(100%-4rem)]"
+        />
+      </div>
 
       {showArrows && (
         <button
@@ -89,26 +101,22 @@ export function Lightbox({ photos, index, alt, onClose, onIndexChange }: Lightbo
             onIndexChange((index + 1) % count);
           }}
           aria-label="Volgende foto"
-          className="absolute right-2 flex h-11 w-11 items-center justify-center rounded-full text-cream/80 outline-none transition-colors hover:bg-cream/10 hover:text-cream sm:right-4"
+          style={{ right: "calc(0.5rem + env(safe-area-inset-right, 0px))" }}
+          className="absolute flex h-11 w-11 items-center justify-center rounded-full text-cream/80 outline-none transition-colors hover:bg-cream/10 hover:text-cream"
         >
           <ChevronIcon direction="right" className="h-6 w-6" />
         </button>
       )}
 
       {showArrows && (
-        <p className="absolute bottom-5 left-1/2 -translate-x-1/2 text-xs font-medium text-cream/70">
+        <p
+          style={{ bottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
+          className="absolute left-1/2 -translate-x-1/2 text-xs font-medium text-cream/70"
+        >
           {index + 1} / {count}
         </p>
       )}
     </motion.div>
-  );
-}
-
-function CloseIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" className={className} aria-hidden>
-      <path d="M6 6l12 12M18 6L6 18" />
-    </svg>
   );
 }
 

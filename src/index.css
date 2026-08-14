@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./fonts.css";
 
 @theme {
   --color-cream: #faf5ea;
@@ -12,8 +13,8 @@
   --color-forest: #2f5d4e;
   --color-forest-dark: #1e3f34;
 
-  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Playfair Display Variable", "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --shadow-card: 0 1px 2px rgba(44, 35, 25, 0.04), 0 6px 16px rgba(44, 35, 25, 0.08);
   --shadow-float: 0 24px 48px -12px rgba(44, 35, 25, 0.35), 0 8px 20px -6px rgba(44, 35, 25, 0.18);
@@ -24,13 +25,38 @@
   --color-lagoon: #66bfd1;
 }
 
+/* Safe-area padding voor standalone-modus op iPhones met notch/home-indicator
+   (index.html zet viewport-fit=cover). Bewust puur env(): gebruik ze op wrappers
+   die zelf geen padding aan diezelfde zijde hebben, anders wint er willekeurig
+   één van de twee. */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@utility px-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* Kleurt de iOS rubber-band bij het doorscrollen cream in plaats van wit. */
+    background-color: var(--color-cream);
   }
 
   body {
     @apply bg-cream text-ink font-sans antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
   }
 
   ::selection {

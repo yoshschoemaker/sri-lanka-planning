@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useReducedMotion } from "../utils/useReducedMotion";
+import { isStandaloneDisplay } from "../utils/pwaDisplayMode";
 
 const HOLD_MS = 1300;
 const EXIT_MS = 550;
@@ -15,10 +16,15 @@ const DOT_COUNT = 3;
  * on) — it's a fixed-length branding beat, kept short so it reads as
  * "polished" rather than "in the way". Skipped entirely under
  * prefers-reduced-motion rather than shortened, since it's pure flourish.
+ *
+ * Also skipped when running as an installed app: iOS cold-starts a home-screen
+ * app whenever it has been backgrounded for a while, so this beat would show up
+ * many times a day there — and iOS already shows its own launch image first,
+ * which would make this a second splash on top of the first.
  */
 export function SplashScreen() {
   const prefersReducedMotion = useReducedMotion();
-  const [visible, setVisible] = useState(() => !prefersReducedMotion);
+  const [visible, setVisible] = useState(() => !prefersReducedMotion && !isStandaloneDisplay());
 
   useEffect(() => {
     if (!visible) return;
