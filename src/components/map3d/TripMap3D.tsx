@@ -142,8 +142,11 @@ function EveningIcon({ className }: { className?: string }) {
 }
 
 /** Shared visual chrome for every floating circular map button, so recenter/zoom/tour stay one consistent toolbar. */
+/* z-10 hoort hier bij: de drei-<Html>-markers portalen naast de canvas in
+   dezelfde wrapper, dus zonder eigen z-index verliest een knop van de badges.
+   Zie htmlLayers.ts, dat de markers onder deze 10 houdt. */
 const MAP_BUTTON_CLASS =
-  "flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/90 text-ink shadow-[var(--shadow-card)] backdrop-blur transition hover:bg-white active:scale-95 disabled:pointer-events-none disabled:opacity-50";
+  "z-10 flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/90 text-ink shadow-[var(--shadow-card)] backdrop-blur transition hover:bg-white active:scale-95 disabled:pointer-events-none disabled:opacity-50";
 
 const DAY_LIGHTS = {
   hemiSky: new THREE.Color("#fff1dd"),

@@ -6,8 +6,10 @@ import { motion } from "framer-motion";
 import type { Stop } from "../../types/trip";
 import { getMarkerWorldPosition, getLabelDirection } from "../../utils/mapLayout3d";
 import { handleActivateKey } from "../../utils/keyboardActivate";
+import { isStopover, nightsLabel } from "../../utils/nights";
 import { selectPulse } from "../../motion/variants";
 import { ISLAND_TOP_Y } from "./Island";
+import { STOP_HTML_Z } from "./htmlLayers";
 
 const PIN_HEIGHT = 0.16;
 const PIN_RADIUS = 0.02;
@@ -41,6 +43,9 @@ export function StopMarker3D({ stop, order, isActive, dimmed, prefersReducedMoti
   const { x, z } = getMarkerWorldPosition(stop);
   const labelDirection = getLabelDirection(stop.id);
   const expanded = isActive || hovered;
+  // Doortocht: omgekeerde, gestippelde badge, net als de 2D-marker en de kaart in de route.
+  const stopover = isStopover(stop);
+  const outlined = stopover && !isActive;
 
   useFrame((_state, delta) => {
     const material = materialRef.current;
@@ -64,23 +69,31 @@ export function StopMarker3D({ stop, order, isActive, dimmed, prefersReducedMoti
         />
       </mesh>
 
-      <Html position={[0, ISLAND_TOP_Y + PIN_HEIGHT, 0]} center>
+      <Html position={[0, ISLAND_TOP_Y + PIN_HEIGHT, 0]} center zIndexRange={STOP_HTML_Z}>
         <div
           tabIndex={0}
           role="button"
           aria-pressed={isActive}
-          aria-label={`${stop.name}, ${stop.nights} ${stop.nights === 1 ? "nacht" : "nachten"}, ${
-            stop.booked ? "geboekt" : "nog te boeken"
-          }`}
+          aria-label={
+            stopover
+              ? `${stop.name}, tussenstop zonder overnachting`
+              : `${stop.name}, ${nightsLabel(stop)}, ${stop.booked ? "geboekt" : "nog te boeken"}`
+          }
           onClick={activate}
           onKeyDown={(e) => handleActivateKey(e, activate)}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
           onFocus={() => setHovered(true)}
           onBlur={() => setHovered(false)}
-          style={{ opacity: dimmed ? DIMMED_OPACITY : 1, transition: "opacity 0.3s" }}
-          className={`relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-cream font-sans text-sm font-semibold text-cream shadow-md outline-none transition-colors ${
-            isActive ? "bg-terracotta-dark" : "bg-ink"
+          style={{
+            opacity: dimmed ? DIMMED_OPACITY : 1,
+            transform: expanded && !prefersReducedMotion ? "scale(1.12)" : "scale(1)",
+            transition: "opacity 0.3s, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)",
+          }}
+          className={`marker-glass flex h-8 w-8 cursor-pointer items-center justify-center rounded-full font-sans text-[13px] font-semibold tracking-tight outline-none ${
+            outlined
+              ? "marker-glass-light marker-glass-dashed text-ink"
+              : `marker-text-shadow text-cream ${isActive ? "marker-glass-active" : "marker-glass-ink"}`
           }`}
         >
           {isActive && (
@@ -89,7 +102,7 @@ export function StopMarker3D({ stop, order, isActive, dimmed, prefersReducedMoti
               variants={selectPulse}
               initial="idle"
               animate={prefersReducedMotion ? "idle" : "pulse"}
-              className="pointer-events-none absolute -inset-2 rounded-full border-2 border-terracotta-dark"
+              className="pointer-events-none absolute -inset-2 rounded-full border border-cream/70"
             />
           )}
 
@@ -98,20 +111,21 @@ export function StopMarker3D({ stop, order, isActive, dimmed, prefersReducedMoti
           {stop.booked && (
             <span
               aria-hidden
-              className="pointer-events-none absolute -right-1 -top-1 h-3 w-3 rounded-full border border-cream bg-forest"
+              className="pointer-events-none absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-forest shadow-[inset_0_1px_0.5px_rgba(255,255,255,0.6),0_0_0_1.5px_rgba(250,245,234,0.85)]"
             />
           )}
 
           <span
             aria-hidden
-            className="pointer-events-none absolute top-1/2 whitespace-nowrap rounded-full bg-ink/95 px-2.5 py-1 font-serif text-xs font-semibold text-cream shadow-[var(--shadow-card)] transition-opacity duration-200"
+            className="marker-label-glass pointer-events-none absolute top-1/2 whitespace-nowrap rounded-full px-3 py-1 font-serif text-xs font-semibold text-cream transition-all duration-200"
             style={{
               [labelDirection === "right" ? "left" : "right"]: "calc(100% + 10px)",
-              transform: "translateY(-50%)",
+              transformOrigin: labelDirection === "right" ? "left center" : "right center",
+              transform: `translateY(-50%) scale(${expanded ? 1 : 0.9})`,
               opacity: expanded ? 1 : 0,
             }}
           >
-            {stop.name}
+            {stopover ? `${stop.name} · tussenstop` : stop.name}
           </span>
         </div>
       </Html>
