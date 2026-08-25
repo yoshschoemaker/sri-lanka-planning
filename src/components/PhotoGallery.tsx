@@ -2,6 +2,9 @@ import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { PhotoUrl } from "../types/trip";
 import { Lightbox } from "./Lightbox";
+import { Photo } from "./Photo";
+import { PHOTO_SIZES } from "../utils/photos";
+import { CameraIcon } from "./icons";
 
 interface PhotoGalleryProps {
   photos: PhotoUrl[] | undefined;
@@ -31,9 +34,10 @@ export function PhotoGallery({ photos, alt }: PhotoGalleryProps) {
             aria-label={`${alt}, foto ${i + 1} van ${photos.length} vergroten`}
             className="group relative h-24 w-32 shrink-0 snap-start overflow-hidden rounded-lg outline-none sm:h-28 sm:w-36"
           >
-            <img
-              src={photo}
+            <Photo
+              path={photo}
               alt=""
+              sizes={PHOTO_SIZES.galleryThumb}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </button>
@@ -52,23 +56,5 @@ export function PhotoGallery({ photos, alt }: PhotoGalleryProps) {
         )}
       </AnimatePresence>
     </>
-  );
-}
-
-export function CameraIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" />
-      <circle cx="12" cy="13.5" r="3.25" />
-    </svg>
   );
 }

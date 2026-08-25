@@ -2,9 +2,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Stop, TransportMode } from "../types/trip";
 import { dimTransition } from "../motion/variants";
-import { PhotoGallery, CameraIcon } from "./PhotoGallery";
+import { PhotoGallery } from "./PhotoGallery";
 import { AccommodationCard } from "./AccommodationCard";
 import { ActivityCard } from "./ActivityCard";
+import { Photo } from "./Photo";
+import { BedIcon, CameraIcon, CheckIcon, ChevronIcon, CircleIcon, SparkleIcon, StopwatchIcon, WarningIcon } from "./icons";
+import { PHOTO_SIZES } from "../utils/photos";
 import { isStopover, nightsLabel } from "../utils/nights";
 import type { PriorityFilter } from "./FilterBar";
 
@@ -13,6 +16,8 @@ interface StopCardProps {
   order: number;
   mode: TransportMode;
   isActive: boolean;
+  /** Waar zodra deze stop de dag van vandaag is; alleen onderweg dus. */
+  isToday: boolean;
   dimmed: boolean;
   priorityFilter: PriorityFilter;
   onSelect: (id: string) => void;
@@ -27,7 +32,7 @@ const listVariants = {
 /** Two or more must-see activities marks a stop as a trip highlight, worth a bit more visual weight than a pass-through stay. */
 const HIGHLIGHT_MUST_COUNT = 2;
 
-export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, onSelect, registerRef }: StopCardProps) {
+export function StopCard({ stop, order, mode, isActive, isToday, dimmed, priorityFilter, onSelect, registerRef }: StopCardProps) {
   const [panelOpen, setPanelOpen] = useState(false);
   const coverPhoto = stop.photos?.[0] ?? stop.accommodation?.photos?.[0];
   const panelId = `stop-${stop.id}-panel`;
@@ -43,17 +48,17 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.25 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
+      /*
+        Klikken op de kaart selecteert de stop, maar dit is uitdrukkelijk geen
+        knop meer. Als role="button" met tabIndex bevatte deze div knoppen, een
+        uitklappaneel en een externe link, en dat is een ongeldige combinatie:
+        geneste bedieningselementen in een button zijn voor een schermlezer niet
+        te bereiken, en de aria-label die hier stond verving de hele inhoud van
+        de kaart door één regel tekst. Selecteren gebeurt nu via de kopknop
+        hieronder, die een echte, benoemde bediening is. Deze onClick blijft
+        staan als gemak voor de muis en verandert niets aan de semantiek.
+      */
       onClick={() => onSelect(stop.id)}
-      tabIndex={0}
-      role="button"
-      aria-pressed={isActive}
-      aria-label={`Stop ${order}: ${stop.name}${stopover ? ", tussenstop zonder overnachting" : ""}`}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect(stop.id);
-        }
-      }}
       className="scroll-mt-24 cursor-pointer rounded-2xl outline-none"
     >
       {/*
@@ -74,15 +79,23 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
           } ${
             isActive
               ? "border-terracotta-dark shadow-glow-terracotta ring-2 ring-terracotta/40"
-              : isHighlight
-                ? "border-terracotta-light/60 hover:border-terracotta-light"
-                : "border-ink/10 hover:border-terracotta-light"
+              : isToday
+                ? "border-forest/60 ring-1 ring-forest/30 hover:border-forest"
+                : isHighlight
+                  ? "border-terracotta-light/60 hover:border-terracotta-light"
+                  : "border-ink/10 hover:border-terracotta-light"
           }`}
         >
           <div className="flex items-start gap-4">
             <span
               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-sans text-sm font-semibold transition-colors ${
-                isActive ? "bg-terracotta-dark text-white" : isHighlight ? "bg-terracotta-light/30 text-ink" : "bg-sand text-ink"
+                isActive
+                  ? "bg-terracotta-dark text-white"
+                  : isToday
+                    ? "bg-forest text-cream"
+                    : isHighlight
+                      ? "bg-terracotta-light/30 text-ink"
+                      : "bg-sand text-ink"
               }`}
               aria-hidden
             >
@@ -92,27 +105,57 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <h3 className="flex items-center gap-2 font-serif text-xl font-semibold text-ink sm:text-2xl">
-                  {stop.name}
+                  {/* De echte bediening om deze stop te selecteren: benoemd,
+                      met toetsenbord te bereiken, en met aria-pressed voor de
+                      staat die eerst op de kaart-div zat. */}
+                  <button
+                    type="button"
+                    onClick={() => onSelect(stop.id)}
+                    aria-pressed={isActive}
+                    aria-label={`Stop ${order}: ${stop.name}${isToday ? ", vandaag" : ""}${stopover ? ", tussenstop zonder overnachting" : ""}${isActive ? "" : " selecteren"}`}
+                    className="rounded text-left outline-none"
+                  >
+                    {stop.name}
+                  </button>
                   {isHighlight && (
-                    <span
-                      aria-label="Hoogtepunt van de reis"
-                      title="Hoogtepunt van de reis"
-                      className="text-base text-terracotta-dark sm:text-lg"
-                    >
-                      ✨
+                    <span title="Hoogtepunt van de reis" className="text-terracotta-dark">
+                      <SparkleIcon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                      <span className="sr-only">Hoogtepunt van de reis</span>
                     </span>
                   )}
                 </h3>
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                    stopover
-                      ? "bg-ink/5 text-ink-soft"
-                      : stop.booked
-                        ? "bg-forest/10 text-forest-dark"
-                        : "bg-terracotta/10 text-terracotta-dark"
-                  }`}
-                >
-                  {stopover ? "⏱ Tussenstop" : stop.booked ? "✓ Geboekt" : "○ Nog te boeken"}
+                <span className="flex flex-wrap items-center gap-1.5">
+                  {isToday && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-forest px-2.5 py-1 text-xs font-semibold text-cream">
+                      Vandaag
+                    </span>
+                  )}
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                      stopover
+                        ? "bg-ink/5 text-ink-soft"
+                        : stop.booked
+                          ? "bg-forest/10 text-forest-dark"
+                          : "bg-terracotta/10 text-terracotta-dark"
+                    }`}
+                  >
+                    {stopover ? (
+                      <>
+                        <StopwatchIcon className="h-3 w-3 shrink-0" />
+                        Tussenstop
+                      </>
+                    ) : stop.booked ? (
+                      <>
+                        <CheckIcon className="h-3 w-3 shrink-0" />
+                        Geboekt
+                      </>
+                    ) : (
+                      <>
+                        <CircleIcon className="h-3 w-3 shrink-0" />
+                        Nog te boeken
+                      </>
+                    )}
+                  </span>
                 </span>
               </div>
 
@@ -128,12 +171,12 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
               {!stopover &&
                 (stop.accommodation ? (
                   <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink">
-                    <span aria-hidden>🛏</span>
+                    <BedIcon className="h-4 w-4 shrink-0 text-ink-soft" />
                     <span className="min-w-0 truncate font-medium">{stop.accommodation.name}</span>
                   </p>
                 ) : (
                   <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink-soft">
-                    <span aria-hidden>🛏</span>
+                    <BedIcon className="h-4 w-4 shrink-0" />
                     <span>Verblijf nog niet gekozen</span>
                   </p>
                 ))}
@@ -142,7 +185,8 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
 
               {stop.warn && (
                 <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-terracotta/10 px-2.5 py-1.5 text-xs font-medium text-terracotta-dark">
-                  ⚠ {stop.warn}
+                  <WarningIcon className="h-3.5 w-3.5 shrink-0" />
+                  {stop.warn}
                 </p>
               )}
 
@@ -176,7 +220,7 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
               }`}
             >
               {coverPhoto ? (
-                <img src={coverPhoto} alt="" className="h-full w-full object-cover" />
+                <Photo path={coverPhoto} alt="" sizes={PHOTO_SIZES.cardThumb} className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-sand/60">
                   <CameraIcon className="h-5 w-5 text-ink-soft/40" />
@@ -224,22 +268,5 @@ export function StopCard({ stop, order, mode, isActive, dimmed, priorityFilter, 
         )}
       </motion.div>
     </motion.div>
-  );
-}
-
-function ChevronIcon({ expanded, className }: { expanded: boolean; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""} ${className ?? ""}`}
-      aria-hidden
-    >
-      <path d="M6 9l6 6 6-6" />
-    </svg>
   );
 }

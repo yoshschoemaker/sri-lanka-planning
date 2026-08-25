@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 export type StatTileTone = "neutral" | "positive" | "warning";
 
 interface StatTileProps {
-  icon: string;
+  /** Een icoon uit icons.tsx, niet een emoji: zie de toelichting daar. */
+  icon: ReactNode;
   label: string;
   value?: ReactNode;
   detail?: ReactNode;

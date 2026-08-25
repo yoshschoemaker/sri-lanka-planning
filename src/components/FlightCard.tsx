@@ -1,4 +1,5 @@
 import type { Flight } from "../types/trip";
+import { CheckIcon, CircleIcon } from "./icons";
 
 export function FlightCard({ flight, direction }: { flight: Flight; direction: "heen" | "terug" }) {
   return (
@@ -12,7 +13,17 @@ export function FlightCard({ flight, direction }: { flight: Flight; direction: "
             flight.booked ? "bg-forest/10 text-forest-dark" : "bg-terracotta/10 text-terracotta-dark"
           }`}
         >
-          {flight.booked ? "✓ Geboekt" : "○ Nog te boeken"}
+          {flight.booked ? (
+            <>
+              <CheckIcon className="h-3 w-3 shrink-0" />
+              Geboekt
+            </>
+          ) : (
+            <>
+              <CircleIcon className="h-3 w-3 shrink-0" />
+              Nog te boeken
+            </>
+          )}
         </span>
       </div>
 

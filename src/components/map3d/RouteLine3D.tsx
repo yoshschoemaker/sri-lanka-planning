@@ -254,6 +254,12 @@ export function RouteLine3D({ from, to, mode, index, dimmed, prefersReducedMotio
     // The actual world length of one dash period after rounding, so the shader's
     // capsule ends stay circular instead of stretching on short legs.
     return { geometry, dashRepeat, dashLength: length / dashRepeat };
+  // De deps zijn hier bewust de coördinaten en niet de objecten: buildRouteCurve
+  // leest uitsluitend .x en .z van een WorldPoint ({ x, z }), dus deze lijst is
+  // compleet. `from`/`to` zelf opnemen, wat de regel voorstelt, zou de geometrie
+  // opnieuw bouwen bij elke render die verse objecten met dezelfde coördinaten
+  // doorgeeft.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [from.x, from.z, to.x, to.z]);
 
   useFrame(({ clock }, delta) => {

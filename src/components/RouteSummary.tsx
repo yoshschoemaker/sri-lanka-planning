@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Stop, Trip } from "../types/trip";
 import { dimTransition } from "../motion/variants";
 import { isStopover, nightsLabel } from "../utils/nights";
+import { ChevronIcon, ClipboardIcon } from "./icons";
 
 interface RouteSummaryProps {
   trip: Trip;
@@ -61,7 +62,7 @@ export function RouteSummary({ trip, stops }: RouteSummaryProps) {
         className="flex w-full items-center justify-between gap-3 rounded-2xl px-5 py-4 text-left outline-none sm:px-6"
       >
         <span className="inline-flex items-center gap-2 font-serif text-lg font-semibold text-ink">
-          <span aria-hidden>📋</span>
+          <ClipboardIcon className="h-4 w-4 shrink-0 text-ink-soft" />
           Samenvatting
         </span>
         <ChevronIcon expanded={open} className="h-4 w-4 shrink-0 text-ink-soft" />
@@ -98,22 +99,5 @@ export function RouteSummary({ trip, stops }: RouteSummaryProps) {
         )}
       </AnimatePresence>
     </section>
-  );
-}
-
-function ChevronIcon({ expanded, className }: { expanded: boolean; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""} ${className ?? ""}`}
-      aria-hidden
-    >
-      <path d="M6 9l6 6 6-6" />
-    </svg>
   );
 }

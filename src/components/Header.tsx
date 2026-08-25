@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import type { Trip } from "../types/trip";
-import { getTripStatus } from "../utils/countdown";
+import { useTripStatus } from "../utils/useTripStatus";
 import { formatDateRange } from "../utils/formatDate";
 import { fadeUp, staggerContainer } from "../motion/variants";
 import { SettingsSheet } from "./SettingsSheet";
-import { SettingsIcon } from "./icons";
+import { CheckIcon, HourglassIcon, SettingsIcon } from "./icons";
 
 export function Header({ trip }: { trip: Trip }) {
-  const status = getTripStatus(trip.start, trip.end);
+  const status = useTripStatus(trip.start, trip.end);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const teaser =
@@ -62,7 +62,11 @@ export function Header({ trip }: { trip: Trip }) {
               status.phase === "completed" ? "bg-forest/10 text-forest-dark" : "bg-terracotta/10 text-terracotta-dark"
             }`}
           >
-            <span aria-hidden>{status.phase === "completed" ? "✓" : "⏳"}</span>
+            {status.phase === "completed" ? (
+              <CheckIcon className="h-4 w-4 shrink-0" />
+            ) : (
+              <HourglassIcon className="h-4 w-4 shrink-0" />
+            )}
             {teaser}
           </motion.p>
         </motion.div>

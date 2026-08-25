@@ -276,6 +276,12 @@ export function RoadVehicle3D({ from, to, kind }: RoadVehicle3DProps) {
   const axleRefs = useRef<(THREE.Mesh | null)[]>([]);
   const startRef = useRef<number | null>(null);
 
+  // De deps zijn hier bewust de coördinaten en niet de objecten: buildRouteCurve
+  // leest uitsluitend .x en .z van een WorldPoint ({ x, z }), dus deze lijst is
+  // compleet. `from`/`to` zelf opnemen, wat de regel voorstelt, zou de geometrie
+  // opnieuw bouwen bij elke render die verse objecten met dezelfde coördinaten
+  // doorgeeft.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   const curve = useMemo(() => buildRouteCurve(from, to), [from.x, from.z, to.x, to.z]);
   // Constant over the leg, so the wheels roll at whatever pace this particular
   // (short or long) segment demands to arrive with the camera.

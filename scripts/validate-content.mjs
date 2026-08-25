@@ -6,6 +6,7 @@
 // rode kringels). Dit script doet wat een schema niet kan: verwijzingen tussen
 // bestanden, dubbele ids, of de vraag of het aantal nachten wel in de vlucht
 // past.
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -49,7 +50,11 @@ function daysBetween(from, to) {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / MS_PER_DAY);
 }
 
-/** Site-relative photo paths must actually exist in public/; a typo there is a silent broken image. */
+/**
+ * Elk foto-pad moet een bronbestand in photos/ hebben én een set uitgeleverde
+ * varianten in public/photos/. Een typefout is anders een stille gebroken
+ * afbeelding, en een bronfoto zonder varianten laadt helemaal niets.
+ */
 function checkPhotos(photos, where) {
   if (photos == null) return;
   if (!Array.isArray(photos)) return fail(`${where}: photos moet een lijst zijn.`);
@@ -60,11 +65,58 @@ function checkPhotos(photos, where) {
     }
     if (photo.startsWith("http://") || photo.startsWith("https://")) continue;
     if (!photo.startsWith("/")) {
-      fail(`${where}: foto "${photo}" moet met / beginnen (pad vanaf public/) of een volledige URL zijn.`);
+      fail(`${where}: foto "${photo}" moet met / beginnen (pad vanaf photos/) of een volledige URL zijn.`);
       continue;
     }
-    if (!existsSync(path.join(root, "public", photo.slice(1)))) {
-      fail(`${where}: foto "${photo}" staat niet in public/.`);
+    if (!existsSync(path.join(root, "photos", photo.slice(1)))) {
+      fail(`${where}: foto "${photo}" staat niet in photos/.`);
+      continue;
+    }
+    usedPhotos.add(photo);
+  }
+}
+
+/** Alle foto-paden die trip.json daadwerkelijk gebruikt, voor de manifest-controle onderaan. */
+const usedPhotos = new Set();
+
+/**
+ * Controleert of src/data/photoManifest.ts nog bij de bronfoto's past. De
+ * varianten worden gecommit in plaats van bij elke deploy opnieuw gegenereerd,
+ * dus een aangepaste of nieuwe foto zonder `pnpm photos` zou anders stilletjes
+ * de oude versie blijven tonen.
+ */
+function checkPhotoManifest() {
+  const manifestPath = path.join(root, "src", "data", "photoManifest.ts");
+  if (!existsSync(manifestPath)) {
+    return fail("src/data/photoManifest.ts ontbreekt. Draai `pnpm photos`.");
+  }
+
+  const source = readFileSync(manifestPath, "utf8");
+
+  for (const photo of usedPhotos) {
+    const entry = source.match(new RegExp(`"${photo.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}":\\s*\\{[^}]*?hash: "([0-9a-f]+)"`, "s"));
+    if (!entry) {
+      fail(`Foto "${photo}" staat niet in photoManifest.ts. Draai \`pnpm photos\`.`);
+      continue;
+    }
+
+    const sourceHash = createHash("sha256")
+      .update(readFileSync(path.join(root, "photos", photo.slice(1))))
+      .digest("hex")
+      .slice(0, 12);
+
+    if (entry[1] !== sourceHash) {
+      fail(`Foto "${photo}" is aangepast sinds de laatste \`pnpm photos\`. De uitgeleverde variant is verouderd.`);
+      continue;
+    }
+
+    // De varianten waarnaar het manifest verwijst moeten er ook echt staan:
+    // public/photos/ wordt gecommit, dus een half afgebroken run is mogelijk.
+    const block = source.slice(source.indexOf(`"${photo}":`));
+    for (const [, url] of block.slice(0, block.indexOf("},")).matchAll(/url: "([^"]+)"/g)) {
+      if (!existsSync(path.join(root, "public", url.slice(1)))) {
+        fail(`Variant "${url}" van foto "${photo}" staat niet in public/. Draai \`pnpm photos\`.`);
+      }
     }
   }
 }
@@ -261,6 +313,8 @@ if (decor) {
     if (item.rotation != null && typeof item.rotation !== "number") fail(`${where}: rotation moet een getal in radialen zijn.`);
   }
 }
+
+checkPhotoManifest();
 
 // --- uitkomst --------------------------------------------------------------
 

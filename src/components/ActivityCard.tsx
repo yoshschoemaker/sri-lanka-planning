@@ -2,6 +2,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Activity, ActivityPriority } from "../types/trip";
 import { dimTransition } from "../motion/variants";
+import { Photo } from "./Photo";
+import { ChevronIcon } from "./icons";
+import { PHOTO_SIZES } from "../utils/photos";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -89,7 +92,12 @@ export function ActivityCard({ activity, dimmed = false }: ActivityCardProps) {
               >
                 <div className="mt-2 flex gap-3 pb-1 pl-1">
                   {hasPhoto && (
-                    <img src={activity.photos?.[0]} alt="" className="h-14 w-20 shrink-0 rounded-md object-cover" />
+                    <Photo
+                      path={activity.photos?.[0]}
+                      alt=""
+                      sizes={PHOTO_SIZES.activityThumb}
+                      className="h-14 w-20 shrink-0 rounded-md object-cover"
+                    />
                   )}
                   {activity.description && (
                     <p className="text-xs not-italic leading-relaxed text-ink-soft">{activity.description}</p>
@@ -101,22 +109,5 @@ export function ActivityCard({ activity, dimmed = false }: ActivityCardProps) {
         </div>
       </motion.div>
     </motion.li>
-  );
-}
-
-function ChevronIcon({ expanded, className }: { expanded: boolean; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""} ${className ?? ""}`}
-      aria-hidden
-    >
-      <path d="M6 9l6 6 6-6" />
-    </svg>
   );
 }

@@ -1,9 +1,9 @@
-import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Stop, TransportMode, TransportModeKey } from "../types/trip";
 import type { ModeFilter, StatusFilter } from "./FilterBar";
 import { TripMapScene } from "./TripMapScene";
 import { useReducedMotion } from "../utils/useReducedMotion";
+import { useDialog } from "../utils/useDialog";
 import { CloseIcon } from "./icons";
 
 interface MapModalProps {
@@ -28,20 +28,18 @@ interface MapModalProps {
 export function MapModal({ open, onClose, ...mapProps }: MapModalProps) {
   const prefersReducedMotion = useReducedMotion();
 
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
+  const panelRef = useDialog<HTMLDivElement>({ open, onClose });
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-40 flex flex-col bg-cream lg:hidden"
+          ref={panelRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Kaart van de route"
+          className="fixed inset-0 z-40 flex flex-col bg-cream outline-none lg:hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

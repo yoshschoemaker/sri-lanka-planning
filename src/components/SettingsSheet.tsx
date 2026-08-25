@@ -4,6 +4,7 @@ import { useReducedMotion } from "../utils/useReducedMotion";
 import { isStandaloneDisplay } from "../utils/pwaDisplayMode";
 import { APP_COMMIT, APP_VERSION, formatBuildTime, formatCheckTime } from "../utils/appVersion";
 import { useServiceWorker } from "../utils/serviceWorkerContext";
+import { useDialog } from "../utils/useDialog";
 import { CheckIcon, CloseIcon, RefreshIcon } from "./icons";
 
 interface SettingsSheetProps {
@@ -23,23 +24,7 @@ export function SettingsSheet({ open, onClose }: SettingsSheetProps) {
     useServiceWorker();
   const [storagePersisted, setStoragePersisted] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  const panelRef = useDialog<HTMLDivElement>({ open, onClose });
 
   useEffect(() => {
     if (!open || typeof navigator === "undefined" || !navigator.storage?.persisted) return;
@@ -93,8 +78,10 @@ export function SettingsSheet({ open, onClose }: SettingsSheetProps) {
           <div className="absolute inset-0 bg-ink/60" />
 
           <motion.div
+            ref={panelRef}
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
-            className="pb-safe px-safe relative w-full max-w-md rounded-t-3xl bg-cream shadow-float sm:m-4 sm:rounded-3xl"
+            className="pb-safe px-safe relative w-full max-w-md rounded-t-3xl bg-cream shadow-float outline-none sm:m-4 sm:rounded-3xl"
             initial={{ y: prefersReducedMotion ? 0 : "100%" }}
             animate={{ y: 0 }}
             exit={{ y: prefersReducedMotion ? 0 : "100%" }}

@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { trip, stops, transportModes, notes, openQuestions, todos } from "./data/tripContent";
 import { Header } from "./components/Header";
 import { HeroBanner } from "./components/HeroBanner";
-import { SplashScreen } from "./components/SplashScreen";
+import { SplashScreen, SPLASH_TOTAL_MS } from "./components/SplashScreen";
 import { DailyCountdownConfetti } from "./components/DailyCountdownConfetti";
 import { TripStats } from "./components/TripStats";
 import { RouteSummary } from "./components/RouteSummary";
@@ -14,8 +14,12 @@ import { MapModal } from "./components/MapModal";
 import { TripInfoAccordion } from "./components/TripInfoAccordion";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { UpdatePrompt } from "./components/UpdatePrompt";
+import { OfflineBadge } from "./components/OfflineBadge";
+import { MapIcon } from "./components/icons";
 import { useReducedMotion } from "./utils/useReducedMotion";
 import { useMediaQuery } from "./utils/useMediaQuery";
+import { useTripStatus } from "./utils/useTripStatus";
+import { currentStopIds, todayIso } from "./utils/currentStop";
 
 /** Matches the lg breakpoint that turns the map panel sticky (see the grid below); scroll-driven selection only makes sense while the map stays on screen next to the list. */
 const DESKTOP_QUERY = "(min-width: 1024px)";
@@ -34,10 +38,34 @@ function App() {
   const [installBannerVisible, setInstallBannerVisible] = useState(false);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const mapAnchorRef = useRef<HTMLDivElement>(null);
+  /** Zorgt dat de sprong naar de stop van vandaag hoogstens één keer per sessie gebeurt. */
+  const jumpedToTodayRef = useRef(false);
   /** Fallback for closeMapModal when nothing is selected — mobile has no scroll-linked selection (see the isDesktop-gated observer below), so there's no card to land back on. */
   const savedScrollRef = useRef(0);
   const prefersReducedMotion = useReducedMotion();
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
+  const status = useTripStatus(trip.start, trip.end);
+
+  /**
+   * Welke stops vandaag zijn. Leeg zolang de reis niet loopt, zodat er in de
+   * maanden ervoor geen willekeurige kaart uitgelicht staat.
+   *
+   * De datum staat als eigen waarde in de deps in plaats van als aanroep binnen
+   * de memo: zo is de afhankelijkheid van "welke dag is het" expliciet, en
+   * omdat useTripStatus bij middernacht opnieuw rendert schuift dit mee zonder
+   * dat de app herladen hoeft te worden.
+   */
+  const today = todayIso();
+  const todayIds = useMemo(
+    () => (status.phase === "ongoing" ? currentStopIds(stops, today) : []),
+    [status.phase, today],
+  );
+
+  const resetFilters = useCallback(() => {
+    setStatusFilter("all");
+    setModeFilter("all");
+    setPriorityFilter("all");
+  }, []);
 
   const registerRef = useCallback((id: string, el: HTMLDivElement | null) => {
     if (el) cardRefs.current.set(id, el);
@@ -74,6 +102,34 @@ function App() {
     },
     [isDesktop, prefersReducedMotion],
   );
+
+  /**
+   * Bij het openen onderweg landt de lijst op de stop van vandaag in plaats van
+   * bovenaan. Eén keer per sessie: daarna is scrollen weer aan de gebruiker.
+   *
+   * De vertraging wacht de splash uit. Die zet body-overflow op hidden zolang
+   * hij in beeld staat, en een scrollIntoView daaronder komt niet aan. Zelfde
+   * reden waarom InstallPrompt en DailyCountdownConfetti dezelfde constante
+   * gebruiken.
+   */
+  useEffect(() => {
+    if (jumpedToTodayRef.current) return;
+    const todayId = todayIds[0];
+    if (!todayId) return;
+
+    const timer = setTimeout(() => {
+      // De vlag gaat pas om als de sprong echt gemaakt is, niet bij het
+      // plannen ervan. Zette hij hem meteen, dan haalde StrictMode's
+      // mount-cleanup-remount in dev de timer weg en zag de tweede run de vlag
+      // al staan, waarna er nooit meer iets werd ingepland. Zelfde valkuil als
+      // in DailyCountdownConfetti, daar staat hij ook beschreven.
+      jumpedToTodayRef.current = true;
+      setSelected(todayId);
+      cardRefs.current.get(todayId)?.scrollIntoView({ behavior: "auto", block: "center" });
+    }, SPLASH_TOTAL_MS + 100);
+
+    return () => clearTimeout(timer);
+  }, [todayIds]);
 
   useEffect(() => {
     const el = mapAnchorRef.current;
@@ -163,12 +219,19 @@ function App() {
       <DailyCountdownConfetti trip={trip} />
       <InstallPrompt onVisibilityChange={setInstallBannerVisible} />
       <UpdatePrompt raised={installBannerVisible} />
+      <OfflineBadge />
       <Header trip={trip} />
 
       <HeroBanner />
 
       <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
-        <TripStats trip={trip} stops={stops} transportModes={transportModes} onJumpToStop={handleSelect} />
+        <TripStats
+          trip={trip}
+          stops={stops}
+          transportModes={transportModes}
+          todayStopId={todayIds[0] ?? null}
+          onJumpToStop={handleSelect}
+        />
 
         <RouteSummary trip={trip} stops={stops} />
 
@@ -191,6 +254,7 @@ function App() {
 
         <div className="mb-6">
           <FilterBar
+            stops={stops}
             transportModes={transportModes}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
@@ -198,6 +262,7 @@ function App() {
             onModeFilterChange={setModeFilter}
             priorityFilter={priorityFilter}
             onPriorityFilterChange={setPriorityFilter}
+            onReset={resetFilters}
           />
         </div>
 
@@ -208,6 +273,7 @@ function App() {
               stops={stops}
               transportModes={transportModes}
               selected={selected}
+              todayIds={todayIds}
               onSelect={handleSelect}
               registerRef={registerRef}
               statusFilter={statusFilter}
@@ -245,9 +311,7 @@ function App() {
           }}
           className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-terracotta-dark text-cream shadow-lg shadow-ink/20 transition-all active:scale-95 lg:hidden"
         >
-          <span aria-hidden className="text-xl leading-none">
-            🗺
-          </span>
+          <MapIcon className="h-6 w-6" />
         </button>
       )}
 

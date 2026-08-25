@@ -1,0 +1,84 @@
+name: CI
+
+# Vercel bouwt bij elke push, maar zegt alleen of de build lukt. Deze workflow
+# is er voor wat daar niet in zit: dat de checks ook op een pull request draaien
+# voordat er iets samengevoegd wordt, en dat de toegankelijkheidscontrole (die
+# een browser nodig heeft) meeloopt.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Een nieuwe push op dezelfde branch maakt de vorige run overbodig.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Content, lint, tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          # Uit .nvmrc, zodat CI en je eigen machine niet uit elkaar lopen.
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Draait op zijn beurt: content-validatie, oxlint met type-aware regels,
+      # de tests, tsc en de bundel. Zie het build-script in package.json.
+      - run: pnpm build
+
+      # De gegenereerde foto-varianten worden gecommit in plaats van bij elke
+      # deploy opnieuw gemaakt. `pnpm validate` (in pnpm build) vergelijkt de
+      # hashes al, maar dit vangt ook een handmatig aangepast manifest: na een
+      # verse run mag er niets veranderd zijn.
+      - name: Foto-varianten zijn bij
+        run: |
+          pnpm photos
+          # --porcelain in plaats van `git diff`, want die laat nieuwe,
+          # nog niet gevolgde varianten juist ongemoeid.
+          changed=$(git status --porcelain -- public/photos src/data/photoManifest.ts)
+          if [ -n "$changed" ]; then
+            echo "De foto-varianten lopen achter op photos/. Draai \`pnpm photos\` en commit de uitkomst."
+            echo "$changed"
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  a11y:
+    name: Toegankelijkheid
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Alleen chromium: de audit gaat over de opmaak, niet over verschillen
+      # tussen browsers, en drie browsers downloaden kost hier alleen tijd.
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # De audit draait tegen `vite preview`, dus de build moet er eerst staan.
+      - run: pnpm build
+
+      - run: pnpm audit:a11y

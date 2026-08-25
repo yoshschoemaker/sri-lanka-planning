@@ -16,6 +16,24 @@ export interface TripChecklist {
   totalCount: number;
 }
 
+/**
+ * Sleutel uit de tekst zelf in plaats van uit de positie in de lijst.
+ *
+ * Deze keys worden opgeslagen zodra je een item afvinkt (zie
+ * useChecklistProgress), en een op de index gebaseerde sleutel zou dan bij het
+ * herordenen van content/trip.json het vinkje naar een ander item verhuizen.
+ */
+function textKey(prefix: string, text: string): string {
+  const slug = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
+  return `${prefix}-${slug}`;
+}
+
 export function buildTripChecklist(
   trip: Trip,
   stops: Stop[],
@@ -36,7 +54,7 @@ export function buildTripChecklist(
   ];
 
   // Losse regeldingen die niet aan een stop hangen (visum, verzekering, ...).
-  const toArrange: ChecklistItem[] = todos.map((todo, i) => ({ key: `todo-${i}`, label: todo }));
+  const toArrange: ChecklistItem[] = todos.map((todo) => ({ key: textKey("todo", todo), label: todo }));
 
   const warnings: ChecklistItem[] = stops.flatMap((stop) => {
     const items: ChecklistItem[] = [];
@@ -54,7 +72,7 @@ export function buildTripChecklist(
     return items;
   });
 
-  const questions: ChecklistItem[] = openQuestions.map((question, i) => ({ key: `question-${i}`, label: question }));
+  const questions: ChecklistItem[] = openQuestions.map((question) => ({ key: textKey("question", question), label: question }));
 
   return {
     toBook,

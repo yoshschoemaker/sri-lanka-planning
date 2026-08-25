@@ -1,8 +1,15 @@
-import type { ActivityPriority, TransportModeKey, TransportMode } from "../types/trip";
-import { stops } from "../data/tripContent";
+import type { ActivityPriority, Stop, TransportModeKey, TransportMode } from "../types/trip";
 import { isBookingSettled } from "../utils/nights";
+import { CloseIcon } from "./icons";
 
 export type StatusFilter = "all" | "toBook";
+/**
+ * TransportModeKey is met opzet `string` (een nieuwe vervoerssoort is een
+ * JSON-wijziging, zie types/trip.ts), dus `| "all"` voegt voor de compiler niets
+ * toe. Het blijft staan omdat het benoemt dat "all" hier een geldige waarde met
+ * eigen betekenis is, en niet zomaar een van de sleutels.
+ */
+// oxlint-disable-next-line typescript/no-redundant-type-constituents
 export type ModeFilter = TransportModeKey | "all";
 export type PriorityFilter = ActivityPriority | "all";
 
@@ -13,6 +20,7 @@ const PRIORITY_OPTIONS: { key: PriorityFilter; label: string }[] = [
 ];
 
 interface FilterBarProps {
+  stops: Stop[];
   transportModes: Record<TransportModeKey, TransportMode>;
   statusFilter: StatusFilter;
   onStatusFilterChange: (value: StatusFilter) => void;
@@ -20,9 +28,11 @@ interface FilterBarProps {
   onModeFilterChange: (value: ModeFilter) => void;
   priorityFilter: PriorityFilter;
   onPriorityFilterChange: (value: PriorityFilter) => void;
+  onReset: () => void;
 }
 
 export function FilterBar({
+  stops,
   transportModes,
   statusFilter,
   onStatusFilterChange,
@@ -30,14 +40,33 @@ export function FilterBar({
   onModeFilterChange,
   priorityFilter,
   onPriorityFilterChange,
+  onReset,
 }: FilterBarProps) {
   const modeEntries = Object.entries(transportModes) as [TransportModeKey, TransportMode][];
 
-  const matchCount = stops.filter((stop) => {
+  const stopFilterActive = statusFilter !== "all" || modeFilter !== "all";
+  const anyFilterActive = stopFilterActive || priorityFilter !== "all";
+
+  const highlightedStops = stops.filter((stop) => {
     const statusDimmed = statusFilter === "toBook" && isBookingSettled(stop);
     const modeDimmed = modeFilter !== "all" && modeFilter !== stop.transportTo.mode;
     return !statusDimmed && !modeDimmed;
   }).length;
+
+  const activities = stops.flatMap((stop) => stop.activities);
+  const highlightedActivities = activities.filter((activity) => activity.priority === priorityFilter).length;
+
+  /**
+   * De filters dimmen wat niet past in plaats van het te verbergen, zodat de
+   * route zijn vorm en volgorde houdt. De teller zei daardoor "komen overeen"
+   * over een lijst waarin niets verdween, en liet de prioriteitsfilter (die
+   * activiteiten dimt, geen stops) volledig buiten beschouwing. Nu benoemt hij
+   * per soort filter wat er daadwerkelijk uitgelicht is.
+   */
+  const summary = [
+    stopFilterActive ? `${highlightedStops} van ${stops.length} stops` : null,
+    priorityFilter !== "all" ? `${highlightedActivities} van ${activities.length} activiteiten` : null,
+  ].filter(Boolean);
 
   return (
     <div className="rounded-2xl border border-ink/10 bg-white/70 p-3 sm:p-4">
@@ -114,9 +143,23 @@ export function FilterBar({
           ))}
         </div>
 
-        <p className="shrink-0 text-xs font-medium text-ink-soft sm:ml-auto">
-          {matchCount} van {stops.length} komen overeen
-        </p>
+        <div className="flex shrink-0 items-center gap-2 sm:ml-auto">
+          {/* aria-live: met alleen zichtbare tekst hoort iemand met een
+              schermlezer niet wat een filterklik heeft opgeleverd. */}
+          <p className="text-xs font-medium text-ink-soft" aria-live="polite">
+            {summary.length > 0 ? `${summary.join(" · ")} uitgelicht` : "Geen filter actief"}
+          </p>
+          {anyFilterActive && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="inline-flex items-center gap-1 rounded-full border border-ink/15 bg-white/60 px-2.5 py-1 text-xs font-medium text-ink-soft transition-colors hover:border-terracotta-light hover:text-terracotta-dark active:scale-95"
+            >
+              <CloseIcon className="h-3 w-3" />
+              Wis
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

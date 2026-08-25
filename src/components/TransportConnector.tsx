@@ -1,4 +1,5 @@
 import type { TransportLeg, TransportMode } from "../types/trip";
+import { WarningIcon } from "./icons";
 
 interface TransportConnectorProps {
   leg: TransportLeg;
@@ -39,7 +40,8 @@ export function TransportConnector({ leg, mode, dimmed }: TransportConnectorProp
         <span className="text-ink-soft">{leg.duration}</span>
         {leg.warn && (
           <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/10 px-2 py-0.5 text-xs font-medium text-terracotta-dark">
-            ⚠ {leg.warn}
+            <WarningIcon className="h-3 w-3 shrink-0" />
+            {leg.warn}
           </span>
         )}
       </div>

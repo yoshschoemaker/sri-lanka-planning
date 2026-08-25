@@ -283,7 +283,10 @@ export function buildSeaShoreField(texel: number): SeaShoreField {
   // Half float is linearly filterable in core WebGL2, and three has been
   // WebGL2-only since r163, so there is no fallback path to maintain.
   const data = new Uint16Array(count * 4);
-  const toHalf = THREE.DataUtils.toHalfFloat;
+  // Vooraf gebonden en buiten de lus gehaald: dit draait één keer per texel over
+  // het hele raster. .bind in plaats van een kale verwijzing, zodat het losmaken
+  // van de methode expliciet is en geen `this`-verrassing kan worden.
+  const toHalf = THREE.DataUtils.toHalfFloat.bind(THREE.DataUtils);
   for (let p = 0; p < count; p++) {
     // sqrt, not Math.hypot: hypot guards against intermediate overflow, which
     // these two sub-unit offsets cannot produce, and it costs roughly an order

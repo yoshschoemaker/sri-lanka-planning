@@ -1,6 +1,7 @@
 import type { Stop, Trip, TransportMode, TransportModeKey } from "../types/trip";
 import { StatTile, type StatTileTone } from "./StatTile";
-import { getTripStatus } from "../utils/countdown";
+import { CalendarIcon, CompassIcon, MoonIcon, SuitcaseIcon } from "./icons";
+import { useTripStatus } from "../utils/useTripStatus";
 import { computeNightsCheck, isStopover } from "../utils/nights";
 import { getRegionAnchorStop, regions } from "../data/tripContent";
 
@@ -8,11 +9,13 @@ interface TripStatsProps {
   trip: Trip;
   stops: Stop[];
   transportModes: Record<TransportModeKey, TransportMode>;
+  /** De stop van vandaag, of null zolang de reis niet loopt. */
+  todayStopId: string | null;
   onJumpToStop: (id: string) => void;
 }
 
-export function TripStats({ trip, stops, transportModes, onJumpToStop }: TripStatsProps) {
-  const status = getTripStatus(trip.start, trip.end);
+export function TripStats({ trip, stops, transportModes, todayStopId, onJumpToStop }: TripStatsProps) {
+  const status = useTripStatus(trip.start, trip.end);
   const nights = computeNightsCheck(stops, trip.totalNights);
   // Alleen stops met nachten hebben een verblijf; een doortocht telt niet mee in de boekingsteller.
   const stays = stops.filter((stop) => !isStopover(stop));
@@ -48,7 +51,7 @@ export function TripStats({ trip, stops, transportModes, onJumpToStop }: TripSta
       <div className="rounded-3xl border border-ink/10 bg-cream/95 p-5 shadow-float backdrop-blur sm:p-8">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-5">
           <StatTile
-            icon="🗓"
+            icon={<CalendarIcon className="h-3.5 w-3.5" />}
             label="Countdown"
             value={countdownValue}
             detail={countdownDetail}
@@ -56,7 +59,7 @@ export function TripStats({ trip, stops, transportModes, onJumpToStop }: TripSta
           />
 
           <StatTile
-            icon="🌙"
+            icon={<MoonIcon className="h-3.5 w-3.5" />}
             label="Nachten"
             value={nights.total}
             detail={
@@ -66,7 +69,7 @@ export function TripStats({ trip, stops, transportModes, onJumpToStop }: TripSta
           />
 
           <StatTile
-            icon="🧳"
+            icon={<SuitcaseIcon className="h-3.5 w-3.5" />}
             label="Boekingen"
             value={`${bookedCount}/${stays.length}`}
             detail="verblijven geboekt"
@@ -77,7 +80,7 @@ export function TripStats({ trip, stops, transportModes, onJumpToStop }: TripSta
             </div>
           </StatTile>
 
-          <StatTile icon="🧭" label="Vervoer">
+          <StatTile icon={<CompassIcon className="h-3.5 w-3.5" />} label="Vervoer">
             <div className="flex h-2 w-full overflow-hidden rounded-full bg-sand" aria-hidden>
               {modeCounts
                 .filter((entry) => entry.count > 0)
@@ -106,6 +109,16 @@ export function TripStats({ trip, stops, transportModes, onJumpToStop }: TripSta
 
         <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-ink/10 pt-5">
           <span className="text-xs font-medium uppercase tracking-wide text-ink-soft">Spring naar</span>
+          {/* Voorop en in forest, want onderweg is dit de enige knop die je wil. */}
+          {todayStopId && (
+            <button
+              type="button"
+              onClick={() => onJumpToStop(todayStopId)}
+              className="rounded-full bg-forest px-3.5 py-1.5 text-xs font-semibold text-cream transition-colors hover:bg-forest-dark active:scale-95"
+            >
+              Vandaag
+            </button>
+          )}
           {regions.map((region) => {
             const anchorStop = getRegionAnchorStop(region.id);
             if (!anchorStop) return null;

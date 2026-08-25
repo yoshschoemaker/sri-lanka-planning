@@ -233,7 +233,11 @@ export function CameraRig({ stops, selected, onSelect, onTourDay, onTourTransit,
   // rather than the un-panned origin-target camera-controls assumes by
   // default from the Canvas's initial position.
   useEffect(() => {
-    flyTo(OVERVIEW_TARGET.x, OVERVIEW_TARGET.z, false);
+    // void: setLookAt levert een promise die afrondt wanneer de camera er is.
+    // Daar valt hier niets op te wachten, maar zonder void blijft een afwijzing
+    // (een transitie die door de volgende wordt onderbroken) een niet-afgehandelde
+    // rejection in de console.
+    void flyTo(OVERVIEW_TARGET.x, OVERVIEW_TARGET.z, false);
   }, [flyTo]);
 
   useEffect(() => {
@@ -246,7 +250,7 @@ export function CameraRig({ stops, selected, onSelect, onTourDay, onTourTransit,
     if (!stop) return;
 
     const { x, z } = getMarkerWorldPosition(stop);
-    flyTo(x, z, !prefersReducedMotion);
+    void flyTo(x, z, !prefersReducedMotion);
   }, [selected, stops, prefersReducedMotion, flyTo]);
 
   return (

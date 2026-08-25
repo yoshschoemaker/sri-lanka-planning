@@ -1,3 +1,5 @@
+import { InfoIcon } from "./icons";
+
 /** List content only; the surrounding card/header lives in TripInfoAccordion so this stays reusable. */
 export function PracticalNotes({ notes }: { notes: string[] }) {
   if (notes.length === 0) return null;
@@ -5,7 +7,7 @@ export function PracticalNotes({ notes }: { notes: string[] }) {
   return (
     <div>
       <p className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-ink-soft">
-        <span aria-hidden>ℹ</span>
+        <InfoIcon className="h-3.5 w-3.5 shrink-0" />
         Praktisch
       </p>
       <ul className="mt-2 flex flex-col gap-1.5">

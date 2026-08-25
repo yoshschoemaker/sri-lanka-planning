@@ -205,6 +205,12 @@ export function Train3D({ from, to }: { from: WorldPoint; to: WorldPoint }) {
   const { curve, length } = useMemo(() => {
     const curve = buildRouteCurve(from, to);
     return { curve, length: curve.getLength() };
+  // De deps zijn hier bewust de coördinaten en niet de objecten: buildRouteCurve
+  // leest uitsluitend .x en .z van een WorldPoint ({ x, z }), dus deze lijst is
+  // compleet. `from`/`to` zelf opnemen, wat de regel voorstelt, zou de geometrie
+  // opnieuw bouwen bij elke render die verse objecten met dezelfde coördinaten
+  // doorgeeft.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [from.x, from.z, to.x, to.z]);
 
   useFrame((_state, delta) => {

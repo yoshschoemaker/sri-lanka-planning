@@ -283,7 +283,7 @@ export function TripMap({ stops, transportModes, selected, onSelect, statusFilte
                 tooltipStop.name,
                 `${tooltipStop.dates} · ${nightsLabel(tooltipStop)}`,
                 `${transportModes[tooltipStop.transportTo.mode].icon} ${transportModes[tooltipStop.transportTo.mode].label} · ${tooltipStop.transportTo.duration}`,
-                isStopover(tooltipStop) ? "⏱ Tussenstop, geen verblijf" : tooltipStop.booked ? "✓ Geboekt" : "○ Nog te boeken",
+                isStopover(tooltipStop) ? "Tussenstop, geen verblijf" : tooltipStop.booked ? "✓ Geboekt" : "Nog te boeken",
               ]}
             />
           )

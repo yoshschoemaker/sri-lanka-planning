@@ -1,6 +1,7 @@
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useReducedMotion } from "../utils/useReducedMotion";
+import { useDialog } from "../utils/useDialog";
 import { iosInstallRoute, isIpad } from "../utils/pwaDisplayMode";
 import { AddToHomeScreenIcon, CloseIcon, IosShareIcon } from "./icons";
 
@@ -24,23 +25,7 @@ export function IosInstallSheet({ open, onClose }: IosInstallSheetProps) {
   const prefersReducedMotion = useReducedMotion();
   const route = iosInstallRoute();
 
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  const panelRef = useDialog<HTMLDivElement>({ open, onClose });
 
   const shareStep: Step = {
     icon: <IosShareIcon className="h-5 w-5" />,
@@ -97,8 +82,10 @@ export function IosInstallSheet({ open, onClose }: IosInstallSheetProps) {
           <div className="absolute inset-0 bg-ink/60" />
 
           <motion.div
+            ref={panelRef}
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
-            className="pb-safe px-safe relative w-full max-w-md rounded-t-3xl bg-cream shadow-float"
+            className="pb-safe px-safe relative w-full max-w-md rounded-t-3xl bg-cream shadow-float outline-none"
             initial={{ y: prefersReducedMotion ? 0 : "100%" }}
             animate={{ y: 0 }}
             exit={{ y: prefersReducedMotion ? 0 : "100%" }}

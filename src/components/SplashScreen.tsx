@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useReducedMotion } from "../utils/useReducedMotion";
 import { isStandaloneDisplay } from "../utils/pwaDisplayMode";
+import { useDialog } from "../utils/useDialog";
+import { PalmIcon } from "./icons";
 
 const HOLD_MS = 1300;
 const EXIT_MS = 550;
@@ -26,24 +28,34 @@ export function SplashScreen() {
   const prefersReducedMotion = useReducedMotion();
   const [visible, setVisible] = useState(() => !prefersReducedMotion && !isStandaloneDisplay());
 
+  // De scroll-lock loopt via useDialog, met trapFocus uit: dit is een
+  // branding-beat en geen dialoog, dus hij mag de focus niet opeisen. Wel via
+  // die hook, omdat die de locks stapelt: de oude versie zette bij het opruimen
+  // `overflow` hard terug op "" en kon zo de lock van een dialoog die er
+  // ondertussen bovenop was geopend opheffen.
+  useDialog({ open: visible, onClose: () => setVisible(false), trapFocus: false });
+
   useEffect(() => {
     if (!visible) return;
-    document.body.style.overflow = "hidden";
     const timer = setTimeout(() => setVisible(false), HOLD_MS);
     // No StrictMode-safe cleanup concerns here (unlike DailyCountdownConfetti):
     // both the dev-only double-invoke's phantom run and the real run schedule
-    // the identical safe timer/overflow-lock, so the cleanup below is a plain,
-    // correct effect cleanup rather than something the double-invoke can break.
-    return () => {
-      clearTimeout(timer);
-      document.body.style.overflow = "";
-    };
+    // the identical safe timer, so the cleanup below is a plain, correct effect
+    // cleanup rather than something the double-invoke can break.
+    return () => clearTimeout(timer);
   }, [visible]);
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
+          /*
+            Volledig verborgen voor hulptechnologie: dit is een branding-beat van
+            1,3 seconde zonder informatie, en hij hangt buiten elk landmark. Een
+            schermlezer hoort nu meteen de echte pagina in plaats van eerst een
+            losse titel die daarna verdwijnt.
+          */
+          aria-hidden
           className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-cream"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -56,12 +68,10 @@ export function SplashScreen() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.55, ease: "easeOut" }}
           >
-            <span aria-hidden className="text-3xl">
-              🌴
-            </span>
-            <h1 className="font-serif text-3xl font-semibold tracking-wide text-ink sm:text-4xl">
+            <PalmIcon className="h-8 w-8 text-terracotta-dark" />
+            <p className="font-serif text-3xl font-semibold tracking-wide text-ink sm:text-4xl">
               Sri Lanka <span className="text-terracotta-dark">2027</span>
-            </h1>
+            </p>
             <motion.span
               aria-hidden
               className="h-px w-12 bg-terracotta-dark/50"
@@ -70,7 +80,7 @@ export function SplashScreen() {
               transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
               style={{ transformOrigin: "center" }}
             />
-            <div className="mt-1 flex gap-1.5" role="status" aria-label="Laden">
+            <div className="mt-1 flex gap-1.5">
               {Array.from({ length: DOT_COUNT }, (_, i) => (
                 <motion.span
                   key={i}

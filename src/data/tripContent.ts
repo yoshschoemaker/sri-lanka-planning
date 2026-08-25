@@ -46,7 +46,7 @@ interface RawContent {
 
 type RawFlight = Omit<Flight, "date" | "depart" | "arrive" | "booked"> & { booked?: boolean };
 
-type RawStop = Omit<Stop, "dates" | "startDate" | "endDate" | "booked" | "note" | "activities"> & {
+export type RawStop = Omit<Stop, "dates" | "startDate" | "endDate" | "booked" | "note" | "activities"> & {
   booked?: boolean;
   note?: string;
   activities?: Activity[];
@@ -75,10 +75,14 @@ const itineraryStart = toDateOnly(outbound.arriveAt);
  * of. A stopover (0 nights) checks out the same day it arrives, so it takes a
  * day of the trip without taking a night out of the budget — which is exactly
  * what a "we stop, do the safari, drive on" day is.
+ *
+ * Exported (and taking its start date as an argument) purely so it can be
+ * tested against synthetic stops: asserting on the real trip.json would mean
+ * rewriting the test every time the plan changes.
  */
-export const stops: Stop[] = (() => {
-  let cursor = itineraryStart;
-  return content.stops.map((raw) => {
+export function resolveStops(rawStops: RawStop[], startsOn: string): Stop[] {
+  let cursor = startsOn;
+  return rawStops.map((raw) => {
     const startDate = cursor;
     const endDate = addDays(startDate, raw.nights);
     cursor = endDate;
@@ -92,7 +96,9 @@ export const stops: Stop[] = (() => {
       dates: formatStopDates(startDate, endDate),
     };
   });
-})();
+}
+
+export const stops: Stop[] = resolveStops(content.stops, itineraryStart);
 
 export const transportModes: Record<TransportModeKey, TransportMode> = content.transportModes;
 
@@ -114,11 +120,19 @@ export const notes: string[] = content.notes ?? [];
 export const openQuestions: string[] = content.openQuestions ?? [];
 export const todos: string[] = content.todos ?? [];
 
-/** A stopover needs no room, so it is never part of the booking counts. */
-const stays = stops.filter((stop) => stop.nights > 0);
+/**
+ * Wat er al staat en wat er nog open is, in één regel elk.
+ *
+ * Takes its flights and stops as arguments (rather than closing over the
+ * module's own) so it can be tested against synthetic input, the same reason
+ * resolveStops does.
+ */
+export function buildBookingSummary(flights: Trip["flights"], allStops: Stop[]): BookingSummary {
+  const { outbound: out, return: back } = flights;
+  const bookedFlights = out.booked && back.booked ? "vluchten" : out.booked ? "vlucht heen" : back.booked ? "vlucht terug" : null;
 
-function buildBookingSummary(): BookingSummary {
-  const bookedFlights = outbound.booked && returnFlight.booked ? "vluchten" : outbound.booked ? "vlucht heen" : returnFlight.booked ? "vlucht terug" : null;
+  // A stopover needs no room, so it is never part of the booking counts.
+  const stays = allStops.filter((stop) => stop.nights > 0);
 
   const bookedStays = stays
     .filter((stop) => stop.booked)
@@ -143,7 +157,7 @@ export const trip: Trip = {
   // computeNightsCheck compares the two so a gap is visible instead of silent.
   totalNights: daysBetween(itineraryStart, toDateOnly(returnFlight.departAt)),
   flights: { outbound, return: returnFlight },
-  bookingSummary: buildBookingSummary(),
+  bookingSummary: buildBookingSummary({ outbound, return: returnFlight }, stops),
 };
 
 if (import.meta.env.DEV) {

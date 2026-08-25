@@ -1,5 +1,6 @@
 import type { Accommodation } from "../types/trip";
 import { PhotoGallery } from "./PhotoGallery";
+import { CircleIcon } from "./icons";
 
 interface AccommodationCardProps {
   accommodation: Accommodation | undefined;
@@ -8,8 +9,9 @@ interface AccommodationCardProps {
 export function AccommodationCard({ accommodation }: AccommodationCardProps) {
   if (!accommodation) {
     return (
-      <p className="inline-flex items-center gap-1 self-start rounded-full bg-terracotta/10 px-2.5 py-1 text-xs font-medium text-terracotta-dark">
-        ○ Verblijf nog niet gekozen
+      <p className="inline-flex items-center gap-1.5 self-start rounded-full bg-terracotta/10 px-2.5 py-1 text-xs font-medium text-terracotta-dark">
+        <CircleIcon className="h-3 w-3 shrink-0" />
+        Verblijf nog niet gekozen
       </p>
     );
   }
