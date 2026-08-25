@@ -6,7 +6,7 @@ import { distanceToCoast, distanceToInland, isInland, ISLAND_BOUNDS, isOnLand } 
 /**
  * Deterministic scatter engine for the diorama's procedural decoration
  * (vegetation, boulders, paddy terraces). Hand-authored coordinate lists like
- * src/data/mapDecor.ts's PALM_TREE_POSITIONS stay the right tool for named
+ * content/decor.json's hand-placed items stay the right tool for named
  * props you want in one exact spot; this is for the hundreds of anonymous
  * background objects, where hand-placing is neither maintainable nor the point.
  *

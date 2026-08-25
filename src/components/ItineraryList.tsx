@@ -3,7 +3,7 @@ import type { Stop, TransportMode, TransportModeKey } from "../types/trip";
 import { StopCard } from "./StopCard";
 import { TransportConnector } from "./TransportConnector";
 import { RegionHeader } from "./RegionHeader";
-import { getRegionForStop } from "../data/regions";
+import { getRegion } from "../data/tripContent";
 import { isBookingSettled } from "../utils/nights";
 import type { ModeFilter, PriorityFilter, StatusFilter } from "./FilterBar";
 
@@ -35,8 +35,8 @@ export function ItineraryList({
         const mode = transportModes[stop.transportTo.mode];
         const statusDimmed = statusFilter === "toBook" && isBookingSettled(stop);
         const modeDimmed = modeFilter !== "all" && modeFilter !== stop.transportTo.mode;
-        const region = getRegionForStop(order);
-        const previousRegion = i > 0 ? getRegionForStop(order - 1) : undefined;
+        const region = getRegion(stop.region);
+        const previousRegion = i > 0 ? getRegion(stops[i - 1].region) : undefined;
 
         return (
           <Fragment key={stop.id}>

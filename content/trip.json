@@ -1,0 +1,313 @@
+{
+  "$schema": "./schema/trip.schema.json",
+
+  "title": "Sri Lanka rondreis",
+
+  "flights": {
+    "outbound": {
+      "airline": "Turkish Airlines",
+      "via": "Istanbul (IST)",
+      "from": "AMS",
+      "to": "CMB",
+      "departAt": "2027-01-25T11:45",
+      "arriveAt": "2027-01-26T06:10",
+      "duration": "13u55",
+      "booked": true
+    },
+    "return": {
+      "airline": "Turkish Airlines",
+      "via": "Istanbul (IST)",
+      "from": "CMB",
+      "to": "AMS",
+      "departAt": "2027-02-18T07:40",
+      "arriveAt": "2027-02-18T17:20",
+      "duration": "14u10",
+      "booked": true
+    }
+  },
+
+  "transportModes": {
+    "car": { "label": "Auto / taxi / bus", "icon": "🚗", "color": "#215761", "style": "solid" },
+    "train": { "label": "Trein", "icon": "🚂", "color": "#6b3fa8", "style": "solid" },
+    "tuktuk": { "label": "Tuk-tuk", "icon": "🛺", "color": "#cf7411", "style": "dashed" }
+  },
+
+  "regions": [
+    { "id": "cultural-triangle", "name": "Culturele Driehoek" },
+    { "id": "hill-country", "name": "Bergland & thee" },
+    { "id": "south-coast", "name": "Zuidkust & wildlife" }
+  ],
+
+  "stops": [
+    {
+      "id": "negombo-arrival",
+      "name": "Negombo",
+      "nights": 1,
+      "booked": true,
+      "lat": 7.21,
+      "lon": 79.84,
+      "transportTo": { "mode": "car", "label": "Taxi vanaf luchthaven (CMB)", "duration": "15-25 min" },
+      "note": "Aankomst 06:10",
+      "accommodation": {
+        "name": "The Beach Apartments",
+        "note": "Geboekt · 1 nacht",
+        "photos": ["/negombo-the-beach-apartments.jpg"]
+      },
+      "photos": ["/negombo-arrival.webp"],
+      "map": {
+        "label2d": { "dx": 0, "dy": -16, "anchor": "middle" },
+        "label3d": "left"
+      },
+      "activities": [
+        { "id": "nederlands-fort", "name": "Nederlands fort", "dist": "in stad", "priority": "nice" },
+        { "id": "muthurajawela-moeras", "name": "Muthurajawela moeras", "dist": "± 15 min", "priority": "nice" },
+        { "id": "vismarkt-lagune", "name": "Vismarkt & lagune", "dist": "in stad", "priority": "nice" }
+      ]
+    },
+    {
+      "id": "anuradhapura",
+      "name": "Anuradhapura",
+      "region": "cultural-triangle",
+      "nights": 2,
+      "booked": false,
+      "lat": 8.31,
+      "lon": 80.41,
+      "transportTo": { "mode": "car", "label": "Auto / taxi / bus", "duration": "± 3,5 u" },
+      "note": "Culturele driehoek · Wilpattu als dagtrip",
+      "photos": ["/anuradhapura.jpg"],
+      "activities": [
+        {
+          "id": "witte-tempel-heilige-stad",
+          "name": "Witte tempel / heilige stad",
+          "dist": "± 4 km",
+          "photos": ["/anuradhapura.jpg"],
+          "priority": "must"
+        },
+        { "id": "sri-maha-bodhi", "name": "Sri Maha Bodhi (heilige boom)", "dist": "± 4 km", "priority": "must" },
+        { "id": "mihintale", "name": "Mihintale", "dist": "± 13 km", "priority": "nice" },
+        {
+          "id": "wilpattu-jeep-safari",
+          "name": "Dagtrip: jeep-safari Wilpattu NP",
+          "dist": "± 1 u",
+          "daytrip": true,
+          "lat": 8.45,
+          "lon": 80.02,
+          "priority": "nice",
+          "map": { "labelOffset3d": -40 }
+        }
+      ]
+    },
+    {
+      "id": "sigiriya",
+      "name": "Sigiriya",
+      "region": "cultural-triangle",
+      "nights": 3,
+      "booked": false,
+      "lat": 7.95,
+      "lon": 80.75,
+      "transportTo": { "mode": "car", "label": "Auto / taxi / bus", "duration": "± 1,5 u" },
+      "note": "",
+      "photos": ["/sigiriya.jpg"],
+      "activities": [
+        {
+          "id": "leeuwenrots",
+          "name": "Leeuwenrots (Sigiriya)",
+          "dist": "in de buurt",
+          "photos": ["/sigiriya.jpg"],
+          "priority": "must"
+        },
+        { "id": "pidurangala-rock", "name": "Pidurangala Rock", "dist": "± 2 km", "priority": "nice" },
+        {
+          "id": "dambulla-cave-temple",
+          "name": "Dagtrip: Dambulla Cave Temple",
+          "dist": "± 20 km",
+          "daytrip": true,
+          "lat": 7.86,
+          "lon": 80.65,
+          "priority": "must"
+        }
+      ]
+    },
+    {
+      "id": "kandy",
+      "name": "Kandy",
+      "region": "hill-country",
+      "nights": 2,
+      "booked": false,
+      "lat": 7.29,
+      "lon": 80.63,
+      "transportTo": { "mode": "car", "label": "Auto / taxi / bus", "duration": "± 2,5 u" },
+      "note": "",
+      "photos": ["/kandy.jpeg"],
+      "activities": [
+        { "id": "tempel-van-de-tand", "name": "Tempel van de Tand", "dist": "in centrum", "priority": "must" },
+        {
+          "id": "botanische-tuin-peradeniya",
+          "name": "Botanische tuin Peradeniya",
+          "dist": "± 6 km",
+          "priority": "nice"
+        },
+        { "id": "kandy-lake", "name": "Kandy Lake", "dist": "in centrum", "priority": "maybe" }
+      ]
+    },
+    {
+      "id": "ella",
+      "name": "Ella",
+      "region": "hill-country",
+      "nights": 4,
+      "booked": false,
+      "lat": 6.87,
+      "lon": 81.05,
+      "transportTo": { "mode": "train", "label": "Scenische trein Kandy → Ella", "duration": "± 6-7 u" },
+      "note": "Reserveer de trein vooraf",
+      "photos": ["/ella.webp"],
+      "activities": [
+        { "id": "little-adams-peak", "name": "Little Adam's Peak", "dist": "± 2 km", "priority": "must" },
+        {
+          "id": "nine-arches-bridge",
+          "name": "Nine Arches Bridge",
+          "dist": "± 3 km",
+          "photos": ["/ella.webp"],
+          "priority": "must"
+        },
+        { "id": "ravana-falls", "name": "Ravana Falls", "dist": "± 6 km", "priority": "nice" },
+        { "id": "theeplantages", "name": "Theeplantages", "dist": "rondom", "priority": "nice" }
+      ]
+    },
+    {
+      "id": "yala",
+      "name": "Yala",
+      "region": "south-coast",
+      "nights": 0,
+      "booked": false,
+      "lat": 6.37,
+      "lon": 81.52,
+      "transportTo": { "mode": "tuktuk", "label": "Tuk-tuk", "duration": "± 3 u" },
+      "note": "Tussenstop op de doortocht Ella → Hiriketiya: safari in het park, daarna dezelfde dag door naar de kust",
+      "photos": ["/yala.jpg"],
+      "activities": [
+        { "id": "jeep-safari-yala-np", "name": "Jeep-safari Yala NP", "dist": "bij het park", "priority": "must" },
+        { "id": "luipaarden-spotten", "name": "Luipaarden spotten", "dist": "in het park", "priority": "nice" }
+      ]
+    },
+    {
+      "id": "hiriketiya",
+      "name": "Hiriketiya",
+      "region": "south-coast",
+      "nights": 4,
+      "booked": false,
+      "lat": 5.96,
+      "lon": 80.71,
+      "transportTo": { "mode": "tuktuk", "label": "Tuk-tuk", "duration": "± 2,5 u" },
+      "note": "Rustige zuidkust · aankomst na de safari in Yala",
+      "photos": ["/hiriketiya.jpeg"],
+      "map": { "label2d": { "dx": 14, "dy": 18, "anchor": "start" } },
+      "activities": [
+        {
+          "id": "hiriketiya-bay",
+          "name": "Hiriketiya Bay (surf/zwemmen)",
+          "dist": "aan de baai",
+          "priority": "must"
+        },
+        {
+          "id": "rustige-stranden",
+          "name": "Stranden Dikwella & Tangalle",
+          "dist": "± 10-20 min",
+          "priority": "nice"
+        },
+        {
+          "id": "rekawa-schildpaddenstrand",
+          "name": "Rekawa schildpaddenstrand",
+          "dist": "± 25 min",
+          "priority": "must"
+        },
+        { "id": "mulkirigala-rotstempel", "name": "Mulkirigala rotstempel", "dist": "± 30 min", "priority": "maybe" }
+      ]
+    },
+    {
+      "id": "mirissa",
+      "name": "Mirissa",
+      "region": "south-coast",
+      "nights": 3,
+      "booked": false,
+      "lat": 5.95,
+      "lon": 80.46,
+      "transportTo": { "mode": "tuktuk", "label": "Tuk-tuk", "duration": "± 1 u" },
+      "note": "Zuidkust",
+      "photos": ["/mirissa.jpg"],
+      "map": { "label2d": { "dx": 0, "dy": 20, "anchor": "middle" } },
+      "activities": [
+        { "id": "walvistocht", "name": "Walvistocht (blauwe vinvis)", "dist": "vanaf haven", "priority": "must" },
+        { "id": "coconut-tree-hill", "name": "Coconut Tree Hill", "dist": "± 1 km", "priority": "must" },
+        { "id": "strand-uitrusten", "name": "Strand / uitrusten", "dist": "in de buurt", "priority": "nice" }
+      ]
+    },
+    {
+      "id": "hikkaduwa",
+      "name": "Hikkaduwa",
+      "region": "south-coast",
+      "nights": 3,
+      "booked": false,
+      "lat": 6.14,
+      "lon": 80.1,
+      "transportTo": { "mode": "tuktuk", "label": "Tuk-tuk", "duration": "± 1,5 u" },
+      "note": "Zuidwestkust · Galle als dagtrip",
+      "photos": ["/hikkaduwa.webp"],
+      "activities": [
+        {
+          "id": "coral-sanctuary",
+          "name": "Coral Sanctuary (snorkelen)",
+          "dist": "aan het strand",
+          "priority": "must"
+        },
+        {
+          "id": "zeeschildpadden-spotten",
+          "name": "Zeeschildpadden spotten",
+          "dist": "aan het strand",
+          "priority": "nice"
+        },
+        {
+          "id": "galle-fort",
+          "name": "Dagtrip: Galle Fort (UNESCO)",
+          "dist": "± 30 min",
+          "daytrip": true,
+          "lat": 6.03,
+          "lon": 80.22,
+          "priority": "must"
+        }
+      ]
+    },
+    {
+      "id": "negombo-departure",
+      "name": "Negombo",
+      "nights": 1,
+      "booked": false,
+      "lat": 7.21,
+      "lon": 79.84,
+      "transportTo": {
+        "mode": "car",
+        "label": "Auto / bus (snelweg)",
+        "duration": "± 2,5 u",
+        "warn": "tuk-tuk mag niet op de snelweg"
+      },
+      "note": "Overnachten bij vliegveld (± 10 min van CMB) i.v.m. vlucht 7.40",
+      "photos": ["/negombo-departure.jpeg"],
+      "map": {
+        "nudge2d": { "dx": 20, "dy": 22 },
+        "label2d": { "dx": 0, "dy": 22, "anchor": "middle" },
+        "nudge3d": { "dx": 0.32, "dz": 0.3 }
+      },
+      "activities": [{ "id": "vlucht-terug", "name": "Vlucht do 18 feb", "dist": "07:40" }]
+    }
+  ],
+
+  "notes": [
+    "Nachtenverdeling is een voorstel; alleen de vluchten en Negombo (The Beach Apartments) zijn geboekt.",
+    "Luchthaven is CMB (Bandaranaike), ~10 min van Negombo.",
+    "Yala is een tussenstop zonder overnachting: safari op de doortocht van Ella naar Hiriketiya."
+  ],
+
+  "openQuestions": [],
+
+  "todos": ["Visum regelen"]
+}

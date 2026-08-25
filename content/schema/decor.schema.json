@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sri-lanka-planning.local/schema/decor.schema.json",
+  "title": "Decor op de 3D-kaart",
+  "description": "Wat er los op het eiland staat: landmarks, dieren en bomen. Coördinaten zijn wereldeenheden van de scène (x = oost, z = zuid), niet lat/lon.",
+  "type": "object",
+  "required": ["clearance", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "clearance": {
+      "type": "object",
+      "description": "Straal die elk soort object voor zichzelf opeist, in wereldeenheden. De procedurele begroeiing groeit hier niet doorheen.",
+      "required": ["palmTree", "stupa", "temple", "sigiriyaRock", "monkeyTree", "critter", "peacock", "landmark", "waterfall"],
+      "additionalProperties": false,
+      "properties": {
+        "palmTree": { "type": "number", "exclusiveMinimum": 0 },
+        "stupa": { "type": "number", "exclusiveMinimum": 0 },
+        "temple": { "type": "number", "exclusiveMinimum": 0 },
+        "sigiriyaRock": { "type": "number", "exclusiveMinimum": 0 },
+        "monkeyTree": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Ruimer dan de kroon van de boom zelf: dit maakt een open plek om de hele rij, anders verdwijnt de aap achter het bladerdek."
+        },
+        "critter": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Dekt het hele blokje dat een lopend dier afloopt, niet alleen waar het staat."
+        },
+        "peacock": { "type": "number", "exclusiveMinimum": 0 },
+        "landmark": { "type": "number", "exclusiveMinimum": 0 },
+        "waterfall": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/item" }
+    }
+  },
+
+  "definitions": {
+    "point": {
+      "type": "object",
+      "required": ["x", "z"],
+      "additionalProperties": false,
+      "properties": { "x": { "type": "number" }, "z": { "type": "number" } }
+    },
+    "item": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "palmTree",
+            "stupa",
+            "temple",
+            "sigiriyaRock",
+            "nineArches",
+            "galleFort",
+            "waterfall",
+            "leopard",
+            "elephant",
+            "peacock",
+            "fishSchool",
+            "turtle",
+            "whale",
+            "monkeyGrove"
+          ],
+          "description": "Elk type hoort bij een 3D-component. Een nieuw type toevoegen is het enige wat nog code kost."
+        },
+        "x": { "type": "number" },
+        "z": { "type": "number" },
+        "rotation": {
+          "type": "number",
+          "description": "Draaiing om de verticale as in radialen. Alleen nineArches en waterfall gebruiken dit."
+        },
+        "fireflies": {
+          "type": "boolean",
+          "description": "Vuurvliegjes rond dit object. Alleen temple gebruikt dit."
+        },
+        "trees": {
+          "type": "array",
+          "description": "Alleen voor monkeyGrove: de bomen in de volgorde waarin de aap ze bezoekt.",
+          "minItems": 2,
+          "items": { "$ref": "#/definitions/point" }
+        },
+        "note": { "type": "string", "description": "Alleen voor jezelf; wordt nergens getoond." }
+      },
+      "if": { "properties": { "type": { "const": "monkeyGrove" } } },
+      "then": { "required": ["trees"] },
+      "else": { "required": ["x", "z"] }
+    }
+  }
+}

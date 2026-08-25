@@ -111,7 +111,7 @@ const RouteLineMaterial = shaderMaterial(
 
       gl_FragColor = vec4(lit, uOpacity * coverage);
 
-      // uColor comes straight from transportModes in src/data/data.ts — the same
+      // uColor comes straight from transportModes in content/trip.json — the same
       // hex the 2D TripMap draws its route segments with. Without this include a
       // drei shaderMaterial writes working-space values into an sRGB
       // framebuffer, so the 3D lines rendered about two stops darker than the

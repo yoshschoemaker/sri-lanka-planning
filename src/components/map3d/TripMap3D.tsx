@@ -4,24 +4,6 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Sparkles } from "@react-three/drei";
 import type { Stop, TransportMode, TransportModeKey } from "../../types/trip";
 import type { ModeFilter, StatusFilter } from "../FilterBar";
-import {
-  ELEPHANT_POSITION,
-  FISH_SCHOOL_POSITION,
-  GALLE_FORT_POSITION,
-  LEOPARD_POSITION,
-  MONKEY_TREE_POSITIONS,
-  NINE_ARCHES_POSITION,
-  NINE_ARCHES_ROTATION,
-  PALM_TREE_POSITIONS,
-  PEACOCK_POSITION,
-  SIGIRIYA_ROCK_POSITION,
-  STUPA_POSITION,
-  TEMPLE_POSITIONS,
-  TURTLE_POSITION,
-  WATERFALL_POSITION,
-  WATERFALL_ROTATION,
-  WHALE_POSITION,
-} from "../../data/mapDecor";
 import { getDaytripEntries } from "../../utils/daytrips";
 import { getMarkerWorldPosition } from "../../utils/mapLayout3d";
 import { isBookingSettled } from "../../utils/nights";
@@ -36,32 +18,18 @@ import { StopMarker3D } from "./StopMarker3D";
 import { DaytripMarker3D } from "./DaytripMarker3D";
 import { RouteLine3D } from "./RouteLine3D";
 import { DaytripConnector3D } from "./DaytripConnector3D";
-import { PalmTree } from "./PalmTree";
 import { Highlands, PLATEAU_LAYER1_TOP, getPlateauCenter, getTerrainSurfaceY } from "./Highlands";
-import { Stupa } from "./Stupa";
 import { TeaBushes } from "./TeaBushes";
-import { Leopard } from "./Leopard";
-import { Elephant } from "./Elephant";
-import { JungleTree, getRowHeadings } from "./JungleTree";
-import { Monkey } from "./Monkey";
 import { Birds } from "./Birds";
-import { Peacock } from "./Peacock";
+import { DecorLayer } from "./DecorLayer";
 import { WaterBuffalo } from "./WaterBuffalo";
 import { Train3D } from "./Train3D";
-import { Temple } from "./Temple";
-import { FishSchool } from "./FishSchool";
-import { Turtle } from "./Turtle";
-import { Whale } from "./Whale";
-import { SigiriyaRock } from "./SigiriyaRock";
 import { Rain3D } from "./Rain3D";
 import { RoadVehicle3D } from "./RoadVehicle3D";
 import { Vegetation } from "./Vegetation";
 import { Boulders } from "./Boulders";
 import { PaddyFields } from "./PaddyFields";
 import { InlandWater } from "./InlandWater";
-import { NineArchesBridge } from "./NineArchesBridge";
-import { GalleFort } from "./GalleFort";
-import { Waterfall } from "./Waterfall";
 
 function RecenterIcon({ className }: { className?: string }) {
   return (
@@ -372,8 +340,6 @@ export function TripMap3D({
   const [manualEvening, setManualEvening] = useState(false);
   const daytripEntries = useMemo(() => getDaytripEntries(stops), [stops]);
   const plateauCenter = useMemo(getPlateauCenter, []);
-  /** Which way each tree in the monkey's grove turns its swing limb — along the row, so the leaps always have branch at both ends. */
-  const monkeyTreeHeadings = useMemo(() => getRowHeadings(MONKEY_TREE_POSITIONS), []);
   /**
    * All procedural decoration (woodland, scrub, palms, tea, patana grass,
    * boulders, paddy) placed in one seeded pass, keyed off the live stop list so
@@ -492,23 +458,6 @@ export function TripMap3D({
           color="#ffd873"
           opacity={nightFlavor ? 0.85 : 0.1}
         />
-        {/* Same correction as above: the Kandy temple stands up in the hill
-            country on getTerrainSurfaceY, so anchoring its fireflies to flat
-            ISLAND_TOP_Y left them sunk below the terrace the temple is on. */}
-        <Sparkles
-          count={16}
-          scale={[0.35, 0.35, 0.35]}
-          position={[
-            TEMPLE_POSITIONS[0].x,
-            getTerrainSurfaceY(TEMPLE_POSITIONS[0].x, TEMPLE_POSITIONS[0].z) + 0.08,
-            TEMPLE_POSITIONS[0].z,
-          ]}
-          size={2.4}
-          speed={0.2}
-          noise={1.2}
-          color="#ffd873"
-          opacity={nightFlavor ? 0.85 : 0.1}
-        />
         <Island />
         <Highlands />
         {/* Inland water goes on directly after the terrain and before anything
@@ -522,52 +471,20 @@ export function TripMap3D({
         <Vegetation scatter={scatter} prefersReducedMotion={prefersReducedMotion} />
         <Boulders scatter={scatter} />
         <PaddyFields scatter={scatter} />
-        <Stupa x={STUPA_POSITION.x} z={STUPA_POSITION.z} />
-        <SigiriyaRock x={SIGIRIYA_ROCK_POSITION.x} z={SIGIRIYA_ROCK_POSITION.z} />
-        <NineArchesBridge x={NINE_ARCHES_POSITION.x} z={NINE_ARCHES_POSITION.z} rotation={NINE_ARCHES_ROTATION} />
-        <GalleFort x={GALLE_FORT_POSITION.x} z={GALLE_FORT_POSITION.z} />
-        <Waterfall
-          x={WATERFALL_POSITION.x}
-          z={WATERFALL_POSITION.z}
-          rotation={WATERFALL_ROTATION}
-          nightRef={nightAmountRef}
+        {/* Everything hand-placed on the island — landmarks, animals, trees —
+            comes from content/decor.json through DecorLayer's registry. The
+            three below stay wired up here because none of them has a position
+            to author: TeaBushes follows the plateau the terrain generates, the
+            water buffalo stands in whichever paddy field the scatter put
+            nearest the wet lowlands, and the birds cross the whole island. */}
+        <DecorLayer
           prefersReducedMotion={prefersReducedMotion}
+          nightRef={nightAmountRef}
+          nightFlavor={nightFlavor}
         />
         <TeaBushes x={plateauCenter.x} z={plateauCenter.z} baseY={PLATEAU_LAYER1_TOP} />
-        {/* The land wildlife comes and goes on its own timers (see
-            useAppearanceCycle): the elephant strolls its patch of Yala for a
-            while, the leopard is a rarer few-second sighting, and a flock
-            crosses the island overhead every so often. LEOPARD_POSITION /
-            ELEPHANT_POSITION are their home positions, i.e. the middle of the
-            short walk each takes, not a fixed spot they stand on. */}
-        <Leopard x={LEOPARD_POSITION.x} z={LEOPARD_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
-        <Elephant x={ELEPHANT_POSITION.x} z={ELEPHANT_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
-        <Birds prefersReducedMotion={prefersReducedMotion} />
-        {/* The langur's grove: four hero rainforest trees standing over the wet-zone
-            woodland, and the monkey that swings its way along their limbs and back
-            every minute or so. The trees are permanent scenery; only the monkey
-            cycles, which is the whole point of it being a treat to catch. */}
-        {MONKEY_TREE_POSITIONS.map((p, i) => (
-          <JungleTree key={`${p.x}-${p.z}`} x={p.x} z={p.z} heading={monkeyTreeHeadings[i]} />
-        ))}
-        <Monkey trees={MONKEY_TREE_POSITIONS} prefersReducedMotion={prefersReducedMotion} />
-        {/* The two residents, as opposed to the sightings above: a peacock in the
-            dry-zone scrub that puts its fan up when you touch it, and a water
-            buffalo standing in whichever paddy field the scatter put nearest the
-            wet lowlands. Both are always there — livestock and dooryard peafowl
-            don't come and go — which is what makes the cycling animals feel like
-            luck rather than a schedule. */}
-        <Peacock x={PEACOCK_POSITION.x} z={PEACOCK_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
         <WaterBuffalo scatter={scatter} prefersReducedMotion={prefersReducedMotion} />
-        {TEMPLE_POSITIONS.map((p) => (
-          <Temple key={`${p.x}-${p.z}`} x={p.x} z={p.z} />
-        ))}
-        <FishSchool x={FISH_SCHOOL_POSITION.x} z={FISH_SCHOOL_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
-        <Turtle x={TURTLE_POSITION.x} z={TURTLE_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
-        <Whale x={WHALE_POSITION.x} z={WHALE_POSITION.z} prefersReducedMotion={prefersReducedMotion} />
-        {PALM_TREE_POSITIONS.map((p) => (
-          <PalmTree key={`${p.x}-${p.z}`} x={p.x} z={p.z} />
-        ))}
+        <Birds prefersReducedMotion={prefersReducedMotion} />
 
         <CameraRig
           ref={cameraRigRef}

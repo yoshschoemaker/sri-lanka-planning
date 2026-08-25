@@ -28,7 +28,7 @@ const BASE_TURN = 0.5;
 const HEAD_REST_Y = -0.002;
 
 /**
- * Patrol loop around TURTLE_POSITION: wide along the coast, shallow towards it.
+ * Patrol loop around the turtle's anchor in content/decor.json: wide along the coast, shallow towards it.
  * Verified to stay ≥0.17 world units off the coastline ring over the whole
  * path, so the turtle never drifts onto the sand.
  */

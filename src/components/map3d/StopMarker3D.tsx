@@ -46,7 +46,7 @@ export function StopMarker3D({ stop, order, isActive, dimmed, prefersReducedMoti
   // by the always-on-top HTML badge), and Mirissa, Hikkaduwa, Hiriketiya and
   // Yala sit a step below it on the beach shelf.
   const groundY = getTerrainSurfaceY(x, z);
-  const labelDirection = getLabelDirection(stop.id);
+  const labelDirection = getLabelDirection(stop);
   const expanded = isActive || hovered;
   // Doortocht: omgekeerde, gestippelde badge, net als de 2D-marker en de kaart in de route.
   const stopover = isStopover(stop);

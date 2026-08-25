@@ -1,5 +1,5 @@
 import type { ActivityPriority, TransportModeKey, TransportMode } from "../types/trip";
-import { stops } from "../data/data";
+import { stops } from "../data/tripContent";
 import { isBookingSettled } from "../utils/nights";
 
 export type StatusFilter = "all" | "toBook";

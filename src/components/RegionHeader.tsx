@@ -1,4 +1,4 @@
-import type { Region } from "../data/regions";
+import type { Region } from "../types/trip";
 
 export function RegionHeader({ region }: { region: Region }) {
   return (

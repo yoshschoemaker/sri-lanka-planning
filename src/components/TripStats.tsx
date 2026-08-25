@@ -2,7 +2,7 @@ import type { Stop, Trip, TransportMode, TransportModeKey } from "../types/trip"
 import { StatTile, type StatTileTone } from "./StatTile";
 import { getTripStatus } from "../utils/countdown";
 import { computeNightsCheck, isStopover } from "../utils/nights";
-import { regions } from "../data/regions";
+import { getRegionAnchorStop, regions } from "../data/tripContent";
 
 interface TripStatsProps {
   trip: Trip;
@@ -107,7 +107,7 @@ export function TripStats({ trip, stops, transportModes, onJumpToStop }: TripSta
         <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-ink/10 pt-5">
           <span className="text-xs font-medium uppercase tracking-wide text-ink-soft">Spring naar</span>
           {regions.map((region) => {
-            const anchorStop = stops[region.orderStart - 1];
+            const anchorStop = getRegionAnchorStop(region.id);
             if (!anchorStop) return null;
             return (
               <button

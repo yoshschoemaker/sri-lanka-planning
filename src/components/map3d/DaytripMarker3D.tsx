@@ -10,17 +10,6 @@ const PIN_HEIGHT = 0.1;
 const PIN_RADIUS = 0.014;
 
 /**
- * Sideways nudge (px) for the rare daytrip marker sitting inside a stop
- * cluster, where the label's default centered-below position spans wide
- * enough to overlap neighboring stop pins on one side.
- */
-const LABEL_OFFSET_OVERRIDES: Record<string, number> = {
-  // Sits between Anuradhapura and Sigiriya's markers; centered-below reached
-  // both. Shifting west (negative) moves it into the open water there instead.
-  "wilpattu-jeep-safari": -40,
-};
-
-/**
  * Smaller sibling of StopMarker3D for daytrip activities: a plain dot (no
  * number, matching the 2D map's undotted circle) that expands into a short
  * two-line label on hover/focus, or pinned open via click/tap so it also
@@ -38,7 +27,11 @@ export function DaytripMarker3D({ stop, activity }: DaytripEntry) {
   // shelf; a flat ISLAND_TOP_Y buries the first two and floats the third.
   const groundY = getTerrainSurfaceY(x, z);
   const expanded = hovered || pinned;
-  const labelOffset = LABEL_OFFSET_OVERRIDES[activity.id] ?? 0;
+  // Sideways nudge for the rare daytrip sitting inside a stop cluster, where
+  // the label's default centered-below position spans wide enough to overlap a
+  // neighbouring stop pin. Authored on the activity itself (map.labelOffset3d)
+  // in content/trip.json.
+  const labelOffset = activity.map?.labelOffset3d ?? 0;
 
   const toggle = () => setPinned((prev) => !prev);
 

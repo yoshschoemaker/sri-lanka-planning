@@ -8,7 +8,7 @@ import { SEA_LEVEL_Y, WATER_TROUGH_Y } from "./seaLevel";
 const FISH_COLORS = ["#e8a13c", "#4fb3c9", "#e8a13c"];
 const SWIM_SPEED = 0.9;
 /**
- * Loop the whole school drifts along around FISH_SCHOOL_POSITION, so it doesn't
+ * Loop the whole school drifts along around the school's anchor in content/decor.json, so it doesn't
  * circle the same square metre forever. Tighter than Turtle/Whale's: the
  * coastline bends in close here. Verified to stay ≥0.15 world units off the
  * coastline ring over the whole path.

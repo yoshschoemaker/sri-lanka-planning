@@ -18,7 +18,7 @@ const BASE_Y = SEA_LEVEL_Y + 0.03;
 const BASE_TURN = 0.3;
 
 /**
- * Patrol loop around WHALE_POSITION: wide along the coast, shallow towards it.
+ * Patrol loop around the whale's anchor in content/decor.json: wide along the coast, shallow towards it.
  * Verified to stay ≥0.44 world units off the coastline ring over the whole
  * path, so the whale never swims onto the beach.
  */

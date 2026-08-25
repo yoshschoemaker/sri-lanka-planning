@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { trip, stops, transportModes, notes, openQuestions, todos } from "./data/data";
+import { trip, stops, transportModes, notes, openQuestions, todos } from "./data/tripContent";
 import { Header } from "./components/Header";
 import { HeroBanner } from "./components/HeroBanner";
 import { SplashScreen } from "./components/SplashScreen";

@@ -1,0 +1,112 @@
+{
+  "$schema": "./schema/decor.schema.json",
+
+  "clearance": {
+    "palmTree": 0.16,
+    "stupa": 0.3,
+    "temple": 0.22,
+    "sigiriyaRock": 0.28,
+    "monkeyTree": 0.3,
+    "critter": 0.5,
+    "peacock": 0.22,
+    "landmark": 0.45,
+    "waterfall": 0.3
+  },
+
+  "items": [
+    {
+      "type": "stupa",
+      "x": -0.15,
+      "z": -1.9,
+      "note": "Noordelijk van de Anuradhapura-marker, vrij van pin en label."
+    },
+    {
+      "type": "sigiriyaRock",
+      "x": 0.45,
+      "z": -0.03,
+      "note": "Oostelijk van de Sigiriya-marker, vrij van de pin en van de Dambulla-tempel."
+    },
+    {
+      "type": "nineArches",
+      "x": 0.92,
+      "z": 2.32,
+      "rotation": 0.34,
+      "note": "Demodara-lus ten zuidoosten van Ella. Rotatie zet de bogen zijdelings naar de camera; dat is het hele punt van een negenboogsbrug."
+    },
+    {
+      "type": "galleFort",
+      "x": -1.19,
+      "z": 4.06,
+      "note": "Iets landinwaarts getrokken: de echte coördinaten liggen precies op de kustlijnrand."
+    },
+    {
+      "type": "waterfall",
+      "x": 0.49,
+      "z": 2.5,
+      "rotation": 0.18,
+      "note": "Ravana Falls onder Ella, op een echte steilrand in de terreindata."
+    },
+
+    {
+      "type": "temple",
+      "x": -0.15,
+      "z": 1.42,
+      "fireflies": true,
+      "note": "Tempel van de Tand, Kandy. Vuurvliegjes alleen hier."
+    },
+    { "type": "temple", "x": -0.38, "z": 0.1, "note": "Dambulla Cave Temple (dagtrip)." },
+
+    { "type": "palmTree", "x": 1.55, "z": 0.75, "note": "Oostkust, richting Trincomalee." },
+    { "type": "palmTree", "x": -1.0, "z": 3.95, "note": "Duinen zuidkust bij Mirissa/Hikkaduwa." },
+    { "type": "palmTree", "x": 0.15, "z": -2.6, "note": "Noordelijk schiereiland, echt palmyra-gebied." },
+
+    {
+      "type": "leopard",
+      "x": -1.3,
+      "z": -1.65,
+      "note": "Thuispositie (midden van zijn wandeling), bij de Wilpattu-dagtripmarker."
+    },
+    {
+      "type": "elephant",
+      "x": 1.55,
+      "z": 2.65,
+      "note": "Thuispositie bij de Yala-marker, vrij van de pin."
+    },
+    {
+      "type": "peacock",
+      "x": 0.18,
+      "z": -2.18,
+      "note": "Droge-zonestruweel ten noorden van de stupa. Blijft op zijn plek, heeft alleen ruimte voor de staart nodig."
+    },
+
+    {
+      "type": "monkeyGrove",
+      "note": "Vier hoge regenwoudbomen met de langoer die er langs slingert. De rij staat dwars op de standaard kijkrichting; loopt hij van de camera af, dan verbergt de voorste boom de rest.",
+      "trees": [
+        { "x": 0.074, "z": 3.41 },
+        { "x": 0.23, "z": 3.372 },
+        { "x": 0.381, "z": 3.319 },
+        { "x": 0.526, "z": 3.25 }
+      ]
+    },
+
+    {
+      "type": "fishSchool",
+      "x": -1.65,
+      "z": 4.15,
+      "note": "Vlak voor Hikkaduwa's Coral Sanctuary. Anker, niet een vaste plek: de school zwemt er een rondje omheen."
+    },
+    {
+      "type": "turtle",
+      "x": 0.28,
+      "z": 4.45,
+      "note": "Zuidkust bij Hiriketiya, ter hoogte van Rekawa's schildpaddenstrand."
+    },
+    {
+      "type": "whale",
+      "x": -0.4,
+      "z": 4.85,
+      "note": "Open water ten zuiden van Mirissa, waar de walvisboten echt varen. Net binnen de standaard camerakadering."
+    }
+  ]
+}

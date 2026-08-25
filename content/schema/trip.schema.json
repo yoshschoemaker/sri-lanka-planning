@@ -1,0 +1,239 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sri-lanka-planning.local/schema/trip.schema.json",
+  "title": "Reisplanning",
+  "description": "Alle inhoud van de reis. Datums worden afgeleid uit de vluchten en het aantal nachten per stop, dus je vult ze nergens met de hand in.",
+  "type": "object",
+  "required": ["title", "flights", "transportModes", "stops"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "title": { "type": "string", "minLength": 1, "description": "Titel bovenaan de pagina." },
+    "flights": {
+      "type": "object",
+      "description": "Heen- en terugvlucht. Deze twee bepalen de start- en einddatum van de hele reis.",
+      "required": ["outbound", "return"],
+      "additionalProperties": false,
+      "properties": {
+        "outbound": { "$ref": "#/definitions/flight" },
+        "return": { "$ref": "#/definitions/flight" }
+      }
+    },
+    "transportModes": {
+      "type": "object",
+      "description": "De vervoerssoorten die een stop kan gebruiken. De sleutels hier zijn wat je bij stop.transportTo.mode invult.",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/definitions/transportMode" }
+    },
+    "regions": {
+      "type": "array",
+      "description": "Optionele kopjes die de routelijst in blokken verdelen. Een stop verwijst ernaar met region.",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/definitions/slug" },
+          "name": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "stops": {
+      "type": "array",
+      "description": "De route, in volgorde. De volgorde in deze lijst is de volgorde op de kaart en in de lijst.",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/stop" }
+    },
+    "notes": {
+      "type": "array",
+      "description": "Praktische opmerkingen onder 'Reisinfo'.",
+      "items": { "type": "string" }
+    },
+    "openQuestions": {
+      "type": "array",
+      "description": "Open vragen; verschijnen in de checklist.",
+      "items": { "type": "string" }
+    },
+    "todos": {
+      "type": "array",
+      "description": "Regeldingen die niet aan een stop hangen (visum, verzekering).",
+      "items": { "type": "string" }
+    }
+  },
+
+  "definitions": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Kleine letters, cijfers en koppeltekens. Verander een bestaande id nooit en hergebruik hem niet."
+    },
+    "photo": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Pad vanaf public/ (bijv. \"/kandy.jpeg\") of een volledige URL."
+    },
+    "flight": {
+      "type": "object",
+      "required": ["airline", "from", "to", "departAt", "arriveAt", "duration"],
+      "additionalProperties": false,
+      "properties": {
+        "airline": { "type": "string", "minLength": 1 },
+        "via": { "type": "string", "description": "Overstapluchthaven, weglaten bij een directe vlucht." },
+        "from": { "type": "string", "minLength": 1, "description": "IATA-code, bijv. AMS." },
+        "to": { "type": "string", "minLength": 1, "description": "IATA-code, bijv. CMB." },
+        "departAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$",
+          "description": "Lokale vertrektijd, bijv. \"2027-01-25T11:45\"."
+        },
+        "arriveAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$",
+          "description": "Lokale aankomsttijd op de bestemming, bijv. \"2027-01-26T06:10\"."
+        },
+        "duration": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Vliegduur zoals de maatschappij hem opgeeft, bijv. \"13u55\". Niet afgeleid, omdat vertrek en aankomst in verschillende tijdzones staan."
+        },
+        "booked": { "type": "boolean", "default": false }
+      }
+    },
+    "transportMode": {
+      "type": "object",
+      "required": ["label", "icon", "color", "style"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "icon": { "type": "string", "minLength": 1, "description": "Eén emoji." },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "description": "Kleur van de lijn op de kaart."
+        },
+        "style": { "enum": ["solid", "dashed"] }
+      }
+    },
+    "stop": {
+      "type": "object",
+      "required": ["id", "name", "nights", "lat", "lon", "transportTo"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/definitions/slug" },
+        "name": { "type": "string", "minLength": 1 },
+        "region": {
+          "$ref": "#/definitions/slug",
+          "description": "Id uit regions. Weglaten als de stop onder geen kopje hoort."
+        },
+        "nights": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Aantal overnachtingen. 0 = doortocht: je stopt onderweg maar slaapt er niet."
+        },
+        "booked": { "type": "boolean", "default": false },
+        "warn": { "type": "string", "description": "Waarschuwing bij de stop; komt ook in de checklist." },
+        "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+        "lon": { "type": "number", "minimum": -180, "maximum": 180 },
+        "transportTo": {
+          "type": "object",
+          "description": "Hoe je hier vanaf de vorige stop komt. Bij de eerste stop: hoe je vanaf het vliegveld komt.",
+          "required": ["mode", "label", "duration"],
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "type": "string", "description": "Sleutel uit transportModes." },
+            "label": { "type": "string", "minLength": 1 },
+            "duration": { "type": "string", "minLength": 1 },
+            "warn": { "type": "string" }
+          }
+        },
+        "note": { "type": "string" },
+        "accommodation": {
+          "type": "object",
+          "description": "Weglaten zolang er nog niets gekozen is.",
+          "required": ["name"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "url": { "type": "string" },
+            "note": { "type": "string" },
+            "photos": { "type": "array", "items": { "$ref": "#/definitions/photo" } }
+          }
+        },
+        "photos": { "type": "array", "items": { "$ref": "#/definitions/photo" } },
+        "map": { "$ref": "#/definitions/stopMap" },
+        "activities": { "type": "array", "items": { "$ref": "#/definitions/activity" } }
+      }
+    },
+    "stopMap": {
+      "type": "object",
+      "description": "Handmatige correcties op de kaart. Alleen nodig als twee markers of labels elkaar overlappen.",
+      "additionalProperties": false,
+      "properties": {
+        "nudge2d": {
+          "type": "object",
+          "description": "Verschuift de marker op de platte kaart, in SVG-pixels.",
+          "required": ["dx", "dy"],
+          "additionalProperties": false,
+          "properties": { "dx": { "type": "number" }, "dy": { "type": "number" } }
+        },
+        "label2d": {
+          "type": "object",
+          "description": "Plaats van het naamlabel op de platte kaart. Standaard rechts van de marker.",
+          "required": ["dx", "dy", "anchor"],
+          "additionalProperties": false,
+          "properties": {
+            "dx": { "type": "number" },
+            "dy": { "type": "number" },
+            "anchor": { "enum": ["start", "middle", "end"] }
+          }
+        },
+        "nudge3d": {
+          "type": "object",
+          "description": "Verschuift de marker op de 3D-kaart, in wereldeenheden (x = oost, z = zuid).",
+          "required": ["dx", "dz"],
+          "additionalProperties": false,
+          "properties": { "dx": { "type": "number" }, "dz": { "type": "number" } }
+        },
+        "label3d": {
+          "enum": ["left", "right"],
+          "description": "Naar welke kant het uitgeklapte label opent. Standaard rechts."
+        }
+      }
+    },
+    "activity": {
+      "type": "object",
+      "required": ["id", "name", "dist"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/definitions/slug" },
+        "name": { "type": "string", "minLength": 1 },
+        "dist": { "type": "string", "minLength": 1, "description": "Afstand of reistijd, bijv. \"± 4 km\"." },
+        "description": { "type": "string" },
+        "photos": { "type": "array", "items": { "$ref": "#/definitions/photo" } },
+        "daytrip": {
+          "type": "boolean",
+          "description": "Zet ook een eigen stip en lijn op de kaart. Vereist dan lat en lon."
+        },
+        "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+        "lon": { "type": "number", "minimum": -180, "maximum": 180 },
+        "priority": {
+          "enum": ["must", "nice", "maybe"],
+          "description": "Hoe graag je dit wilt. Weglaten als het geen keuze is."
+        },
+        "map": {
+          "type": "object",
+          "description": "Correctie op het dagtriplabel in 3D. Alleen nodig bij overlap.",
+          "additionalProperties": false,
+          "properties": {
+            "labelOffset3d": {
+              "type": "number",
+              "description": "Zijwaartse verschuiving in pixels. Negatief = naar links."
+            }
+          }
+        }
+      },
+      "if": { "properties": { "daytrip": { "const": true } }, "required": ["daytrip"] },
+      "then": { "required": ["lat", "lon"] }
+    }
+  }
+}

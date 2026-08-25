@@ -1,19 +1,6 @@
 import { buildRouteCurve } from "../components/map3d/RouteLine3D";
 import { MAHAWELI_POINTS, MAHAWELI_WIDTH, WATER_BODIES } from "../data/inlandWater";
-import {
-  ELEPHANT_POSITION,
-  GALLE_FORT_POSITION,
-  LEOPARD_POSITION,
-  MONKEY_TREE_POSITIONS,
-  NINE_ARCHES_POSITION,
-  PALM_TREE_POSITIONS,
-  PEACOCK_POSITION,
-  PROP_CLEARANCE,
-  SIGIRIYA_ROCK_POSITION,
-  STUPA_POSITION,
-  TEMPLE_POSITIONS,
-  WATERFALL_POSITION,
-} from "../data/mapDecor";
+import { DECOR_CLEARANCE_KEY, PROP_CLEARANCE, decorItems } from "../data/mapDecor";
 import type { Stop } from "../types/trip";
 import { getDaytripEntries } from "./daytrips";
 import { getMarkerWorldPosition } from "./mapLayout3d";
@@ -93,22 +80,19 @@ export function buildMapExclusions(stops: Stop[]): Exclusion[] {
     }
   }
 
-  for (const p of PALM_TREE_POSITIONS) exclusions.push({ ...p, r: PROP_CLEARANCE.palmTree });
-  // Wide enough to clear each hero tree's own crown *and* to keep the gaps
-  // between them open: the monkey swings through those gaps, so a scattered tree
-  // growing into one would have it flying through foliage.
-  for (const p of MONKEY_TREE_POSITIONS) exclusions.push({ ...p, r: PROP_CLEARANCE.monkeyTree });
-  for (const p of TEMPLE_POSITIONS) exclusions.push({ ...p, r: PROP_CLEARANCE.temple });
-  exclusions.push({ ...STUPA_POSITION, r: PROP_CLEARANCE.stupa });
-  exclusions.push({ ...SIGIRIYA_ROCK_POSITION, r: PROP_CLEARANCE.sigiriyaRock });
-  exclusions.push({ ...LEOPARD_POSITION, r: PROP_CLEARANCE.critter });
-  exclusions.push({ ...ELEPHANT_POSITION, r: PROP_CLEARANCE.critter });
-  // Narrower than the walking critters': the peacock stays on its spot, it only
-  // needs room for the fan.
-  exclusions.push({ ...PEACOCK_POSITION, r: PROP_CLEARANCE.peacock });
-  exclusions.push({ ...NINE_ARCHES_POSITION, r: PROP_CLEARANCE.landmark });
-  exclusions.push({ ...GALLE_FORT_POSITION, r: PROP_CLEARANCE.landmark });
-  exclusions.push({ ...WATERFALL_POSITION, r: PROP_CLEARANCE.waterfall });
+  // Every hand-placed prop from content/decor.json, at the radius its own kind
+  // claims (DECOR_CLEARANCE_KEY). The sea creatures map to null: nothing is
+  // scattered on water, so they need no keep-out circle. A grove contributes one
+  // circle per tree, and its radius is deliberately wider than a crown — the
+  // monkey swings through the gaps between them, so a scattered tree growing
+  // into one would have it flying through foliage.
+  for (const item of decorItems) {
+    const key = DECOR_CLEARANCE_KEY[item.type];
+    if (!key) continue;
+    const r = PROP_CLEARANCE[key];
+    const points = item.trees ?? (item.x == null || item.z == null ? [] : [{ x: item.x, z: item.z }]);
+    for (const point of points) exclusions.push({ x: point.x, z: point.z, r });
+  }
 
   return exclusions;
 }
