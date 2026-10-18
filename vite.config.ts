@@ -38,7 +38,8 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       // "prompt" in plaats van "autoUpdate": een reisapp mag zichzelf niet midden
-      // in het gebruik vervangen. UpdatePrompt.tsx vraagt het de gebruiker.
+      // in het gebruik vervangen. ServiceWorkerProvider.tsx kiest zelf het moment
+      // (net geopend of op de achtergrond) en UpdatePrompt.tsx meldt het.
       registerType: 'prompt',
       strategies: 'generateSW',
       // Registratie loopt via virtual:pwa-register/react in UpdatePrompt.tsx.

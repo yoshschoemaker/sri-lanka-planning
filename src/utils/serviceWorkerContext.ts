@@ -13,7 +13,9 @@ export type UpdateCheckState =
 export interface ServiceWorkerValue {
   /** Er staat een nieuwe versie klaar die alleen nog geactiveerd moet worden. */
   needRefresh: boolean;
-  dismissRefresh: () => void;
+  /** Deze pagina is net herladen door een update naar een nieuwe versie. */
+  justUpdated: boolean;
+  dismissJustUpdated: () => void;
   /** Eenmalige melding direct na de eerste precache. */
   offlineReady: boolean;
   dismissOfflineReady: () => void;
