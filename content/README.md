@@ -59,7 +59,7 @@ Zet een blok in `stops`, op de plek in de route waar hij hoort. De volgorde in d
 Let op:
 
 - **`id`** is een slug (kleine letters, cijfers, koppeltekens) en moet uniek zijn. Verander een bestaande id nooit en hergebruik hem niet: er hangen posities, selecties en ankers aan.
-- **`nights: 0`** maakt er een doortocht van: je stopt onderweg, doet iets en rijdt dezelfde dag door. Hij staat wel op de kaart en in de route, maar telt niet mee in de boekingen. Yala is er zo een.
+- **`nights: 0`** maakt er een doortocht van: je stopt onderweg, doet iets en rijdt dezelfde dag door. Hij staat wel op de kaart en in de route, maar telt niet mee in de boekingen.
 - **`transportTo`** beschrijft hoe je hier vanaf de vórige stop komt. Bij de eerste stop: vanaf het vliegveld.
 - **`region`** verwijst naar een id uit `regions` bovenaan het bestand, en zet de stop onder dat kopje in de routelijst. Weglaten mag; dan valt de stop buiten de kopjes, zoals de twee Negombo's.
 - **`nights` aanpassen elders**: haal je hier 2 nachten vandaan, dan moet je ze ergens anders weghalen of de vluchten verzetten, anders klaagt de controle.

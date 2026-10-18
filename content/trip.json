@@ -110,7 +110,7 @@
       "id": "sigiriya",
       "name": "Sigiriya",
       "region": "cultural-triangle",
-      "nights": 3,
+      "nights": 2,
       "booked": false,
       "lat": 7.95,
       "lon": 80.75,
@@ -180,19 +180,26 @@
           "priority": "must"
         },
         { "id": "ravana-falls", "name": "Ravana Falls", "dist": "± 6 km", "priority": "nice" },
-        { "id": "theeplantages", "name": "Theeplantages", "dist": "rondom", "priority": "nice" }
+        { "id": "theeplantages", "name": "Theeplantages", "dist": "rondom", "priority": "nice" },
+        {
+          "id": "ravana-pool-club",
+          "name": "Ravana Pool Club by Vella",
+          "dist": "± 3 km",
+          "photos": ["/ella-ravana-pool-club.png"],
+          "priority": "maybe"
+        }
       ]
     },
     {
       "id": "yala",
       "name": "Yala",
       "region": "south-coast",
-      "nights": 0,
+      "nights": 1,
       "booked": false,
       "lat": 6.37,
       "lon": 81.52,
       "transportTo": { "mode": "tuktuk", "label": "Tuk-tuk", "duration": "± 3 u" },
-      "note": "Tussenstop op de doortocht Ella → Hiriketiya: safari in het park, daarna dezelfde dag door naar de kust",
+      "note": "Eén nacht bij het park: safari in Yala, daarna door naar de kust",
       "photos": ["/yala.jpg"],
       "activities": [
         { "id": "jeep-safari-yala-np", "name": "Jeep-safari Yala NP", "dist": "bij het park", "priority": "must" },
@@ -312,8 +319,7 @@
 
   "notes": [
     "Nachtenverdeling is een voorstel; alleen de vluchten en Negombo (The Beach Apartments) zijn geboekt.",
-    "Luchthaven is CMB (Bandaranaike), ~10 min van Negombo.",
-    "Yala is een tussenstop zonder overnachting: safari op de doortocht van Ella naar Hiriketiya."
+    "Luchthaven is CMB (Bandaranaike), ~10 min van Negombo."
   ],
 
   "openQuestions": [],

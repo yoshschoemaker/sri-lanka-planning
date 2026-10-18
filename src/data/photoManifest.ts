@@ -47,6 +47,16 @@ export const photoManifest: Record<string, PhotoEntry> = {
       { width: 1280, url: "/photos/anuradhapura-1280.webp" },
     ],
   },
+  "/ella-ravana-pool-club.png": {
+    width: 1000,
+    height: 700,
+    hash: "0297b4b61076",
+    variants: [
+      { width: 320, url: "/photos/ella-ravana-pool-club-320.webp" },
+      { width: 640, url: "/photos/ella-ravana-pool-club-640.webp" },
+      { width: 1000, url: "/photos/ella-ravana-pool-club-1000.webp" },
+    ],
+  },
   "/ella.webp": {
     width: 1600,
     height: 1067,

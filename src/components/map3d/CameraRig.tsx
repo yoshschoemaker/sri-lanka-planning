@@ -11,8 +11,8 @@ import { ISLAND_TOP_Y } from "./Island";
  * position [5.7, 11.6, 16.2] looking at the origin: that position sits at
  * azimuth ~19.4°/polar ~56° (three.js's own Spherical convention, which
  * camera-controls reuses directly), so these defaults keep the first paint
- * effectively identical to the already-approved Phase 1 static shot while
- * still letting the user tilt/rotate a bit either side of it.
+ * effectively identical to the already-approved Phase 1 static shot. Tilt
+ * stays bounded; rotation around the island is unbounded (full 360°).
  */
 const MIN_POLAR_DEG = 35;
 /**
@@ -24,8 +24,6 @@ const MIN_POLAR_DEG = 35;
  */
 const MAX_POLAR_DEG = 80;
 const DEFAULT_POLAR_DEG = 52;
-const MIN_AZIMUTH_DEG = -20;
-const MAX_AZIMUTH_DEG = 60;
 const DEFAULT_AZIMUTH_DEG = 20;
 
 /**
@@ -139,8 +137,8 @@ interface CameraRigProps {
 
 /**
  * Owns the CameraControls instance and flies to the selected stop. Bounded
- * polar/azimuth let the user gently tilt/rotate without ever flipping the
- * island on its side or upside down. On selection the camera always
+ * polar lets the user tilt without ever flipping the island on its side or
+ * upside down, while azimuth is free so they can orbit all the way round. On selection the camera always
  * recomputes from the same fixed angle/distance (DEFAULT_OFFSET), just
  * re-centered on the new stop, rather than preserving whatever angle the
  * user last dragged to, so every stop arrives at a consistent framing.
@@ -154,8 +152,10 @@ export function CameraRig({ stops, selected, onSelect, onTourDay, onTourTransit,
   const touringRef = useRef(false);
 
   const flyTo = useCallback((x: number, z: number, animate: boolean, offset: THREE.Vector3 = DEFAULT_OFFSET) => {
+    const controls = controlsRef.current;
+    if (!controls) return;
     const target = focusTarget(x, z);
-    return controlsRef.current?.setLookAt(
+    const arrived = controls.setLookAt(
       target.x + offset.x,
       ISLAND_TOP_Y + offset.y,
       target.z + offset.z,
@@ -164,6 +164,12 @@ export function CameraRig({ stops, selected, onSelect, onTourDay, onTourTransit,
       target.z,
       animate,
     );
+    // Azimuth is unbounded, so after a few full turns the current angle can be
+    // several multiples of 2π away from the (-π, π] one setLookAt computes.
+    // Without this the flight back would unwind every one of those turns
+    // instead of taking the shortest way round.
+    controls.normalizeRotations();
+    return arrived;
   }, []);
 
   const playTour = useCallback(async () => {
@@ -258,8 +264,6 @@ export function CameraRig({ stops, selected, onSelect, onTourDay, onTourTransit,
       ref={controlsRef}
       minPolarAngle={THREE.MathUtils.degToRad(MIN_POLAR_DEG)}
       maxPolarAngle={THREE.MathUtils.degToRad(MAX_POLAR_DEG)}
-      minAzimuthAngle={THREE.MathUtils.degToRad(MIN_AZIMUTH_DEG)}
-      maxAzimuthAngle={THREE.MathUtils.degToRad(MAX_AZIMUTH_DEG)}
       minDistance={MIN_DISTANCE}
       maxDistance={MAX_DISTANCE}
     />
