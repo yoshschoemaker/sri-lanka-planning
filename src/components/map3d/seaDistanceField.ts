@@ -73,6 +73,15 @@ const SEED_CUTOFF = 0.5;
  */
 const BEACH_BEVEL_SIZE = 0.05;
 
+/**
+ * Blur radii, in world units, for the smoothing pass. The shelf drives how wide
+ * the pale shallows are and may be soft everywhere; distance must stay exact
+ * through the foam band (0.16 wide) and only blends to blurred beyond it.
+ */
+const SMOOTH_SHELF = 0.45;
+const SMOOTH_DISTANCE = 0.3;
+const SMOOTH_DISTANCE_FROM = [0.2, 0.7] as const;
+
 /** World units per texel. Desktop resolves the foam edge; mobile trades a third of the sharpness for a quarter of the bake and memory. */
 export const SEA_FIELD_TEXEL = { high: 0.03, low: 0.05 } as const;
 
@@ -110,6 +119,42 @@ function vectorFromSegment(
   if (lengthSq === 0) return [x - x1, z - z1];
   const t = Math.max(0, Math.min(1, ((x - x1) * dx + (z - z1) * dz) / lengthSq));
   return [x - (x1 + t * dx), z - (z1 + t * dz)];
+}
+
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * Three box passes per axis, which is close enough to a Gaussian. Running sums
+ * make the cost independent of radius; edges clamp, matching the texture's
+ * ClampToEdgeWrapping.
+ */
+function boxBlur3(source: Float32Array, width: number, height: number, radius: number): Float32Array {
+  if (radius < 1) return source.slice();
+  let a = source.slice();
+  let b = new Float32Array(source.length);
+  const pass = (from: Float32Array, to: Float32Array, length: number, lines: number, step: number, stride: number) => {
+    const span = radius * 2 + 1;
+    for (let line = 0; line < lines; line++) {
+      const base = line * stride;
+      const at = (k: number) => from[base + Math.min(length - 1, Math.max(0, k)) * step];
+      let sum = 0;
+      for (let k = -radius; k <= radius; k++) sum += at(k);
+      for (let k = 0; k < length; k++) {
+        to[base + k * step] = sum / span;
+        sum += at(k + radius + 1) - at(k - radius);
+      }
+    }
+  };
+  for (let n = 0; n < 3; n++) {
+    pass(a, b, width, height, 1, width);
+    [a, b] = [b, a];
+    pass(a, b, height, width, width, 1);
+    [a, b] = [b, a];
+  }
+  return a;
 }
 
 interface FieldRing {
@@ -272,11 +317,31 @@ export function buildSeaShoreField(texel: number): SeaShoreField {
     }
   }
 
-  const signedAt = (p: number, raw: number) => (onLand[p] ? -raw : raw) - offset[p];
   // Flip the stored vector on land so the direction points offshore everywhere.
   const inverseAt = (p: number, raw: number) => (raw > 1e-5 ? (onLand[p] ? -1 / raw : 1 / raw) : 0);
 
-  // --- 4. pack --------------------------------------------------------------
+  // --- 4. smoothing ---------------------------------------------------------
+  // Both channels the shallows are drawn from are faceted by construction. The
+  // shelf is inherited wholesale from the nearest stretch of coast, so it jumps
+  // along every Voronoi seam between two coast segments; and the distance to a
+  // polygon creases at every concave vertex, creases that grow more visible the
+  // further out to sea the iso-line sits. Together they gave the pale band
+  // straight-edged, saw-toothed outlines. A blur of a linear ramp is the same
+  // ramp, so this only rounds the creases and seams. Distance is blended from
+  // exact to blurred with offshore distance, so the foam line stays exact.
+  const distance = new Float32Array(count);
+  for (let p = 0; p < count; p++) {
+    const raw = Math.sqrt(vx[p] * vx[p] + vz[p] * vz[p]);
+    distance[p] = (onLand[p] ? -raw : raw) - offset[p];
+  }
+  const blurredDistance = boxBlur3(distance, width, height, Math.round(SMOOTH_DISTANCE / texel));
+  for (let p = 0; p < count; p++) {
+    const t = smoothstep(SMOOTH_DISTANCE_FROM[0], SMOOTH_DISTANCE_FROM[1], distance[p]);
+    distance[p] += (blurredDistance[p] - distance[p]) * t;
+  }
+  shelf.set(boxBlur3(shelf, width, height, Math.round(SMOOTH_SHELF / texel)));
+
+  // --- 5. pack --------------------------------------------------------------
   // RGBA16F rather than 8-bit. The foam band is 0.16 world units wide, and
   // quantising a [-1, 3] range to 8 bits gives 0.0156 per step — half a texel,
   // which visibly stair-steps the foam edge exactly where the eye is drawn.
@@ -293,7 +358,7 @@ export function buildSeaShoreField(texel: number): SeaShoreField {
     // of magnitude more per call. Over the whole grid that is most of the pack.
     const raw = Math.sqrt(vx[p] * vx[p] + vz[p] * vz[p]);
     const inverse = inverseAt(p, raw);
-    data[p * 4] = toHalf(signedAt(p, raw));
+    data[p * 4] = toHalf(distance[p]);
     data[p * 4 + 1] = toHalf(vx[p] * inverse);
     data[p * 4 + 2] = toHalf(vz[p] * inverse);
     data[p * 4 + 3] = toHalf(shelf[p]);
@@ -324,7 +389,7 @@ export function buildSeaShoreField(texel: number): SeaShoreField {
     const raw = Math.sqrt(vx[p] * vx[p] + vz[p] * vz[p]);
     const inverse = inverseAt(p, raw);
     return {
-      distance: signedAt(p, raw),
+      distance: distance[p],
       dirX: vx[p] * inverse,
       dirZ: vz[p] * inverse,
       shelf: shelf[p],

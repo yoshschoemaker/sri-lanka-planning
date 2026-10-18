@@ -7,7 +7,8 @@ import { useReducedMotion } from "../../utils/useReducedMotion";
 import { SEA_LEVEL_Y } from "./seaLevel";
 import { OCEAN_SHORE_GLSL, OCEAN_SURFACE_GLSL } from "./oceanShader";
 import { buildSeaShoreField, SEA_FIELD_TEXEL } from "./seaDistanceField";
-import { buildSeaGeometry } from "./seaGeometry";
+import { buildSeaGeometry, SEA_OUTER_RADIUS } from "./seaGeometry";
+import { LIGHT_DIR, SKY_GLOW_GLSL, SUN_DIR, SUN_GLOW_DAY, SUN_GLOW_NIGHT } from "./sky";
 
 /**
  * Authored as plain sRGB, and now that actually means something.
@@ -67,13 +68,15 @@ const NIGHT_TINT = new THREE.Color("#1a2a4a");
  * dressed up as a highlight. A physically bright sun reflected through a
  * physical fresnel term gives the real thing: small, hard glints that appear
  * and vanish as individual wave faces turn through the mirror angle.
+ *
+ * Lower than it was when the reflected sun stood high behind the camera: now
+ * that it sits on the horizon (SUN_DIR), the glitter shows up exactly when the
+ * camera looks towards it at a grazing angle, where fresnel is ten times
+ * higher, and the old value turned the whole sea into white stripes.
  */
-const SUN_INTENSITY_DAY = 55;
-/** Moonglitter is the same effect, two orders of magnitude dimmer. */
-const SUN_INTENSITY_NIGHT = 6;
-
-/** Same direction as TripMap3D's key directionalLight, so the glitter track lines up with the light the rest of the scene is lit by. */
-const LIGHT_DIR = new THREE.Vector3(4.5, 7, 3).normalize();
+const SUN_INTENSITY_DAY = 9;
+/** Moonglitter is the same effect, dimmer. */
+const SUN_INTENSITY_NIGHT = 2;
 
 /**
  * Aerial perspective, in view-distance units.
@@ -101,6 +104,8 @@ const LagoonMaterial = shaderMaterial(
     uShore: null,
     uShoreWindow: new THREE.Vector4(),
     uLightDir: LIGHT_DIR,
+    uSunDir: SUN_DIR,
+    uSunGlow: SUN_GLOW_DAY.clone(),
     uSun: SUN_DAY.clone(),
     uSunIntensity: SUN_INTENSITY_DAY,
     uHorizon: new THREE.Color("#2d88a6"),
@@ -149,6 +154,8 @@ const LagoonMaterial = shaderMaterial(
     uniform float uTime;
     uniform float uNight;
     uniform vec3 uLightDir;
+    uniform vec3 uSunDir;
+    uniform vec3 uSunGlow;
     uniform vec3 uSun;
     uniform float uSunIntensity;
     uniform vec3 uHorizon;
@@ -166,6 +173,7 @@ const LagoonMaterial = shaderMaterial(
 
     ${OCEAN_SHORE_GLSL}
     ${OCEAN_SURFACE_GLSL}
+    ${SKY_GLOW_GLSL}
 
     /**
      * Just enough sky to reflect. uHorizon is the scene's actual background
@@ -178,7 +186,7 @@ const LagoonMaterial = shaderMaterial(
      */
     vec3 oceanSky(vec3 direction, float discPower) {
       vec3 sky = mix(uHorizon, uZenith, pow(clamp(direction.y, 0.0, 1.0), 0.55));
-      float sun = max(dot(direction, normalize(uLightDir)), 0.0);
+      float sun = max(dot(direction, uSunDir), 0.0);
       sky += uSun * pow(sun, discPower) * uSunIntensity;
       // A broad halo around the disc. Cheap, and it carries most of the "sun on
       // water" read on devices where the tight disc lands between pixels.
@@ -333,7 +341,15 @@ const LagoonMaterial = shaderMaterial(
       // CPU — has the last word rather than being darkened twice.
       color = mix(color, mix(color * 0.16, uNightTint, 0.4), uNight);
 
-      color = mix(color, uHorizon, smoothstep(uHazeNear, uHazeFar, viewDist));
+      // Into the backdrop plus the sun's glow, exactly as Sun3D paints it, so
+      // the haze still meets the sky seamlessly in the direction of the sun.
+      // Also forced to full haze at the disc's own rim, not only by view
+      // distance: a camera tilted all the way down sits close enough to the
+      // rim that distance alone leaves it showing, and against the sun's glow
+      // that rim is a hard, wavy line just below the horizon.
+      vec3 haze = skyBehind(uHorizon, uSunGlow, -V);
+      float rimHaze = smoothstep(${(SEA_OUTER_RADIUS - 10).toFixed(1)}, ${(SEA_OUTER_RADIUS - 1).toFixed(1)}, length(vWorld.xz));
+      color = mix(color, haze, max(smoothstep(uHazeNear, uHazeFar, viewDist), rimHaze));
 
       gl_FragColor = vec4(color, 1.0);
 
@@ -354,6 +370,7 @@ interface LagoonUniforms {
   uShoreWindow: THREE.Vector4;
   uSun: THREE.Color;
   uSunIntensity: number;
+  uSunGlow: THREE.Color;
   uHorizon: THREE.Color;
   uZenith: THREE.Color;
 }
@@ -424,6 +441,7 @@ export function Water({ nightRef }: { nightRef: RefObject<number> }) {
     material.uZenith.copy(ZENITH_DAY).lerp(ZENITH_NIGHT, night);
     material.uSun.copy(SUN_DAY).lerp(SUN_NIGHT, night);
     material.uSunIntensity = THREE.MathUtils.lerp(SUN_INTENSITY_DAY, SUN_INTENSITY_NIGHT, night);
+    material.uSunGlow.copy(SUN_GLOW_DAY).lerp(SUN_GLOW_NIGHT, night);
   });
 
   return (

@@ -54,7 +54,8 @@ const INNER_RADIUS = 1.2;
  * furthest vertex inside the camera's existing `far: 100`, which is why the
  * documented near/far depth-precision fix in TripMap3D needs no adjustment.
  */
-const OUTER_RADIUS = 34;
+export const SEA_OUTER_RADIUS = 34;
+const OUTER_RADIUS = SEA_OUTER_RADIUS;
 
 export type SeaDetail = keyof typeof SPOKES;
 

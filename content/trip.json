@@ -111,11 +111,18 @@
       "name": "Sigiriya",
       "region": "cultural-triangle",
       "nights": 2,
-      "booked": false,
+      "booked": true,
       "lat": 7.95,
       "lon": 80.75,
       "transportTo": { "mode": "car", "label": "Auto / taxi / bus", "duration": "± 1,5 u" },
       "note": "",
+      "accommodation": {
+        "name": "Nelu Villa Sigiriya",
+        "url": "https://www.booking.com/hotel/lk/nelu-villa-sigiriya-sigiriya2.en-gb.html",
+        "mapsUrl": "https://maps.app.goo.gl/J5RgsujddChmBt8Q9",
+        "note": "Geboekt · 2 nachten",
+        "photos": ["/sigiriya-nelu-villa.png"]
+      },
       "photos": ["/sigiriya.jpg"],
       "activities": [
         {

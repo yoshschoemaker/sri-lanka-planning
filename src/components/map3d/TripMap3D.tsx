@@ -12,6 +12,9 @@ import { useMapScatter } from "../../utils/useMapScatter";
 import { useReducedMotion } from "../../utils/useReducedMotion";
 import { Island } from "./Island";
 import { Water } from "./Water";
+import { Sun3D } from "./Sun3D";
+import { SUN_DIR } from "./sky";
+import { ShadowCasting } from "./ShadowCasting";
 import { CameraRig, type CameraRigHandle } from "./CameraRig";
 import { usePinchZoom } from "./usePinchZoom";
 import { StopMarker3D } from "./StopMarker3D";
@@ -118,6 +121,9 @@ const DAY_LIGHTS = {
   fill: new THREE.Color("#bfe3ff"),
   fillIntensity: 0.35,
   ambient: 0.18,
+  sun: new THREE.Color("#ffb46b"),
+  sunIntensity: 0.55,
+  shadow: 0.45,
 };
 
 /** Deep dusk, not pitch black: the diorama should still read at a glance, just moodier. */
@@ -130,6 +136,9 @@ const NIGHT_LIGHTS = {
   fill: new THREE.Color("#28345c"),
   fillIntensity: 0.22,
   ambient: 0.07,
+  sun: new THREE.Color("#6f86c4"),
+  sunIntensity: 0.12,
+  shadow: 0.15,
 };
 
 const LIGHT_LAMBDA = 3;
@@ -215,6 +224,7 @@ function DayNightLights({
   const hemiRef = useRef<THREE.HemisphereLight>(null);
   const keyRef = useRef<THREE.DirectionalLight>(null);
   const fillRef = useRef<THREE.DirectionalLight>(null);
+  const sunRef = useRef<THREE.DirectionalLight>(null);
   const ambientRef = useRef<THREE.AmbientLight>(null);
 
   const background = useMemo(() => HORIZON_DAY.clone(), []);
@@ -240,6 +250,12 @@ function DayNightLights({
       key.color.copy(DAY_LIGHTS.key).lerp(NIGHT_LIGHTS.key, t);
       key.intensity = THREE.MathUtils.lerp(DAY_LIGHTS.keyIntensity, NIGHT_LIGHTS.keyIntensity, t);
     }
+    if (key) key.shadow.intensity = THREE.MathUtils.lerp(DAY_LIGHTS.shadow, NIGHT_LIGHTS.shadow, t);
+    const sun = sunRef.current;
+    if (sun) {
+      sun.color.copy(DAY_LIGHTS.sun).lerp(NIGHT_LIGHTS.sun, t);
+      sun.intensity = THREE.MathUtils.lerp(DAY_LIGHTS.sunIntensity, NIGHT_LIGHTS.sunIntensity, t);
+    }
     const fill = fillRef.current;
     if (fill) {
       fill.color.copy(DAY_LIGHTS.fill).lerp(NIGHT_LIGHTS.fill, t);
@@ -257,7 +273,39 @@ function DayNightLights({
       {/* `flat` (NoToneMapping) keeps the flat-shaded diorama's colors as vivid as authored; ACES's default filmic
           curve was quietly crushing the water's blues toward navy. */}
       <hemisphereLight ref={hemiRef} args={[DAY_LIGHTS.hemiSky, DAY_LIGHTS.hemiGround, DAY_LIGHTS.hemiIntensity]} />
-      <directionalLight ref={keyRef} position={[4.5, 7, 3]} intensity={DAY_LIGHTS.keyIntensity} color={DAY_LIGHTS.key} />
+      {/* The only shadow caster. Its frustum is fitted to the island (x ∈ [-2.4, 2.5], z ∈ [-4.3, 4.3],
+          with room for the tallest props) so the whole map gets the full resolution. Shadow
+          intensity is lerped below: kept well short of 1 so shadows read as shade, not as holes. */}
+      <directionalLight
+        ref={keyRef}
+        position={[4.5, 7, 3]}
+        intensity={DAY_LIGHTS.keyIntensity}
+        color={DAY_LIGHTS.key}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-5.5}
+        shadow-camera-right={5.5}
+        shadow-camera-top={5.5}
+        shadow-camera-bottom={-5.5}
+        shadow-camera-near={1}
+        shadow-camera-far={20}
+        // Flat-shaded faces at a grazing angle to the light acne badly with a plain
+        // depth bias; normalBias does the work, bias only mops up what's left.
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.02}
+        shadow-radius={3}
+        shadow-intensity={DAY_LIGHTS.shadow}
+      />
+      {/* Low, warm grazing light from the sun on the horizon (Sun3D). Too low to light the
+          island properly, which is why the key stays high, but enough to put a golden edge on
+          every slope, trunk and wall that faces it. No shadows: at this angle they would
+          stretch across half the map. */}
+      <directionalLight
+        ref={sunRef}
+        position={SUN_DIR.clone().multiplyScalar(10)}
+        intensity={DAY_LIGHTS.sunIntensity}
+        color={DAY_LIGHTS.sun}
+      />
       {/* Cool rim/fill from the opposite side, low enough to stay a fill light rather than a second key. */}
       <directionalLight ref={fillRef} position={[-5, 4, -4]} intensity={DAY_LIGHTS.fillIntensity} color={DAY_LIGHTS.fill} />
       <ambientLight ref={ambientRef} intensity={DAY_LIGHTS.ambient} />
@@ -412,6 +460,9 @@ export function TripMap3D({
     <div ref={frameRef} className="relative h-full w-full overflow-hidden rounded-[inherit]">
       <Canvas
         flat
+        // PCF rather than R3F's default PCFSoft (deprecated in recent three);
+        // the key light's shadow-radius softens it instead.
+        shadows="percentage"
         frameloop={paused ? "never" : "always"}
         // Capped at 2x rather than left to follow devicePixelRatio unbounded,
         // which on a 3x phone means rendering 2.25x the pixels of a 2x one for a
@@ -427,6 +478,7 @@ export function TripMap3D({
         // between the water plane and ContactShadows' near-coplanar blob.
         camera={{ position: [5.7, 11.6, 16.2], fov: 32, near: 1, far: 100 }}
       >
+        <ShadowCasting />
         <DayNightLights
           touring={touring}
           manualEvening={manualEvening}
@@ -436,6 +488,7 @@ export function TripMap3D({
         />
 
         <Water nightRef={nightAmountRef} />
+        <Sun3D nightRef={nightAmountRef} />
         {/* No sea sparkles any more. They were standing in for sunlight on water at
             a time when the sea shader had no view vector and so could not produce a
             real highlight; Water.tsx now reflects an actual sun disc through a

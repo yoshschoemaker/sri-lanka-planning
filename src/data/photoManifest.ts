@@ -136,6 +136,16 @@ export const photoManifest: Record<string, PhotoEntry> = {
       { width: 1024, url: "/photos/negombo-the-beach-apartments-1024.webp" },
     ],
   },
+  "/sigiriya-nelu-villa.png": {
+    width: 1024,
+    height: 768,
+    hash: "6a48d2f841d6",
+    variants: [
+      { width: 320, url: "/photos/sigiriya-nelu-villa-320.webp" },
+      { width: 640, url: "/photos/sigiriya-nelu-villa-640.webp" },
+      { width: 1024, url: "/photos/sigiriya-nelu-villa-1024.webp" },
+    ],
+  },
   "/sigiriya.jpg": {
     width: 700,
     height: 466,
