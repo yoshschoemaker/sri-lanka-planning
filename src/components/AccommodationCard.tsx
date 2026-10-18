@@ -2,6 +2,9 @@ import type { Accommodation } from "../types/trip";
 import { PhotoGallery } from "./PhotoGallery";
 import { CircleIcon } from "./icons";
 
+const LINK_CLASS =
+  "inline-flex shrink-0 items-center gap-1 rounded-full border border-ink/15 bg-white/60 px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:border-terracotta-light hover:text-terracotta-dark";
+
 interface AccommodationCardProps {
   accommodation: Accommodation | undefined;
 }
@@ -26,15 +29,19 @@ export function AccommodationCard({ accommodation }: AccommodationCardProps) {
           {accommodation.note && <p className="text-xs text-ink-soft">{accommodation.note}</p>}
         </div>
 
-        {accommodation.url && (
-          <a
-            href={accommodation.url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-ink/15 bg-white/60 px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:border-terracotta-light hover:text-terracotta-dark"
-          >
-            Bekijk boeking ↗
-          </a>
+        {(accommodation.url || accommodation.mapsUrl) && (
+          <div className="flex flex-wrap gap-2">
+            {accommodation.url && (
+              <a href={accommodation.url} target="_blank" rel="noreferrer" className={LINK_CLASS}>
+                Bekijk boeking ↗
+              </a>
+            )}
+            {accommodation.mapsUrl && (
+              <a href={accommodation.mapsUrl} target="_blank" rel="noreferrer" className={LINK_CLASS}>
+                Google Maps ↗
+              </a>
+            )}
+          </div>
         )}
       </div>
     </div>

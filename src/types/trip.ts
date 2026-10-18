@@ -77,6 +77,8 @@ export type PhotoUrl = string;
 export interface Accommodation {
   name: string;
   url?: string;
+  /** Google Maps link to the accommodation. */
+  mapsUrl?: string;
   photos?: PhotoUrl[];
   note?: string;
 }

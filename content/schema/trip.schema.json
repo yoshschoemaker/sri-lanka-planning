@@ -154,7 +154,8 @@
           "additionalProperties": false,
           "properties": {
             "name": { "type": "string", "minLength": 1 },
-            "url": { "type": "string" },
+            "url": { "type": "string", "description": "Link naar de boeking of de accommodatie." },
+            "mapsUrl": { "type": "string", "description": "Google Maps-link naar de accommodatie." },
             "note": { "type": "string" },
             "photos": { "type": "array", "items": { "$ref": "#/definitions/photo" } }
           }

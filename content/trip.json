@@ -50,6 +50,8 @@
       "note": "Aankomst 06:10",
       "accommodation": {
         "name": "The Beach Apartments",
+        "url": "https://www.booking.com/hotel/lk/the-beach-negombo.en-gb.html",
+        "mapsUrl": "https://maps.app.goo.gl/P3ZgkaJNLm2LHMu29",
         "note": "Geboekt · 1 nacht",
         "photos": ["/negombo-the-beach-apartments.jpg"]
       },
@@ -69,11 +71,18 @@
       "name": "Anuradhapura",
       "region": "cultural-triangle",
       "nights": 2,
-      "booked": false,
+      "booked": true,
       "lat": 8.31,
       "lon": 80.41,
       "transportTo": { "mode": "car", "label": "Auto / taxi / bus", "duration": "± 3,5 u" },
       "note": "Culturele driehoek · Wilpattu als dagtrip",
+      "accommodation": {
+        "name": "Ceylonima Home Stay",
+        "url": "https://www.booking.com/hotel/lk/ceylonima-home-stay.en-gb.html",
+        "mapsUrl": "https://maps.app.goo.gl/BKgubJpyyGQEoXP79",
+        "note": "Geboekt · 2 nachten",
+        "photos": ["/anuradhapura-ceylonima-home-stay.png"]
+      },
       "photos": ["/anuradhapura.jpg"],
       "activities": [
         {

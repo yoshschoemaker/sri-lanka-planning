@@ -27,6 +27,16 @@ export interface PhotoEntry {
 }
 
 export const photoManifest: Record<string, PhotoEntry> = {
+  "/anuradhapura-ceylonima-home-stay.png": {
+    width: 1024,
+    height: 768,
+    hash: "ccac1867a2b8",
+    variants: [
+      { width: 320, url: "/photos/anuradhapura-ceylonima-home-stay-320.webp" },
+      { width: 640, url: "/photos/anuradhapura-ceylonima-home-stay-640.webp" },
+      { width: 1024, url: "/photos/anuradhapura-ceylonima-home-stay-1024.webp" },
+    ],
+  },
   "/anuradhapura.jpg": {
     width: 1600,
     height: 1066,
