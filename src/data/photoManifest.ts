@@ -87,6 +87,16 @@ export const photoManifest: Record<string, PhotoEntry> = {
       { width: 900, url: "/photos/hiriketiya-900.webp" },
     ],
   },
+  "/kandy-riverside-luxury-villa.png": {
+    width: 2560,
+    height: 3710,
+    hash: "e8aaa4a021bb",
+    variants: [
+      { width: 320, url: "/photos/kandy-riverside-luxury-villa-320.webp" },
+      { width: 640, url: "/photos/kandy-riverside-luxury-villa-640.webp" },
+      { width: 1280, url: "/photos/kandy-riverside-luxury-villa-1280.webp" },
+    ],
+  },
   "/kandy.jpeg": {
     width: 554,
     height: 554,

@@ -149,11 +149,16 @@
       "name": "Kandy",
       "region": "hill-country",
       "nights": 2,
-      "booked": false,
+      "booked": true,
       "lat": 7.29,
       "lon": 80.63,
       "transportTo": { "mode": "car", "label": "Auto / taxi / bus", "duration": "± 2,5 u" },
       "note": "",
+      "accommodation": {
+        "name": "Riverside Luxury Villa",
+        "note": "Geboekt · 2 nachten",
+        "photos": ["/kandy-riverside-luxury-villa.png"]
+      },
       "photos": ["/kandy.jpeg"],
       "activities": [
         { "id": "tempel-van-de-tand", "name": "Tempel van de Tand", "dist": "in centrum", "priority": "must" },
