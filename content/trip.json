@@ -176,11 +176,16 @@
       "name": "Ella",
       "region": "hill-country",
       "nights": 4,
-      "booked": false,
+      "booked": true,
       "lat": 6.87,
       "lon": 81.05,
       "transportTo": { "mode": "train", "label": "Scenische trein Kandy → Ella", "duration": "± 6-7 u" },
       "note": "Reserveer de trein vooraf",
+      "accommodation": {
+        "name": "Misty Hills Ella Resort",
+        "note": "Geboekt onder voorbehoud · 4 nachten · we zoeken nog naar een mooier verblijf, mogelijk annuleren",
+        "photos": ["/ella-misty-hills-resort.png"]
+      },
       "photos": ["/ella.webp"],
       "activities": [
         { "id": "little-adams-peak", "name": "Little Adam's Peak", "dist": "± 2 km", "priority": "must" },
