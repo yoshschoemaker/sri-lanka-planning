@@ -1,0 +1,114 @@
+{
+  "wordGroups": [
+    {
+      "id": "begroeten",
+      "title": "Begroeten",
+      "daily": true,
+      "words": [
+        { "id": "ayubowan", "word": "Ayubowan", "script": "ආයුබෝවන්", "say": "aa-joe-boo-wan", "meaning": "Hallo", "tip": "Letterlijk: moge je lang leven. Met de handen tegen elkaar en een kleine buiging." },
+        { "id": "suba-udasanak", "word": "Suba udasanak", "script": "සුබ උදෑසනක්", "say": "soe-ba oe-dèè-sa-nak", "meaning": "Goedemorgen" },
+        { "id": "suba-dawasak", "word": "Suba dawasak", "script": "සුබ දවසක්", "say": "soe-ba da-wa-sak", "meaning": "Goedendag / fijne dag" },
+        { "id": "kohomada", "word": "Kohomada?", "script": "කොහොමද?", "say": "ko-ho-ma-da", "meaning": "Hoe gaat het?" },
+        { "id": "hondai", "word": "Hondai", "script": "හොඳයි", "say": "hon-dai", "meaning": "Goed", "tip": "Het antwoord op kohomada." },
+        { "id": "mage-nama", "word": "Mage nama …", "script": "මගේ නම …", "say": "ma-gee na-ma", "meaning": "Mijn naam is …" },
+        { "id": "gihin-ennam", "word": "Gihin ennam", "script": "ගිහින් එන්නම්", "say": "gi-hin en-nam", "meaning": "Tot ziens", "tip": "Letterlijk: ik ga en kom terug." }
+      ]
+    },
+    {
+      "id": "beleefd",
+      "title": "Beleefd, ja en nee",
+      "daily": true,
+      "words": [
+        { "id": "istuti", "word": "Istuti", "script": "ස්තූතියි", "say": "is-thoe-thie", "meaning": "Dank je wel" },
+        { "id": "karunakarala", "word": "Karunakarala", "script": "කරුණාකරලා", "say": "ka-roe-naa-ka-ra-laa", "meaning": "Alsjeblieft" },
+        { "id": "samavenna", "word": "Samavenna", "script": "සමාවෙන්න", "say": "sa-maa-wen-na", "meaning": "Sorry / pardon" },
+        { "id": "ow", "word": "Ow", "script": "ඔව්", "say": "oow", "meaning": "Ja" },
+        { "id": "naa", "word": "Naa", "script": "නෑ", "say": "nèè", "meaning": "Nee" },
+        { "id": "hari", "word": "Hari", "script": "හරි", "say": "ha-rie", "meaning": "Oké / klopt" }
+      ]
+    },
+    {
+      "id": "eten-drinken",
+      "title": "Eten en drinken",
+      "daily": true,
+      "words": [
+        { "id": "biyar-ekak", "word": "Biyar ekak", "script": "බියර් එකක්", "say": "bie-jar e-kak", "meaning": "Eén biertje", "tip": "Lion Lager is het lokale bier." },
+        { "id": "wathura", "word": "Wathura", "script": "වතුර", "say": "wa-thoe-ra", "meaning": "Water" },
+        { "id": "the", "word": "Thé", "script": "තේ", "say": "thee", "meaning": "Thee" },
+        { "id": "bath", "word": "Bath", "script": "බත්", "say": "bath", "meaning": "Rijst", "tip": "Rice and curry heet hier bath curry." },
+        { "id": "rasai", "word": "Rasai", "script": "රසයි", "say": "ra-sai", "meaning": "Lekker", "tip": "Zeg het tegen de kok, dat wordt gewaardeerd." }
+      ]
+    },
+    {
+      "id": "onderweg",
+      "title": "Onderweg",
+      "daily": true,
+      "words": [
+        { "id": "kiyada", "word": "Kiyada?", "script": "කීයද?", "say": "kie-ja-da", "meaning": "Hoeveel kost het?", "tip": "Handig op de markt en bij de tuktuk." },
+        { "id": "lassanai", "word": "Lassanai", "script": "ලස්සනයි", "say": "las-sa-nai", "meaning": "Mooi" }
+      ]
+    },
+    {
+      "id": "getallen",
+      "title": "Tellen tot tien",
+      "daily": false,
+      "words": [
+        { "id": "eka", "word": "Eka", "script": "එක", "say": "e-ka", "meaning": "1" },
+        { "id": "deka", "word": "Deka", "script": "දෙක", "say": "de-ka", "meaning": "2" },
+        { "id": "thuna", "word": "Thuna", "script": "තුන", "say": "thoe-na", "meaning": "3" },
+        { "id": "hathara", "word": "Hathara", "script": "හතර", "say": "ha-tha-ra", "meaning": "4" },
+        { "id": "paha", "word": "Paha", "script": "පහ", "say": "pa-ha", "meaning": "5" },
+        { "id": "haya", "word": "Haya", "script": "හය", "say": "ha-ja", "meaning": "6" },
+        { "id": "hatha", "word": "Hatha", "script": "හත", "say": "ha-tha", "meaning": "7" },
+        { "id": "ata", "word": "Ata", "script": "අට", "say": "a-ta", "meaning": "8" },
+        { "id": "navaya", "word": "Navaya", "script": "නවය", "say": "na-wa-ja", "meaning": "9" },
+        { "id": "dahaya", "word": "Dahaya", "script": "දහය", "say": "da-ha-ja", "meaning": "10" }
+      ]
+    }
+  ],
+  "tipModules": [
+    {
+      "id": "etiquette",
+      "title": "Etiquette",
+      "intro": "Wat je moet weten om niemand voor het hoofd te stoten.",
+      "tips": [
+        { "id": "tempel-kleding", "title": "Schouders en knieën bedekt", "body": "Bij tempels en andere heilige plekken, zoals de Tempel van de Tand in Kandy. Een sarong of omslagdoek in je tas lost het overal op." },
+        { "id": "schoenen-uit", "title": "Schoenen en hoed af", "body": "Bij elke tempel. De stenen kunnen midden op de dag gloeiend heet zijn: ga vroeg of laat, of neem sokken mee." },
+        { "id": "boeddha", "title": "Respect voor Boeddha", "body": "Poseer niet met je rug naar een Boeddhabeeld en raak beelden niet aan. Een zichtbare Boeddha-tattoo kun je beter bedekken: toeristen zijn daarvoor weleens het land uit gezet." },
+        { "id": "hoofdwiebel", "title": "De hoofdwiebel", "body": "Een wiebel van het hoofd van links naar rechts betekent meestal ja of oké, geen nee." },
+        { "id": "rechterhand", "title": "Gebruik je rechterhand", "body": "Om iets te geven, aan te pakken of mee te eten. Links geldt als de onreine hand." },
+        { "id": "poya", "title": "Poya-dagen", "body": "Elke volle maan is Poya: een feestdag waarop winkels en veel restaurants geen alcohol verkopen. Volgens de maankalender vallen ze rond 22 januari en 20 februari 2027, net buiten jullie reis. Check het nog even vlak voor vertrek." },
+        { "id": "monniken", "title": "Monniken gaan voor", "body": "In de bus zijn de voorste plekken voor monniken. Vrouwen raken een monnik niet aan en geven iets liever via een ander." },
+        { "id": "ingetogen", "title": "Ingetogen in het openbaar", "body": "Zoenen en knuffelen op straat wordt raar gevonden. Badkleding hoort op het strand, niet in het dorp." }
+      ]
+    },
+    {
+      "id": "eten",
+      "title": "Eten",
+      "intro": "Wat je zeker moet proeven.",
+      "tips": [
+        { "id": "rice-and-curry", "title": "Rice and curry", "body": "Hét lunchgerecht: rijst met een rij kleine curries van groente, linzen en vis of kip. Met je rechterhand eten is heel gewoon." },
+        { "id": "hoppers", "title": "Hoppers", "body": "Krokante kommetjes van rijstmeel en kokosmelk, vaak met een ei erin (egg hopper). Ontbijt of avondeten." },
+        { "id": "string-hoppers", "title": "String hoppers", "body": "Nestjes van fijne rijstmeelnoedels, gestoomd. Met curry en pol sambol als ontbijt." },
+        { "id": "kottu", "title": "Kottu", "body": "Fijngehakte roti met groente, ei of kip, op een hete plaat. 's Avonds hoor je het ritmische gekletter van de messen door de straat." },
+        { "id": "pol-sambol", "title": "Pol sambol", "body": "Geraspte kokos met chili, ui en limoen. Gaat overal bij." },
+        { "id": "king-coconut", "title": "King coconut", "body": "De oranje kokosnoot (thambili), langs de weg opengehakt. Drink hem gekoeld, beter tegen de hitte dan frisdrank." },
+        { "id": "arrack", "title": "Arrack en Lion", "body": "Arrack is sterkedrank van gegist kokosbloesemsap. Lion Lager is het bier dat je overal krijgt." }
+      ]
+    },
+    {
+      "id": "praktisch",
+      "title": "Praktisch",
+      "intro": "Kleine dingen die onderweg veel schelen.",
+      "tips": [
+        { "id": "tuktuk", "title": "Tuktuk: eerst de prijs", "body": "Spreek de prijs af voor je instapt, of bestel via PickMe of Uber. Die werken allebei op het eiland en zijn vaak goedkoper." },
+        { "id": "contant", "title": "Contant geld", "body": "De Sri Lankaanse roepie (LKR). Tuktuks, kraampjes en fooien gaan contant. Bewaar kleine biljetten, wisselgeld is er vaak niet." },
+        { "id": "fooi", "title": "Fooi", "body": "Restaurants rekenen vaak al 10% service charge. Chauffeurs, gidsen en hotelpersoneel waarderen een fooi wel." },
+        { "id": "afdingen", "title": "Afdingen", "body": "Op markten en bij souvenirs normaal, vriendelijk en met een glimlach. In winkels met prijskaartjes niet." },
+        { "id": "water", "title": "Geen kraanwater", "body": "Drink flessenwater of gefilterd water, ook om je tanden te poetsen als je het zekere voor het onzekere wilt." },
+        { "id": "links", "title": "Links rijden", "body": "Kijk eerst rechts bij het oversteken. Verkeer gaat voor, ook op een zebrapad." },
+        { "id": "stekker", "title": "Stekkers", "body": "Vooral het Britse type G en het ronde type D. Een wereldstekker dekt alles." }
+      ]
+    }
+  ]
+}

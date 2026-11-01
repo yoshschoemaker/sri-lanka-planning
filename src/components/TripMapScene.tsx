@@ -16,7 +16,7 @@ export interface TripMapSceneProps {
   statusFilter: StatusFilter;
   modeFilter: ModeFilter;
   variant?: TripMapVariant;
-  /** Stops the 3D scene's render loop (no-op for the 2D fallback, which has no continuous loop to begin with) — for instances kept mounted but hidden, e.g. the inline mobile map behind MapModal, so two live WebGL scenes never run at once. */
+  /** Stops the 3D scene's render loop (no-op for the 2D fallback, which has no continuous loop to begin with) — for instances kept mounted but hidden, e.g. the Reis panel while the Kaart page shows its own map, so two live WebGL scenes never run at once. */
   paused?: boolean;
 }
 

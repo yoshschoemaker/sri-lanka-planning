@@ -25,6 +25,18 @@
   --color-lagoon: #66bfd1;
 }
 
+/* Ruimte die BottomNav onderin inneemt, zonder de safe area (die tellen de
+   gebruikers er zelf met pb-safe bij op). Mobiel: de balk van h-16. Desktop:
+   de pil van h-14 plus bottom-4. */
+:root {
+  --bottom-nav-height: 4rem;
+}
+@media (min-width: 1024px) {
+  :root {
+    --bottom-nav-height: 4.5rem;
+  }
+}
+
 /* Safe-area padding voor standalone-modus op iPhones met notch/home-indicator
    (index.html zet viewport-fit=cover). Bewust puur env(): gebruik ze op wrappers
    die zelf geen padding aan diezelfde zijde hebben, anders wint er willekeurig

@@ -16,7 +16,7 @@ const DESKTOP_QUERY = "(min-width: 1024px)";
  * continuum that's never quite tested at any particular width.
  *
  * "low" is the mobile/tablet case, where the map renders either in a 3:4 panel
- * or full-screen in MapModal on a GPU with far less headroom. "high" roughly
+ * or full-screen on the Kaart page on a GPU with far less headroom. "high" roughly
  * doubles the counts for desktop, where the same scene has room to be denser.
  * Both levels walk the same seeded candidate stream, so the two layouts are
  * recognisably the same forest with more trees in it — not a reshuffle. (Not

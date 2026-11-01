@@ -50,7 +50,7 @@ export function UpdatePrompt({ raised = false }: UpdatePromptProps) {
     <AnimatePresence>
       {show && (
         <motion.div
-          className="pb-safe px-safe pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center"
+          className="pb-safe px-safe pointer-events-none fixed inset-x-0 bottom-(--bottom-nav-height) z-30 flex justify-center"
           style={raised ? { marginBottom: "8.5rem" } : undefined}
           initial={{ y: prefersReducedMotion ? 0 : "110%", opacity: prefersReducedMotion ? 0 : 1 }}
           animate={{ y: 0, opacity: 1 }}

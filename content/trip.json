@@ -156,6 +156,7 @@
       "note": "",
       "accommodation": {
         "name": "Riverside Luxury Villa",
+        "url": "https://www.airbnb.nl/rooms/26236902",
         "note": "Geboekt · 2 nachten",
         "photos": ["/kandy-riverside-luxury-villa.png"]
       },
@@ -183,6 +184,7 @@
       "note": "Reserveer de trein vooraf",
       "accommodation": {
         "name": "Misty Hills Ella Resort",
+        "url": "https://www.booking.com/hotel/lk/misty-hills-ella-resort.en-gb.html",
         "note": "Geboekt onder voorbehoud · 4 nachten · we zoeken nog naar een mooier verblijf, mogelijk annuleren",
         "photos": ["/ella-misty-hills-resort.png"]
       },
@@ -212,11 +214,17 @@
       "name": "Yala",
       "region": "south-coast",
       "nights": 1,
-      "booked": false,
+      "booked": true,
       "lat": 6.37,
       "lon": 81.52,
       "transportTo": { "mode": "tuktuk", "label": "Tuk-tuk", "duration": "± 3 u" },
       "note": "Eén nacht bij het park: safari in Yala, daarna door naar de kust",
+      "accommodation": {
+        "name": "Privévilla met zwembad, Kirinda",
+        "url": "https://www.airbnb.nl/rooms/1641082711801090187",
+        "note": "Geboekt · 1 nacht (6–7 feb) · 2 slaapkamers, 2 badkamers",
+        "photos": ["/yala-kirinda-villa.jpeg"]
+      },
       "photos": ["/yala.jpg"],
       "activities": [
         { "id": "jeep-safari-yala-np", "name": "Jeep-safari Yala NP", "dist": "bij het park", "priority": "must" },

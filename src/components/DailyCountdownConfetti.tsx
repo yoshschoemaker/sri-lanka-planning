@@ -4,6 +4,8 @@ import type { Trip } from "../types/trip";
 import { getTripStatus } from "../utils/countdown";
 import { shouldShowDailyCountdown, markDailyCountdownShown } from "../utils/dailyCountdown";
 import { useReducedMotion } from "../utils/useReducedMotion";
+import { wordOfTheDay } from "../utils/wordOfTheDay";
+import { dailyWords } from "../data/guideContent";
 import { SPLASH_TOTAL_MS } from "./SplashScreen";
 
 const CONFETTI_COLORS = ["#c2683f", "#e3a67e", "#e7d5ac", "#2f5d4e", "#66bfd1", "#f2ead9"];
@@ -11,7 +13,10 @@ const CONFETTI_COUNT = 40;
 /** Waits out SplashScreen's own on-screen time (plus a small breather) so the two first-load flourishes play one after another instead of competing for the same frame. */
 const START_DELAY_MS = SPLASH_TOTAL_MS + 200;
 const TICK_DELAY_MS = 500;
-const VISIBLE_DURATION_MS = 2200;
+/** Ruim genoeg om na het aftellen ook het woord van de dag rustig te lezen. */
+const VISIBLE_DURATION_MS = 5000;
+/** Het woord komt pas na de tik van het getal, zodat die twee niet om aandacht vechten. */
+const WORD_DELAY_S = 0.9;
 
 interface ConfettiPiece {
   id: number;
@@ -50,6 +55,7 @@ export function DailyCountdownConfetti({ trip }: { trip: Trip }) {
   const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
   const prefersReducedMotion = useReducedMotion();
   const status = useMemo(() => getTripStatus(trip.start, trip.end), [trip.start, trip.end]);
+  const word = useMemo(() => wordOfTheDay(dailyWords), []);
 
   useEffect(() => {
     if (status.phase !== "upcoming") return;
@@ -128,6 +134,21 @@ export function DailyCountdownConfetti({ trip }: { trip: Trip }) {
                 </AnimatePresence>
               </div>
               <span className="text-base text-ink-soft">{displayedDays === 1 ? "dag te gaan!" : "dagen te gaan!"}</span>
+
+              <motion.div
+                className="mt-5 flex w-full flex-col items-center gap-0.5 border-t border-ink/10 pt-4"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: WORD_DELAY_S }}
+              >
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-terracotta-dark">
+                  Woord van de dag
+                </span>
+                <span className="mt-1 font-serif text-2xl font-semibold text-ink">{word.word}</span>
+                <span className="text-sm text-ink-soft">
+                  {word.meaning} · <span className="italic">{word.say}</span>
+                </span>
+              </motion.div>
             </motion.div>
           </div>
         </motion.div>

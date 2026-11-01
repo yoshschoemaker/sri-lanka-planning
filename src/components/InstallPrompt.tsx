@@ -49,7 +49,7 @@ export function InstallPrompt({ onVisibilityChange }: InstallPromptProps) {
       <AnimatePresence>
         {visible && (
           <motion.div
-            className="pb-safe px-safe fixed inset-x-0 bottom-0 z-30 flex justify-center"
+            className="pb-safe px-safe fixed inset-x-0 bottom-(--bottom-nav-height) z-30 flex justify-center"
             initial={{ y: prefersReducedMotion ? 0 : "110%", opacity: prefersReducedMotion ? 0 : 1 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: prefersReducedMotion ? 0 : "110%", opacity: prefersReducedMotion ? 0 : 1 }}

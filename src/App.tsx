@@ -10,12 +10,13 @@ import { FlightCard } from "./components/FlightCard";
 import { FilterBar, type ModeFilter, type PriorityFilter, type StatusFilter } from "./components/FilterBar";
 import { ItineraryList } from "./components/ItineraryList";
 import { TripMapScene } from "./components/TripMapScene";
-import { MapModal } from "./components/MapModal";
 import { TripInfoAccordion } from "./components/TripInfoAccordion";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { UpdatePrompt } from "./components/UpdatePrompt";
 import { OfflineBadge } from "./components/OfflineBadge";
-import { MapIcon } from "./components/icons";
+import { BottomNav, type AppTab } from "./components/BottomNav";
+import { ActivitiesView } from "./components/ActivitiesView";
+import { GuideView } from "./components/GuideView";
 import { useReducedMotion } from "./utils/useReducedMotion";
 import { useMediaQuery } from "./utils/useMediaQuery";
 import { useTripStatus } from "./utils/useTripStatus";
@@ -32,16 +33,18 @@ function App() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
-  const [mapOutOfView, setMapOutOfView] = useState(false);
-  const [mapModalOpen, setMapModalOpen] = useState(false);
-  /** De install-banner bezet de onderrand; FAB en update-toast wijken ervoor uit. */
+  /** Welke pagina er onder de navigatie staat. */
+  const [view, setView] = useState<AppTab>("reis");
+  /** Stop waar Doen op opent als je via de link op een stopkaart komt. */
+  const [activitiesFocus, setActivitiesFocus] = useState<string | null>(null);
+  /** Scrollpositie per pagina, zodat terugkeren naar Reis of Doen je plek bewaart. */
+  const viewScrollRef = useRef<Partial<Record<AppTab, number>>>({});
+  const previousViewRef = useRef<AppTab>(view);
+  /** De install-banner bezet de onderrand; de update-toast wijkt ervoor uit. */
   const [installBannerVisible, setInstallBannerVisible] = useState(false);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const mapAnchorRef = useRef<HTMLDivElement>(null);
   /** Zorgt dat de sprong naar de stop van vandaag hoogstens één keer per sessie gebeurt. */
   const jumpedToTodayRef = useRef(false);
-  /** Fallback for closeMapModal when nothing is selected — mobile has no scroll-linked selection (see the isDesktop-gated observer below), so there's no card to land back on. */
-  const savedScrollRef = useRef(0);
   const prefersReducedMotion = useReducedMotion();
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const status = useTripStatus(trip.start, trip.end);
@@ -132,16 +135,6 @@ function App() {
   }, [todayIds]);
 
   useEffect(() => {
-    const el = mapAnchorRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(([entry]) => setMapOutOfView(!entry.isIntersecting), {
-      threshold: 0,
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     if (!isDesktop) return;
 
     const cards = Array.from(cardRefs.current.values());
@@ -181,13 +174,13 @@ function App() {
     return () => observer.disconnect();
   }, [isDesktop]);
 
-  const openMapModal = useCallback(() => {
-    savedScrollRef.current = window.scrollY;
-
-    // Mobile has no scroll-linked selection (see the isDesktop-gated observer
-    // above), so `selected` can be stale here — find the card nearest the
-    // viewport center right now, the same way that observer would, so the map
-    // opens on the stop you're actually looking at.
+  /**
+   * Mobiel kent geen scroll-gekoppelde selectie (zie de isDesktop-observer
+   * hierboven), dus `selected` kan verouderd zijn. Bij het openen van de kaart
+   * pakken we de stopkaart die nu het dichtst bij het midden van het scherm
+   * staat, zodat de kaart opent op de stop waar je naar keek.
+   */
+  const selectCardInView = useCallback(() => {
     let closestId: string | null = null;
     let closestDistance = Infinity;
     for (const [id, el] of cardRefs.current) {
@@ -199,133 +192,173 @@ function App() {
       }
     }
     if (closestId) setSelected(closestId);
-
-    setMapModalOpen(true);
   }, []);
 
-  const closeMapModal = useCallback(() => {
-    setMapModalOpen(false);
-    // Prefer landing back on the selected stop's card (it may have changed
-    // while the modal was open) over the raw saved scroll position, which is
-    // only a reliable anchor when nothing is/was selected.
+  const handleTabChange = useCallback(
+    (tab: AppTab) => {
+      if (tab === view) {
+        // Nog een tik op de huidige tab: terug naar boven, zoals in de meeste apps.
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
+        return;
+      }
+      viewScrollRef.current[view] = window.scrollY;
+      if (view === "reis" && tab === "kaart") selectCardInView();
+      if (tab === "doen") setActivitiesFocus(null);
+      setView(tab);
+    },
+    [prefersReducedMotion, selectCardInView, view],
+  );
+
+  const showActivities = useCallback((stopId: string) => {
+    viewScrollRef.current.reis = window.scrollY;
+    setActivitiesFocus(stopId);
+    setView("doen");
+  }, []);
+
+  /**
+   * Na het wisselen van pagina de scrollpositie zetten. Pas na de render, want
+   * daarvoor heeft de nieuwe pagina nog geen hoogte. Niet bij de eerste
+   * render: dan houdt de browser zijn eigen scrollherstel.
+   */
+  useEffect(() => {
+    const previous = previousViewRef.current;
+    if (previous === view) return;
+    previousViewRef.current = view;
+
+    if (view === "doen" && activitiesFocus) {
+      document.getElementById(`doen-${activitiesFocus}`)?.scrollIntoView({ behavior: "auto", block: "start" });
+      return;
+    }
+    // Terug van de kaart: land op de stop die daar geselecteerd is, die kan
+    // onderweg veranderd zijn.
     const selectedCard = selected ? cardRefs.current.get(selected) : null;
-    if (selectedCard) selectedCard.scrollIntoView({ behavior: "auto", block: "center" });
-    else window.scrollTo({ top: savedScrollRef.current, behavior: "auto" });
-  }, [selected]);
+    if (view === "reis" && previous === "kaart" && selectedCard) {
+      selectedCard.scrollIntoView({ behavior: "auto", block: "center" });
+      return;
+    }
+    // De Gids begint altijd op zijn startscherm, dus ook bovenaan.
+    const restore = view === "reis" || view === "doen" ? viewScrollRef.current[view] : undefined;
+    window.scrollTo({ top: restore ?? 0, behavior: "auto" });
+  }, [view, activitiesFocus, selected]);
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom,0px))]">
       <SplashScreen />
       <DailyCountdownConfetti trip={trip} />
       <InstallPrompt onVisibilityChange={setInstallBannerVisible} />
       <UpdatePrompt raised={installBannerVisible} />
       <OfflineBadge />
-      <Header trip={trip} />
 
-      <HeroBanner />
-
-      <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
-        <TripStats
-          trip={trip}
+      {view === "doen" && (
+        <ActivitiesView
           stops={stops}
-          transportModes={transportModes}
-          todayStopId={todayIds[0] ?? null}
-          onJumpToStop={handleSelect}
+          priorityFilter={priorityFilter}
+          onPriorityFilterChange={setPriorityFilter}
         />
-
-        <RouteSummary trip={trip} stops={stops} />
-
-        <section className="mb-10">
-          <h2 className="mb-4 font-serif text-2xl font-semibold text-ink">Vluchten</h2>
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <FlightCard flight={trip.flights.outbound} direction="heen" />
-            <FlightCard flight={trip.flights.return} direction="terug" />
-          </div>
-        </section>
-
-        <TripInfoAccordion
-          trip={trip}
-          stops={stops}
-          openQuestions={openQuestions}
-          todos={todos}
-          notes={notes}
-          onJumpToStop={handleSelect}
-        />
-
-        <div className="mb-6">
-          <FilterBar
-            stops={stops}
-            transportModes={transportModes}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            modeFilter={modeFilter}
-            onModeFilterChange={setModeFilter}
-            priorityFilter={priorityFilter}
-            onPriorityFilterChange={setPriorityFilter}
-            onReset={resetFilters}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-start lg:gap-6">
-          <div className="order-2 lg:order-1">
-            <h2 className="mb-4 font-serif text-2xl font-semibold text-ink">Route</h2>
-            <ItineraryList
-              stops={stops}
-              transportModes={transportModes}
-              selected={selected}
-              todayIds={todayIds}
-              onSelect={handleSelect}
-              registerRef={registerRef}
-              statusFilter={statusFilter}
-              modeFilter={modeFilter}
-              priorityFilter={priorityFilter}
-            />
-          </div>
-
-          <div ref={mapAnchorRef} className="order-1 lg:sticky lg:top-6 lg:order-2">
-            <TripMapScene
-              variant="panel"
-              paused={mapModalOpen}
-              stops={stops}
-              transportModes={transportModes}
-              selected={selected}
-              onSelect={handleSelect}
-              onTourSelect={handleTourSelect}
-              statusFilter={statusFilter}
-              modeFilter={modeFilter}
-            />
-          </div>
-        </div>
-      </main>
-
-      {mapOutOfView && (
-        <button
-          type="button"
-          onClick={openMapModal}
-          aria-label="Kaart openen"
-          style={{
-            right: "calc(1.25rem + env(safe-area-inset-right, 0px))",
-            bottom: installBannerVisible
-              ? "calc(9.5rem + env(safe-area-inset-bottom, 0px))"
-              : "calc(1.25rem + env(safe-area-inset-bottom, 0px))",
-          }}
-          className="fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-terracotta-dark text-cream shadow-lg shadow-ink/20 transition-all active:scale-95 lg:hidden"
-        >
-          <MapIcon className="h-6 w-6" />
-        </button>
       )}
 
-      <MapModal
-        open={mapModalOpen}
-        onClose={closeMapModal}
-        stops={stops}
-        transportModes={transportModes}
-        selected={selected}
-        onSelect={handleSelect}
-        onTourSelect={handleTourSelect}
-        statusFilter={statusFilter}
-        modeFilter={modeFilter}
-      />
+      {view === "gids" && <GuideView />}
+
+      {/* De kaart als eigen pagina, precies tot aan de navigatie. */}
+      {view === "kaart" && (
+        <div className="pt-safe px-safe h-[calc(100dvh-var(--bottom-nav-height)-env(safe-area-inset-bottom,0px))]">
+          <TripMapScene
+            variant="hero"
+            stops={stops}
+            transportModes={transportModes}
+            selected={selected}
+            onSelect={setSelected}
+            onTourSelect={setSelected}
+            statusFilter={statusFilter}
+            modeFilter={modeFilter}
+          />
+        </div>
+      )}
+
+      {/*
+        Reis blijft gemount als je naar een andere pagina gaat en wordt alleen
+        verborgen: de 3D-kaart erin opnieuw opbouwen kost seconden, en zo
+        blijven ook filters en opengeklapte kaarten staan.
+      */}
+      <div hidden={view !== "reis"}>
+        <Header trip={trip} />
+
+        <HeroBanner />
+
+        <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
+          <TripStats
+            trip={trip}
+            stops={stops}
+            transportModes={transportModes}
+            todayStopId={todayIds[0] ?? null}
+            onJumpToStop={handleSelect}
+          />
+
+          <RouteSummary trip={trip} stops={stops} />
+
+          <section className="mb-10">
+            <h2 className="mb-4 font-serif text-2xl font-semibold text-ink">Vluchten</h2>
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <FlightCard flight={trip.flights.outbound} direction="heen" />
+              <FlightCard flight={trip.flights.return} direction="terug" />
+            </div>
+          </section>
+
+          <TripInfoAccordion
+            trip={trip}
+            stops={stops}
+            openQuestions={openQuestions}
+            todos={todos}
+            notes={notes}
+            onJumpToStop={handleSelect}
+          />
+
+          <div className="mb-6">
+            <FilterBar
+              stops={stops}
+              transportModes={transportModes}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              modeFilter={modeFilter}
+              onModeFilterChange={setModeFilter}
+              onReset={resetFilters}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-start lg:gap-6">
+            <div className="order-2 lg:order-1">
+              <h2 className="mb-4 font-serif text-2xl font-semibold text-ink">Route</h2>
+              <ItineraryList
+                stops={stops}
+                transportModes={transportModes}
+                selected={selected}
+                todayIds={todayIds}
+                onSelect={handleSelect}
+                registerRef={registerRef}
+                statusFilter={statusFilter}
+                modeFilter={modeFilter}
+                onShowActivities={showActivities}
+              />
+            </div>
+
+            <div className="order-1 lg:sticky lg:top-6 lg:order-2">
+              <TripMapScene
+                variant="panel"
+                paused={view !== "reis"}
+                stops={stops}
+                transportModes={transportModes}
+                selected={selected}
+                onSelect={handleSelect}
+                onTourSelect={handleTourSelect}
+                statusFilter={statusFilter}
+                modeFilter={modeFilter}
+              />
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <BottomNav active={view} onChange={handleTabChange} />
     </div>
   );
 }

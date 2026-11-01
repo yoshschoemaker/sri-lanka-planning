@@ -13,12 +13,6 @@ export type StatusFilter = "all" | "toBook";
 export type ModeFilter = TransportModeKey | "all";
 export type PriorityFilter = ActivityPriority | "all";
 
-const PRIORITY_OPTIONS: { key: PriorityFilter; label: string }[] = [
-  { key: "must", label: "Must see/do" },
-  { key: "nice", label: "Leuk idee" },
-  { key: "maybe", label: "Misschien" },
-];
-
 interface FilterBarProps {
   stops: Stop[];
   transportModes: Record<TransportModeKey, TransportMode>;
@@ -26,8 +20,6 @@ interface FilterBarProps {
   onStatusFilterChange: (value: StatusFilter) => void;
   modeFilter: ModeFilter;
   onModeFilterChange: (value: ModeFilter) => void;
-  priorityFilter: PriorityFilter;
-  onPriorityFilterChange: (value: PriorityFilter) => void;
   onReset: () => void;
 }
 
@@ -38,14 +30,11 @@ export function FilterBar({
   onStatusFilterChange,
   modeFilter,
   onModeFilterChange,
-  priorityFilter,
-  onPriorityFilterChange,
   onReset,
 }: FilterBarProps) {
   const modeEntries = Object.entries(transportModes) as [TransportModeKey, TransportMode][];
 
-  const stopFilterActive = statusFilter !== "all" || modeFilter !== "all";
-  const anyFilterActive = stopFilterActive || priorityFilter !== "all";
+  const anyFilterActive = statusFilter !== "all" || modeFilter !== "all";
 
   const highlightedStops = stops.filter((stop) => {
     const statusDimmed = statusFilter === "toBook" && isBookingSettled(stop);
@@ -53,20 +42,12 @@ export function FilterBar({
     return !statusDimmed && !modeDimmed;
   }).length;
 
-  const activities = stops.flatMap((stop) => stop.activities);
-  const highlightedActivities = activities.filter((activity) => activity.priority === priorityFilter).length;
-
   /**
    * De filters dimmen wat niet past in plaats van het te verbergen, zodat de
-   * route zijn vorm en volgorde houdt. De teller zei daardoor "komen overeen"
-   * over een lijst waarin niets verdween, en liet de prioriteitsfilter (die
-   * activiteiten dimt, geen stops) volledig buiten beschouwing. Nu benoemt hij
-   * per soort filter wat er daadwerkelijk uitgelicht is.
+   * route zijn vorm en volgorde houdt. De teller zegt daarom niet "komen
+   * overeen" maar benoemt wat er uitgelicht is.
    */
-  const summary = [
-    stopFilterActive ? `${highlightedStops} van ${stops.length} stops` : null,
-    priorityFilter !== "all" ? `${highlightedActivities} van ${activities.length} activiteiten` : null,
-  ].filter(Boolean);
+  const summary = anyFilterActive ? `${highlightedStops} van ${stops.length} stops uitgelicht` : "Geen filter actief";
 
   return (
     <div className="rounded-2xl border border-ink/10 bg-white/70 p-3 sm:p-4">
@@ -117,37 +98,11 @@ export function FilterBar({
           ))}
         </div>
 
-        <div className="flex min-w-0 gap-1 overflow-x-auto rounded-full border border-ink/15 bg-white/60 p-1">
-          <button
-            type="button"
-            aria-pressed={priorityFilter === "all"}
-            onClick={() => onPriorityFilterChange("all")}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              priorityFilter === "all" ? "bg-ink text-cream" : "text-ink-soft hover:bg-ink/5"
-            }`}
-          >
-            Alle activiteiten
-          </button>
-          {PRIORITY_OPTIONS.map((option) => (
-            <button
-              key={option.key}
-              type="button"
-              aria-pressed={priorityFilter === option.key}
-              onClick={() => onPriorityFilterChange(priorityFilter === option.key ? "all" : option.key)}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                priorityFilter === option.key ? "bg-terracotta-dark text-white" : "text-ink-soft hover:bg-ink/5"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-
         <div className="flex shrink-0 items-center gap-2 sm:ml-auto">
           {/* aria-live: met alleen zichtbare tekst hoort iemand met een
               schermlezer niet wat een filterklik heeft opgeleverd. */}
           <p className="text-xs font-medium text-ink-soft" aria-live="polite">
-            {summary.length > 0 ? `${summary.join(" · ")} uitgelicht` : "Geen filter actief"}
+            {summary}
           </p>
           {anyFilterActive && (
             <button

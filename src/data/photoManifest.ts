@@ -176,6 +176,16 @@ export const photoManifest: Record<string, PhotoEntry> = {
       { width: 700, url: "/photos/sigiriya-700.webp" },
     ],
   },
+  "/yala-kirinda-villa.jpeg": {
+    width: 1200,
+    height: 2133,
+    hash: "da836c5c91e0",
+    variants: [
+      { width: 320, url: "/photos/yala-kirinda-villa-320.webp" },
+      { width: 640, url: "/photos/yala-kirinda-villa-640.webp" },
+      { width: 1200, url: "/photos/yala-kirinda-villa-1200.webp" },
+    ],
+  },
   "/yala.jpg": {
     width: 669,
     height: 446,

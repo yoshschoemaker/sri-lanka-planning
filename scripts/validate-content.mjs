@@ -316,6 +316,47 @@ if (decor) {
 
 checkPhotoManifest();
 
+// --- guide.json ------------------------------------------------------------
+
+const guide = readJson("content/guide.json");
+
+/**
+ * Ids zijn de sleutels waaronder de leervoortgang in localStorage staat. Een
+ * dubbel id deelt stilletjes zijn voortgang met een ander item, en een
+ * hernoemd id gooit de voortgang van dat item weg.
+ */
+function checkGuideItems(items, required, where, seen) {
+  if (!Array.isArray(items) || items.length === 0) return fail(`${where}: heeft minstens één item nodig.`);
+  for (const [i, item] of items.entries()) {
+    const label = `${where}[${i}]${item?.id ? ` (${item.id})` : ""}`;
+    if (!SLUG.test(item?.id ?? "")) fail(`${label}: id moet een slug zijn, zoals "suba-dawasak".`);
+    else if (seen.has(item.id)) fail(`${label}: id komt al eerder voor.`);
+    else seen.add(item.id);
+    for (const field of required) {
+      if (typeof item?.[field] !== "string" || !item[field].trim()) fail(`${label}: ${field} ontbreekt.`);
+    }
+  }
+}
+
+if (guide) {
+  const wordIds = new Set();
+  const tipIds = new Set();
+  const groupIds = new Set();
+  for (const [i, group] of (guide.wordGroups ?? []).entries()) {
+    const where = `guide.wordGroups[${i}]`;
+    checkGuideItems([group], ["title"], where, groupIds);
+    if (typeof group?.daily !== "boolean") fail(`${where}: daily moet true of false zijn.`);
+    checkGuideItems(group?.words, ["word", "script", "say", "meaning"], `${where}.words`, wordIds);
+  }
+  const moduleIds = new Set();
+  for (const [i, module] of (guide.tipModules ?? []).entries()) {
+    const where = `guide.tipModules[${i}]`;
+    checkGuideItems([module], ["title", "intro"], where, moduleIds);
+    checkGuideItems(module?.tips, ["title", "body"], `${where}.tips`, tipIds);
+  }
+  if (wordIds.size === 0) fail("guide.json: er staan geen woorden in.");
+}
+
 // --- uitkomst --------------------------------------------------------------
 
 for (const message of warnings) console.warn(`  ! ${message}`);

@@ -109,8 +109,10 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         navigateFallback: 'index.html',
-        // Bewust leeg: de app doet na het self-hosten van de fonts geen enkele
-        // runtime-request. Alles zit in de precache.
+        // Bewust leeg. De enige runtime-requests gaan naar Supabase (de gedeelde
+        // activiteiten), en die cachet CommunityProvider zelf in localStorage,
+        // met een wachtrij voor wat je offline doet. Een tweede cache hier zou
+        // alleen een verouderde stand kunnen teruggeven.
         runtimeCaching: [],
       },
       // Een actieve service worker in `vite dev` verbergt HMR-wijzigingen.

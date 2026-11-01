@@ -4,12 +4,11 @@ import type { Stop, TransportMode } from "../types/trip";
 import { dimTransition } from "../motion/variants";
 import { PhotoGallery } from "./PhotoGallery";
 import { AccommodationCard } from "./AccommodationCard";
-import { ActivityCard } from "./ActivityCard";
 import { Photo } from "./Photo";
-import { BedIcon, CameraIcon, CheckIcon, ChevronIcon, CircleIcon, SparkleIcon, StopwatchIcon, WarningIcon } from "./icons";
+import { BedIcon, CameraIcon, CheckIcon, ChevronIcon, ChevronNavIcon, CircleIcon, StopwatchIcon, WarningIcon } from "./icons";
 import { PHOTO_SIZES } from "../utils/photos";
 import { isStopover, nightsLabel } from "../utils/nights";
-import type { PriorityFilter } from "./FilterBar";
+import { hasTextSelection } from "../utils/textSelection";
 
 interface StopCardProps {
   stop: Stop;
@@ -19,20 +18,16 @@ interface StopCardProps {
   /** Waar zodra deze stop de dag van vandaag is; alleen onderweg dus. */
   isToday: boolean;
   dimmed: boolean;
-  priorityFilter: PriorityFilter;
   onSelect: (id: string) => void;
+  /** Opent de pagina Doen op de activiteiten van deze stop. */
+  onShowActivities: (id: string) => void;
   registerRef: (id: string, el: HTMLDivElement | null) => void;
 }
-
-const listVariants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06 } },
-};
 
 /** Two or more must-see activities marks a stop as a trip highlight, worth a bit more visual weight than a pass-through stay. */
 const HIGHLIGHT_MUST_COUNT = 2;
 
-export function StopCard({ stop, order, mode, isActive, isToday, dimmed, priorityFilter, onSelect, registerRef }: StopCardProps) {
+export function StopCard({ stop, order, mode, isActive, isToday, dimmed, onSelect, onShowActivities, registerRef }: StopCardProps) {
   const [panelOpen, setPanelOpen] = useState(false);
   const coverPhoto = stop.photos?.[0] ?? stop.accommodation?.photos?.[0];
   const panelId = `stop-${stop.id}-panel`;
@@ -58,7 +53,9 @@ export function StopCard({ stop, order, mode, isActive, isToday, dimmed, priorit
         hieronder, die een echte, benoemde bediening is. Deze onClick blijft
         staan als gemak voor de muis en verandert niets aan de semantiek.
       */
-      onClick={() => onSelect(stop.id)}
+      onClick={() => {
+        if (!hasTextSelection()) onSelect(stop.id);
+      }}
       className="scroll-mt-24 cursor-pointer rounded-2xl outline-none"
     >
       {/*
@@ -66,9 +63,7 @@ export function StopCard({ stop, order, mode, isActive, isToday, dimmed, priorit
         one above: Framer Motion resolves whileInView above animate when both
         target the same property, so once a card has scrolled into view its
         whileInView opacity would permanently win and filter-dimming could
-        never take effect again on that card. It wraps both the bordered card
-        and the loose activity strip below so a filtered-out stop dims as one
-        unit, even though the activities aren't inside the card's own box.
+        never take effect again on that card.
       */}
       <motion.div animate={{ opacity: dimmed ? 0.4 : 1 }} transition={dimTransition} className="flex flex-col gap-2.5">
         <div
@@ -107,22 +102,25 @@ export function StopCard({ stop, order, mode, isActive, isToday, dimmed, priorit
                 <h3 className="flex items-center gap-2 font-serif text-xl font-semibold text-ink sm:text-2xl">
                   {/* De echte bediening om deze stop te selecteren: benoemd,
                       met toetsenbord te bereiken, en met aria-pressed voor de
-                      staat die eerst op de kaart-div zat. */}
-                  <button
-                    type="button"
-                    onClick={() => onSelect(stop.id)}
-                    aria-pressed={isActive}
-                    aria-label={`Stop ${order}: ${stop.name}${isToday ? ", vandaag" : ""}${stopover ? ", tussenstop zonder overnachting" : ""}${isActive ? "" : " selecteren"}`}
-                    className="rounded text-left outline-none"
-                  >
-                    {stop.name}
-                  </button>
-                  {isHighlight && (
-                    <span title="Hoogtepunt van de reis" className="text-terracotta-dark">
-                      <SparkleIcon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
-                      <span className="sr-only">Hoogtepunt van de reis</span>
+                      staat die eerst op de kaart-div zat. De naam staat er
+                      bovenop en niet in: tekst in een knop is met de muis niet
+                      te selecteren. Een klik op de naam selecteert via de
+                      onClick van de kaart. */}
+                  <span className="relative">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelect(stop.id);
+                      }}
+                      aria-pressed={isActive}
+                      aria-label={`Stop ${order}: ${stop.name}${isToday ? ", vandaag" : ""}${stopover ? ", tussenstop zonder overnachting" : ""}${isActive ? "" : " selecteren"}`}
+                      className="absolute inset-0 rounded outline-none"
+                    />
+                    <span aria-hidden className="relative">
+                      {stop.name}
                     </span>
-                  )}
+                  </span>
                 </h3>
                 <span className="flex flex-wrap items-center gap-1.5">
                   {isToday && (
@@ -198,19 +196,35 @@ export function StopCard({ stop, order, mode, isActive, isToday, dimmed, priorit
                   {stopover ? "onderweg via" : "aangekomen via"} {mode.label.toLowerCase()}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPanelOpen((prev) => !prev);
-                  }}
-                  aria-expanded={panelOpen}
-                  aria-controls={panelId}
-                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-ink-soft outline-none transition-colors hover:bg-ink/5 hover:text-ink"
-                >
-                  {stopover ? "Foto's" : "Foto's & verblijf"}
-                  <ChevronIcon expanded={panelOpen} className="h-3.5 w-3.5" />
-                </button>
+                <span className="flex flex-wrap items-center gap-1">
+                  {/* De activiteiten zelf staan op de pagina Doen; hier alleen de weg ernaartoe. */}
+                  {stop.activities.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onShowActivities(stop.id);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-terracotta-dark outline-none transition-colors hover:bg-terracotta/10"
+                    >
+                      {stop.activities.length} {stop.activities.length === 1 ? "activiteit" : "activiteiten"}
+                      <ChevronNavIcon direction="right" className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPanelOpen((prev) => !prev);
+                    }}
+                    aria-expanded={panelOpen}
+                    aria-controls={panelId}
+                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-ink-soft outline-none transition-colors hover:bg-ink/5 hover:text-ink"
+                  >
+                    {stopover ? "Foto's" : "Foto's & verblijf"}
+                    <ChevronIcon expanded={panelOpen} className="h-3.5 w-3.5" />
+                  </button>
+                </span>
               </div>
             </div>
 
@@ -248,24 +262,6 @@ export function StopCard({ stop, order, mode, isActive, isToday, dimmed, priorit
             )}
           </AnimatePresence>
         </div>
-
-        {stop.activities.length > 0 && (
-          <motion.ul
-            variants={listVariants}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.25 }}
-            className="flex flex-col gap-2"
-          >
-            {stop.activities.map((activity) => (
-              <ActivityCard
-                key={activity.id}
-                activity={activity}
-                dimmed={priorityFilter !== "all" && activity.priority !== priorityFilter}
-              />
-            ))}
-          </motion.ul>
-        )}
       </motion.div>
     </motion.div>
   );

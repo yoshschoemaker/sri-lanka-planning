@@ -292,16 +292,6 @@ export function BedIcon({ className }: { className?: string }) {
   );
 }
 
-/** Hoogtepunt van de reis. */
-export function SparkleIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
-      <path d="M12 2.5l1.7 5.3 5.3 1.7-5.3 1.7L12 16.5l-1.7-5.3L5 9.5l5.3-1.7z" />
-      <path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" opacity="0.65" />
-    </svg>
-  );
-}
-
 /** Doortocht zonder overnachting. */
 export function StopwatchIcon({ className }: { className?: string }) {
   return (
@@ -393,6 +383,56 @@ export function PalmIcon({ className }: { className?: string }) {
       <path d="M13 10.4c-.3-2-1.9-3.6-4.1-4" />
       <path d="M13 10.4c1.2-1.7 3.4-2.3 5.5-1.5" />
       <path d="M13 10.4c1-1.8.7-4-.8-5.5" />
+    </svg>
+  );
+}
+
+/** Tab "Gids": een tekstballon. */
+export function ChatIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M5.5 4.5h13a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H11l-4.5 3.5V17H5.5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z" />
+      <path d="M8 9.5h8M8 13h5" />
+    </svg>
+  );
+}
+
+/** Duimpje bij een activiteit: "goed idee, ik wil mee". Gevuld zodra je zelf gestemd hebt. */
+export function ThumbUpIcon({ filled = false, className }: { filled?: boolean; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M7.5 10.5v9H5a1.5 1.5 0 0 1-1.5-1.5v-6A1.5 1.5 0 0 1 5 10.5h2.5Z" />
+      <path d="M7.5 10.5l3.6-6.3a1.6 1.6 0 0 1 3 .9l-.7 4h4.9a2 2 0 0 1 2 2.3l-1.1 6.4a2 2 0 0 1-2 1.7H7.5" />
+    </svg>
+  );
+}
+
+/** Iets toevoegen, zoals een voorstel. */
+export function PlusIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" className={className} aria-hidden>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+/** Eigen voorstel weghalen. */
+export function TrashIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M4.5 7h15M9.5 7V5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2" />
+      <path d="M6.5 7l.8 12a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-12" />
+    </svg>
+  );
+}
+
+/** Lid van de groep. */
+export function UsersIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <circle cx="9" cy="8.5" r="3.2" />
+      <path d="M3.5 19.5c.4-3 2.7-5 5.5-5s5.1 2 5.5 5" />
+      <path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8M17.5 14.8c1.6.7 2.7 2.4 3 4.7" />
     </svg>
   );
 }

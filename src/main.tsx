@@ -6,11 +6,14 @@ import './utils/deferredInstallPrompt'
 import './index.css'
 import App from './App.tsx'
 import { ServiceWorkerProvider } from './components/ServiceWorkerProvider.tsx'
+import { CommunityProvider } from './components/CommunityProvider.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ServiceWorkerProvider>
-      <App />
+      <CommunityProvider>
+        <App />
+      </CommunityProvider>
     </ServiceWorkerProvider>
   </StrictMode>,
 )

@@ -5,7 +5,7 @@ import { TransportConnector } from "./TransportConnector";
 import { RegionHeader } from "./RegionHeader";
 import { getRegion } from "../data/tripContent";
 import { isBookingSettled } from "../utils/nights";
-import type { ModeFilter, PriorityFilter, StatusFilter } from "./FilterBar";
+import type { ModeFilter, StatusFilter } from "./FilterBar";
 
 interface ItineraryListProps {
   stops: Stop[];
@@ -17,7 +17,7 @@ interface ItineraryListProps {
   registerRef: (id: string, el: HTMLDivElement | null) => void;
   statusFilter: StatusFilter;
   modeFilter: ModeFilter;
-  priorityFilter: PriorityFilter;
+  onShowActivities: (id: string) => void;
 }
 
 export function ItineraryList({
@@ -29,7 +29,7 @@ export function ItineraryList({
   registerRef,
   statusFilter,
   modeFilter,
-  priorityFilter,
+  onShowActivities,
 }: ItineraryListProps) {
   return (
     <ol className="flex flex-col gap-0">
@@ -68,8 +68,8 @@ export function ItineraryList({
                 isActive={selected === stop.id}
                 isToday={todayIds.includes(stop.id)}
                 dimmed={statusDimmed || modeDimmed}
-                priorityFilter={priorityFilter}
                 onSelect={onSelect}
+                onShowActivities={onShowActivities}
                 registerRef={registerRef}
               />
             </li>
