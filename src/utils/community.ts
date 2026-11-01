@@ -29,19 +29,33 @@ export interface Reaction {
   priority: ActivityPriority | null;
 }
 
+/** Een gereden rondje Tuktuk leren rijden. Alleen een nieuw eigen record wordt verstuurd. */
+export interface Score {
+  id: string;
+  userId: string;
+  score: number;
+  /** Afgelegde meters. */
+  distance: number;
+  /** Naam van de laatst gehaalde stop. */
+  reachedStop: string | null;
+  createdAt: string;
+}
+
 export interface CommunitySnapshot {
   suggestions: Suggestion[];
   reactions: Reaction[];
+  scores: Score[];
   /** user_id → naam, van iedereen die lid is. */
   usernames: Record<string, string>;
 }
 
-export const EMPTY_SNAPSHOT: CommunitySnapshot = { suggestions: [], reactions: [], usernames: {} };
+export const EMPTY_SNAPSHOT: CommunitySnapshot = { suggestions: [], reactions: [], scores: [], usernames: {} };
 
 export type PendingOp =
   | { kind: "reaction"; activityKey: string; thumbsUp: boolean; priority: ActivityPriority | null }
   | { kind: "add-suggestion"; suggestion: Omit<Suggestion, "userId"> }
-  | { kind: "delete-suggestion"; id: string };
+  | { kind: "delete-suggestion"; id: string }
+  | { kind: "add-score"; score: Omit<Score, "userId"> };
 
 /** Sleutel voor een activiteit uit trip.json. Moet passen op de check in schema.sql. */
 export function tripActivityKey(stopId: string, activityId: string): string {
@@ -78,10 +92,12 @@ export function enqueue(queue: PendingOp[], op: PendingOp): PendingOp[] {
 /** De laatst bekende serverstand met je eigen nog niet verstuurde handelingen erbovenop. */
 export function applyPending(snapshot: CommunitySnapshot, queue: PendingOp[], userId: string | null): CommunitySnapshot {
   if (queue.length === 0 || !userId) return snapshot;
-  let { suggestions, reactions } = snapshot;
+  let { suggestions, reactions, scores } = snapshot;
 
   for (const op of queue) {
-    if (op.kind === "add-suggestion") {
+    if (op.kind === "add-score") {
+      if (!scores.some((s) => s.id === op.score.id)) scores = [...scores, { ...op.score, userId }];
+    } else if (op.kind === "add-suggestion") {
       if (!suggestions.some((s) => s.id === op.suggestion.id)) {
         suggestions = [...suggestions, { ...op.suggestion, userId }];
       }
@@ -97,7 +113,7 @@ export function applyPending(snapshot: CommunitySnapshot, queue: PendingOp[], us
     }
   }
 
-  return { ...snapshot, suggestions, reactions };
+  return { ...snapshot, suggestions, reactions, scores };
 }
 
 export function groupReactions(reactions: Reaction[]): Map<string, Reaction[]> {
@@ -137,4 +153,38 @@ export function suggestionsForStop(suggestions: Suggestion[], stopId: string): S
   return suggestions
     .filter((s) => s.stopId === stopId)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  username: string;
+  score: number;
+  distance: number;
+  reachedStop: string | null;
+}
+
+/** Beste rit per persoon, hoogste bovenaan. Bij gelijke stand staat wie het eerst haalde boven. */
+export function leaderboard(scores: Score[], usernames: Record<string, string>): LeaderboardEntry[] {
+  const best = new Map<string, Score>();
+  for (const s of scores) {
+    const current = best.get(s.userId);
+    if (!current || s.score > current.score || (s.score === current.score && s.createdAt < current.createdAt)) {
+      best.set(s.userId, s);
+    }
+  }
+  return [...best.values()]
+    .filter((s) => usernames[s.userId] !== undefined)
+    .sort((a, b) => b.score - a.score || a.createdAt.localeCompare(b.createdAt))
+    .map((s) => ({
+      userId: s.userId,
+      username: usernames[s.userId],
+      score: s.score,
+      distance: s.distance,
+      reachedStop: s.reachedStop,
+    }));
+}
+
+export function bestScoreOf(scores: Score[], userId: string | null): number {
+  if (!userId) return 0;
+  return scores.reduce((best, s) => (s.userId === userId && s.score > best ? s.score : best), 0);
 }

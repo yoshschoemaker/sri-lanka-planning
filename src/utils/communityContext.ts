@@ -16,6 +16,12 @@ export interface NewSuggestion {
   url: string | null;
 }
 
+export interface NewScore {
+  score: number;
+  distance: number;
+  reachedStop: string | null;
+}
+
 export interface CommunityValue {
   /** False zonder Supabase-configuratie: dan toont de app geen gedeelde functies. */
   enabled: boolean;
@@ -36,6 +42,8 @@ export interface CommunityValue {
   setReaction: (activityKey: string, next: { thumbsUp: boolean; priority: ActivityPriority | null }) => void;
   addSuggestion: (suggestion: NewSuggestion) => void;
   deleteSuggestion: (id: string) => void;
+  /** Zet een rit op het scorebord. Doet niets als je geen lid bent. */
+  submitScore: (score: NewScore) => void;
 }
 
 export const CommunityContext = createContext<CommunityValue | null>(null);

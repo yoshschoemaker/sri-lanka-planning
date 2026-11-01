@@ -58,6 +58,21 @@ create table if not exists public.reactions (
   primary key (activity_key, user_id)
 );
 
+-- ── Tuktuk leren rijden: het scorebord ────────────────────────────────────
+-- Eén rij per gereden record. De app stuurt alleen een nieuw eigen record,
+-- dus dit blijft klein. Het plafond is geen echte beveiliging, alleen een rem
+-- op typefouten in de console.
+create table if not exists public.scores (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references public.profiles on delete cascade,
+  score int not null check (score between 0 and 1000000),
+  distance int not null check (distance between 0 and 1000000),
+  reached_stop text check (char_length(reached_stop) <= 100),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists scores_user_id_idx on public.scores (user_id);
+
 -- Verwijder je een voorstel, dan gaan de reacties erop mee. Een foreign key
 -- kan dat niet, omdat activity_key ook naar trip.json kan wijzen.
 create or replace function private.delete_suggestion_reactions()
@@ -105,13 +120,16 @@ grant execute on function public.join_group(text, text) to authenticated;
 -- ── Rechten ───────────────────────────────────────────────────────────────
 -- Expliciet, zodat het niet afhangt van de instelling "automatically expose
 -- new tables" van het project. RLS hieronder beperkt wat er echt mag.
-grant select on public.profiles, public.suggestions, public.reactions to anon, authenticated;
+grant select on public.profiles, public.suggestions, public.reactions, public.scores to anon, authenticated;
 grant update (username) on public.profiles to authenticated;
 grant insert, update, delete on public.suggestions, public.reactions to authenticated;
+-- Een score zet je neer en blijft staan: geen update of delete.
+grant insert on public.scores to authenticated;
 
 alter table public.profiles enable row level security;
 alter table public.suggestions enable row level security;
 alter table public.reactions enable row level security;
+alter table public.scores enable row level security;
 
 drop policy if exists "Iedereen leest profielen" on public.profiles;
 create policy "Iedereen leest profielen" on public.profiles
@@ -164,6 +182,15 @@ drop policy if exists "Eigen reactie verwijderen" on public.reactions;
 create policy "Eigen reactie verwijderen" on public.reactions
   for delete to authenticated
   using (user_id = (select auth.uid()));
+
+drop policy if exists "Iedereen leest scores" on public.scores;
+create policy "Iedereen leest scores" on public.scores
+  for select to anon, authenticated using (true);
+
+drop policy if exists "Leden zetten eigen score" on public.scores;
+create policy "Leden zetten eigen score" on public.scores
+  for insert to authenticated
+  with check (user_id = (select auth.uid()));
 
 -- ── Groepscode zetten (los draaien, niet committen) ───────────────────────
 --   delete from private.group_code;

@@ -4,9 +4,16 @@ import { allTips, allWords, dailyWords, tipModules, wordGroups, type SinhalaWord
 import { wordOfTheDay } from "../utils/wordOfTheDay";
 import { practiceDeck, useGuideProgress, type GuideProgress, type WordStatus } from "../utils/guideProgress";
 import { useReducedMotion } from "../utils/useReducedMotion";
+import { useTuktukRecord } from "../utils/tuktukRecord";
 import { CheckIcon, ChevronNavIcon } from "./icons";
+import { TuktukIllustration, TuktukScreen } from "./TuktukScreen";
 
-type Screen = { kind: "home" } | { kind: "words" } | { kind: "flashcards" } | { kind: "tips"; moduleId: string };
+type Screen =
+  | { kind: "home" }
+  | { kind: "words" }
+  | { kind: "flashcards" }
+  | { kind: "tips"; moduleId: string }
+  | { kind: "tuktuk" };
 
 function ProgressBar({ value, total, label }: { value: number; total: number; label: string }) {
   return (
@@ -100,6 +107,8 @@ function HomeScreen({
         </button>
       </section>
 
+      <TuktukCard onClick={() => onOpen({ kind: "tuktuk" })} />
+
       <h2 className="mt-10 mb-4 font-serif text-2xl font-semibold text-ink">Onderwerpen</h2>
       <ul className="flex flex-col gap-3">
         <ModuleCard
@@ -174,6 +183,31 @@ function ModuleCard({
         </div>
       </button>
     </li>
+  );
+}
+
+/** Ingang naar de mini-game: opvallender dan de onderwerpen, want het is geen leesstof. */
+function TuktukCard({ onClick }: { onClick: () => void }) {
+  const { record } = useTuktukRecord();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative mt-6 flex w-full items-center gap-4 overflow-hidden rounded-2xl bg-forest p-4 pb-7 text-left text-cream shadow-card transition active:scale-[0.99]"
+    >
+      <span className="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-[#4a4038]">
+        <span className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-[repeating-linear-gradient(90deg,#faf5ea_0_12px,transparent_12px_24px)] opacity-80" />
+      </span>
+      <TuktukIllustration className="relative -mb-4 h-14 w-20 shrink-0" />
+      <span className="relative min-w-0 flex-1">
+        <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-sand">Mini-game</span>
+        <span className="block font-serif text-xl font-semibold">Tuktuk leren rijden</span>
+        <span className="block text-sm text-cream/80">
+          {record.best > 0 ? `Jouw record: ${record.best.toLocaleString("nl-NL")}` : "Ontwijk koeien, voer de olifant"}
+        </span>
+      </span>
+      <ChevronNavIcon direction="right" className="relative h-5 w-5 shrink-0 text-sand" />
+    </button>
   );
 }
 
@@ -453,6 +487,7 @@ export function GuideView() {
         )}
         {screen.kind === "flashcards" && <FlashcardsScreen progress={progress} onStatus={setWordStatus} onDone={home} />}
         {tipModule && <TipsScreen module={tipModule} progress={progress} onToggle={toggleTipRead} />}
+        {screen.kind === "tuktuk" && <TuktukScreen />}
       </main>
     </div>
   );

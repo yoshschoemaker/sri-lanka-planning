@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   applyPending,
+  bestScoreOf,
   consensusPriority,
   EMPTY_SNAPSHOT,
   enqueue,
+  leaderboard,
   suggestionKey,
   type PendingOp,
   type Reaction,
+  type Score,
   type Suggestion,
 } from "./community";
 
@@ -109,5 +112,36 @@ describe("consensusPriority", () => {
 
   it("geeft null zonder prioriteiten", () => {
     expect(consensusPriority([reaction("k", "a", { thumbsUp: true })])).toBeNull();
+  });
+});
+
+function ride(id: string, userId: string, value: number, createdAt = "2027-01-01T10:00:00Z"): Score {
+  return { id, userId, score: value, distance: value, reachedStop: "Ella", createdAt };
+}
+
+describe("scorebord", () => {
+  const names = { [ME]: "Yosh", [OTHER]: "Sanne" };
+
+  it("toont de beste rit per persoon, hoogste bovenaan", () => {
+    const board = leaderboard([ride("a", ME, 300), ride("b", ME, 900), ride("c", OTHER, 500)], names);
+    expect(board.map((e) => [e.username, e.score])).toEqual([
+      ["Yosh", 900],
+      ["Sanne", 500],
+    ]);
+  });
+
+  it("bij gelijke stand wint wie het eerst haalde", () => {
+    const board = leaderboard(
+      [ride("a", ME, 500, "2027-01-02T10:00:00Z"), ride("b", OTHER, 500, "2027-01-01T10:00:00Z")],
+      names,
+    );
+    expect(board[0].username).toBe("Sanne");
+  });
+
+  it("zet een nog niet verstuurde score er meteen bij", () => {
+    const { userId: _, ...pending } = ride("p", ME, 1200);
+    const snapshot = applyPending(EMPTY_SNAPSHOT, [{ kind: "add-score", score: pending }], ME);
+    expect(bestScoreOf(snapshot.scores, ME)).toBe(1200);
+    expect(bestScoreOf(snapshot.scores, OTHER)).toBe(0);
   });
 });

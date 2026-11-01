@@ -45,6 +45,12 @@ function isSnapshot(value: unknown): value is CommunitySnapshot {
   return Boolean(v && Array.isArray(v.suggestions) && Array.isArray(v.reactions) && v.usernames && typeof v.usernames === "object");
 }
 
+/** Een cache van voor het scorebord heeft nog geen scores. */
+function readSnapshot(): CommunitySnapshot {
+  const cached = readJson(CACHE_KEY, isSnapshot);
+  return cached ? { ...cached, scores: Array.isArray(cached.scores) ? cached.scores : [] } : EMPTY_SNAPSHOT;
+}
+
 function isQueue(value: unknown): value is PendingOp[] {
   return Array.isArray(value);
 }
@@ -64,9 +70,7 @@ function errorMessage(error: unknown): string {
  * batterij.
  */
 export function CommunityProvider({ children }: { children: ReactNode }) {
-  const [serverSnapshot, setServerSnapshot] = useState<CommunitySnapshot>(
-    () => readJson(CACHE_KEY, isSnapshot) ?? EMPTY_SNAPSHOT,
-  );
+  const [serverSnapshot, setServerSnapshot] = useState<CommunitySnapshot>(readSnapshot);
   const [queue, setQueue] = useState<PendingOp[]>(() => readJson(QUEUE_KEY, isQueue) ?? []);
   const [userId, setUserId] = useState<string | null>(null);
   const [syncState, setSyncState] = useState<SyncState>("idle");
@@ -246,6 +250,10 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
           suggestion: { ...suggestion, id: crypto.randomUUID(), createdAt: new Date().toISOString() },
         }),
       deleteSuggestion: (id) => mutate({ kind: "delete-suggestion", id }),
+      submitScore: (score) => {
+        if (!userId || !snapshot.usernames[userId]) return;
+        mutate({ kind: "add-score", score: { ...score, id: crypto.randomUUID(), createdAt: new Date().toISOString() } });
+      },
     };
   }, [serverSnapshot, queue, userId, syncState, syncError, refresh, join, rename, mutate]);
 

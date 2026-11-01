@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { ActivityPriority } from "../types/trip";
-import type { CommunitySnapshot, PendingOp } from "./community";
+import type { CommunitySnapshot, PendingOp, Score } from "./community";
 
 /**
  * Het netwerkdeel van de gedeelde activiteiten. Alle rechten zitten in de
@@ -59,6 +59,15 @@ interface ReactionRow {
   priority: ActivityPriority | null;
 }
 
+interface ScoreRow {
+  id: string;
+  user_id: string;
+  score: number;
+  distance: number;
+  reached_stop: string | null;
+  created_at: string;
+}
+
 interface ProfileRow {
   user_id: string;
   username: string;
@@ -66,14 +75,18 @@ interface ProfileRow {
 
 /** Alles in één keer: voor een groep reisgenoten zijn dit hooguit een paar honderd rijen. */
 export async function fetchSnapshot(client: SupabaseClient): Promise<CommunitySnapshot> {
-  const [suggestions, reactions, profiles] = await Promise.all([
+  const [suggestions, reactions, profiles, scores] = await Promise.all([
     client.from("suggestions").select("id, stop_id, title, description, url, user_id, created_at"),
     client.from("reactions").select("activity_key, user_id, thumbs_up, priority"),
     client.from("profiles").select("user_id, username"),
+    client.from("scores").select("id, user_id, score, distance, reached_stop, created_at"),
   ]);
   raise(suggestions.error);
   raise(reactions.error);
   raise(profiles.error);
+  // De scores-tabel kwam later. Bestaat hij nog niet in de database, dan
+  // blijft het scorebord leeg in plaats van dat alles stilvalt.
+  if (scores.error && !scores.error.code) raise(scores.error);
 
   return {
     suggestions: ((suggestions.data ?? []) as SuggestionRow[]).map((row) => ({
@@ -91,6 +104,18 @@ export async function fetchSnapshot(client: SupabaseClient): Promise<CommunitySn
       thumbsUp: row.thumbs_up,
       priority: row.priority,
     })),
+    scores: scores.error
+      ? []
+      : ((scores.data ?? []) as ScoreRow[]).map(
+          (row): Score => ({
+            id: row.id,
+            userId: row.user_id,
+            score: row.score,
+            distance: row.distance,
+            reachedStop: row.reached_stop,
+            createdAt: row.created_at,
+          }),
+        ),
     usernames: Object.fromEntries(((profiles.data ?? []) as ProfileRow[]).map((row) => [row.user_id, row.username])),
   };
 }
@@ -101,7 +126,21 @@ export async function fetchSnapshot(client: SupabaseClient): Promise<CommunitySn
  * poging geen kwaad.
  */
 export async function sendOp(client: SupabaseClient, op: PendingOp, userId: string): Promise<void> {
-  if (op.kind === "add-suggestion") {
+  if (op.kind === "add-score") {
+    const { score } = op;
+    const { error } = await client.from("scores").upsert(
+      {
+        id: score.id,
+        user_id: userId,
+        score: score.score,
+        distance: score.distance,
+        reached_stop: score.reachedStop,
+        created_at: score.createdAt,
+      },
+      { onConflict: "id", ignoreDuplicates: true },
+    );
+    raise(error);
+  } else if (op.kind === "add-suggestion") {
     const { suggestion } = op;
     const { error } = await client.from("suggestions").upsert(
       {
