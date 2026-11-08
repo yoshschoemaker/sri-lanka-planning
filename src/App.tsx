@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { trip, stops, transportModes, notes, openQuestions, todos } from "./data/tripContent";
+import { trip, stops, transportModes, notes, openQuestions, todos, budget } from "./data/tripContent";
 import { Header } from "./components/Header";
 import { HeroBanner } from "./components/HeroBanner";
 import { SplashScreen, SPLASH_TOTAL_MS } from "./components/SplashScreen";
@@ -16,10 +16,12 @@ import { UpdatePrompt } from "./components/UpdatePrompt";
 import { OfflineBadge } from "./components/OfflineBadge";
 import { BottomNav, type AppTab } from "./components/BottomNav";
 import { ActivitiesView } from "./components/ActivitiesView";
-import { GuideView } from "./components/GuideView";
+import { BudgetView } from "./components/BudgetView";
+import { TuktukEasterEgg } from "./components/TuktukEasterEgg";
 import { useReducedMotion } from "./utils/useReducedMotion";
 import { useMediaQuery } from "./utils/useMediaQuery";
 import { useTripStatus } from "./utils/useTripStatus";
+import { useChecklistProgress } from "./utils/checklistProgress";
 import { currentStopIds, todayIso } from "./utils/currentStop";
 
 /** Matches the lg breakpoint that turns the map panel sticky (see the grid below); scroll-driven selection only makes sense while the map stays on screen next to the list. */
@@ -35,6 +37,8 @@ function App() {
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   /** Welke pagina er onder de navigatie staat. */
   const [view, setView] = useState<AppTab>("reis");
+  // Eén keer hier, zodat de takentegel en het accordeon dezelfde vinkjes zien.
+  const checklistProgress = useChecklistProgress();
   /** Stop waar Doen op opent als je via de link op een stopkaart komt. */
   const [activitiesFocus, setActivitiesFocus] = useState<string | null>(null);
   /** Scrollpositie per pagina, zodat terugkeren naar Reis of Doen je plek bewaart. */
@@ -236,7 +240,7 @@ function App() {
       selectedCard.scrollIntoView({ behavior: "auto", block: "center" });
       return;
     }
-    // De Gids begint altijd op zijn startscherm, dus ook bovenaan.
+    // Budget begint altijd bovenaan.
     const restore = view === "reis" || view === "doen" ? viewScrollRef.current[view] : undefined;
     window.scrollTo({ top: restore ?? 0, behavior: "auto" });
   }, [view, activitiesFocus, selected]);
@@ -248,6 +252,7 @@ function App() {
       <InstallPrompt onVisibilityChange={setInstallBannerVisible} />
       <UpdatePrompt raised={installBannerVisible} />
       <OfflineBadge />
+      <TuktukEasterEgg />
 
       {view === "doen" && (
         <ActivitiesView
@@ -257,7 +262,7 @@ function App() {
         />
       )}
 
-      {view === "gids" && <GuideView />}
+      {view === "budget" && <BudgetView trip={trip} stops={stops} budget={budget} />}
 
       {/* De kaart als eigen pagina, precies tot aan de navigatie. */}
       {view === "kaart" && (
@@ -289,9 +294,10 @@ function App() {
           <TripStats
             trip={trip}
             stops={stops}
-            transportModes={transportModes}
             todayStopId={todayIds[0] ?? null}
             onJumpToStop={handleSelect}
+            todos={todos}
+            checklistProgress={checklistProgress}
           />
 
           <RouteSummary trip={trip} stops={stops} />
@@ -311,6 +317,7 @@ function App() {
             todos={todos}
             notes={notes}
             onJumpToStop={handleSelect}
+            progress={checklistProgress}
           />
 
           <div className="mb-6">

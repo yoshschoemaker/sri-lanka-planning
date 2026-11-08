@@ -10,6 +10,7 @@ interface StatTileProps {
   detail?: ReactNode;
   tone?: StatTileTone;
   children?: ReactNode;
+  className?: string;
 }
 
 const TONE_CLASSES: Record<StatTileTone, string> = {
@@ -18,9 +19,9 @@ const TONE_CLASSES: Record<StatTileTone, string> = {
   warning: "text-terracotta-dark",
 };
 
-export function StatTile({ icon, label, value, detail, tone = "neutral", children }: StatTileProps) {
+export function StatTile({ icon, label, value, detail, tone = "neutral", children, className = "" }: StatTileProps) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-2xl border border-ink/10 bg-white/70 p-4 sm:p-5">
+    <div className={`flex flex-col gap-1.5 rounded-2xl border border-ink/10 bg-white/70 p-4 sm:p-5 ${className}`}>
       <span className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-ink-soft">
         <span aria-hidden>{icon}</span>
         {label}

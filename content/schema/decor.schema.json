@@ -66,7 +66,8 @@
             "fishSchool",
             "turtle",
             "whale",
-            "monkeyGrove"
+            "monkeyGrove",
+            "parkedTuktuk"
           ],
           "description": "Elk type hoort bij een 3D-component. Een nieuw type toevoegen is het enige wat nog code kost."
         },

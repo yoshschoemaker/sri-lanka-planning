@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import type { TransportModeKey } from "../../types/trip";
@@ -6,6 +6,7 @@ import type { WorldPoint } from "../../utils/projection3d";
 import { mergeParts } from "../../utils/mergeParts";
 import { buildRouteCurve } from "./RouteLine3D";
 import { TrainCar } from "./Train3D";
+import { getTerrainSurfaceY } from "./Highlands";
 
 /** A fixed approximation of CameraRig's own flyTo transition time — not exact, but close enough that the vehicle and the camera visibly arrive together. */
 const TRAVEL_DURATION = 1.4;
@@ -359,6 +360,65 @@ export function RoadVehicle3D({ from, to, kind }: RoadVehicle3DProps) {
           />
         </>
       )}
+    </group>
+  );
+}
+
+/** Hoeveel groter dan de rijdende tuktuk: die is op kaartschaal te klein om op te tikken. */
+const PARKED_SCALE = 1.8;
+/** Pixels die een pointer mag bewegen voordat het een sleep van de camera is en geen tik. */
+const TAP_SLOP = 8;
+
+interface ParkedTuktuk3DProps {
+  x: number;
+  z: number;
+  rotation?: number;
+  onTap: () => void;
+}
+
+/**
+ * Een stilstaande tuktuk langs de weg, als easter egg: aantikken opent de
+ * mini-game. Een tik telt alleen als de pointer nauwelijks bewoog, anders
+ * zou elke sleep van de camera die hier begint het spel openen.
+ */
+export function ParkedTuktuk3D({ x, z, rotation = 0, onTap }: ParkedTuktuk3DProps) {
+  const [hovered, setHovered] = useState(false);
+
+  useEffect(() => {
+    if (!hovered) return;
+    document.body.style.cursor = "pointer";
+    return () => {
+      document.body.style.cursor = "";
+    };
+  }, [hovered]);
+
+  return (
+    <group
+      position={[x, getTerrainSurfaceY(x, z), z]}
+      rotation={[0, rotation, 0]}
+      scale={PARKED_SCALE}
+      onClick={(event) => {
+        if (event.delta > TAP_SLOP) return;
+        event.stopPropagation();
+        onTap();
+      }}
+      onPointerOver={(event) => {
+        event.stopPropagation();
+        setHovered(true);
+      }}
+      onPointerOut={() => setHovered(false)}
+    >
+      <mesh geometry={TUKTUK_GEOMETRY.shell} material={materials.tuktuk} />
+      <mesh geometry={TUKTUK_GEOMETRY.canopy} material={materials.tuktukCanopy} />
+      <mesh geometry={TUKTUK_GEOMETRY.glass} material={materials.glass} />
+      <mesh geometry={TUKTUK_GEOMETRY.chrome} material={materials.chrome} />
+      <mesh geometry={TUKTUK_GEOMETRY.lamp} material={materials.lamp} />
+      <mesh geometry={TUKTUK_GEOMETRY.axle} material={materials.tyre} position={[0, TUK_WHEEL_R, TUKTUK_GEOMETRY.axleZ]} />
+      <mesh
+        geometry={TUKTUK_GEOMETRY.frontWheel}
+        material={materials.tyre}
+        position={[0, TUK_WHEEL_R, TUKTUK_GEOMETRY.frontWheelZ]}
+      />
     </group>
   );
 }

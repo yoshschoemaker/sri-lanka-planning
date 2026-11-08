@@ -236,11 +236,18 @@
       "name": "Hiriketiya",
       "region": "south-coast",
       "nights": 4,
-      "booked": false,
+      "booked": true,
       "lat": 5.96,
       "lon": 80.71,
       "transportTo": { "mode": "tuktuk", "label": "Tuk-tuk", "duration": "± 2,5 u" },
       "note": "Rustige zuidkust · aankomst na de safari in Yala",
+      "accommodation": {
+        "name": "Cielo - Hiriketiya",
+        "url": "https://www.airbnb.nl/rooms/1594202440935085032",
+        "mapsUrl": "https://www.google.com/maps/place/The+Cielo+Hiriketiya/@5.9636257,80.7047662,1051m/data=!3m2!1e3!4b1!4m10!3m9!1s0x3ae137e6f5572615:0x781189b9489ec642!5m3!1s2026-12-03!4m1!1i2!8m2!3d5.9636257!4d80.7073411!16s%2Fg%2F11mywcygkd",
+        "note": "Geboekt · 4 nachten (7–11 feb) · zwembad met uitzicht op zee",
+        "photos": ["/hiriketiya-airbnb-pool.png", "/hiriketiya-airbnb-kamer.png"]
+      },
       "photos": ["/hiriketiya.jpeg"],
       "map": { "label2d": { "dx": 14, "dy": 18, "anchor": "start" } },
       "activities": [
@@ -270,11 +277,18 @@
       "name": "Mirissa",
       "region": "south-coast",
       "nights": 3,
-      "booked": false,
+      "booked": true,
       "lat": 5.95,
       "lon": 80.46,
       "transportTo": { "mode": "tuktuk", "label": "Tuk-tuk", "duration": "± 1 u" },
       "note": "Zuidkust",
+      "accommodation": {
+        "name": "Green Paradise Mirissa",
+        "url": "https://www.booking.com/hotel/lk/green-paradise-mirissa-mirissa2.en-gb.html",
+        "mapsUrl": "https://www.google.com/maps/place/Green+Paradise+Mirissa/@5.9436257,80.4616905,1051m/data=!3m1!1e3!4m10!3m9!1s0x3ae13f4e229937ff:0x9beb91401a7055b!5m3!1s2026-12-03!4m1!1i2!8m2!3d5.9436257!4d80.4642654!16s%2Fg%2F11z_1z5dd4",
+        "note": "Geboekt · 3 nachten (11–14 feb) · 2 kamers",
+        "photos": ["/mirissa-green-paradise.png"]
+      },
       "photos": ["/mirissa.jpg"],
       "map": { "label2d": { "dx": 0, "dy": 20, "anchor": "middle" } },
       "activities": [
@@ -349,5 +363,9 @@
 
   "openQuestions": [],
 
-  "todos": ["Visum regelen"]
+  "budget": {
+    "people": 4
+  },
+
+  "todos": ["Visum regelen", "Tuktuk regelen", "Trein regelen", "Vaccinaties"]
 }

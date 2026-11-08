@@ -79,6 +79,8 @@ export interface Accommodation {
   url?: string;
   /** Google Maps link to the accommodation. */
   mapsUrl?: string;
+  /** Total for the whole group and the whole stay, in euros. Absent while unknown. */
+  price?: number;
   photos?: PhotoUrl[];
   note?: string;
 }
@@ -169,4 +171,11 @@ export interface Stop {
 export interface Region {
   id: string;
   name: string;
+}
+
+/** Input for the Budget tab. Every amount is a total for the whole group, in euros. */
+export interface Budget {
+  people: number;
+  /** Return flights for the whole group. Absent while unknown. */
+  flights?: number;
 }

@@ -1,6 +1,7 @@
 import type {
   Activity,
   BookingSummary,
+  Budget,
   Flight,
   Region,
   Stop,
@@ -42,6 +43,7 @@ interface RawContent {
   notes?: string[];
   openQuestions?: string[];
   todos?: string[];
+  budget?: Budget;
 }
 
 type RawFlight = Omit<Flight, "date" | "depart" | "arrive" | "booked"> & { booked?: boolean };
@@ -119,6 +121,7 @@ export function getRegionAnchorStop(regionId: string): Stop | undefined {
 export const notes: string[] = content.notes ?? [];
 export const openQuestions: string[] = content.openQuestions ?? [];
 export const todos: string[] = content.todos ?? [];
+export const budget: Budget = content.budget ?? { people: 4 };
 
 /**
  * Wat er al staat en wat er nog open is, in één regel elk.

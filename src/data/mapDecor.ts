@@ -33,6 +33,7 @@ export const DECOR_TYPES = [
   "turtle",
   "whale",
   "monkeyGrove",
+  "parkedTuktuk",
 ] as const;
 
 export type DecorType = (typeof DECOR_TYPES)[number];
@@ -42,7 +43,7 @@ export interface DecorItem {
   /** Absent only for monkeyGrove, which carries `trees` instead. */
   x?: number;
   z?: number;
-  /** Rotation around Y in radians. Used by nineArches and waterfall. */
+  /** Rotation around Y in radians. Used by nineArches, waterfall and parkedTuktuk. */
   rotation?: number;
   /** Fireflies around this item. Used by temple. */
   fireflies?: boolean;
@@ -100,6 +101,7 @@ export const DECOR_CLEARANCE_KEY: Record<DecorType, keyof DecorClearance | null>
   fishSchool: null,
   turtle: null,
   whale: null,
+  parkedTuktuk: "critter",
 };
 
 /** All placements of one kind, as plain points. A grove yields each of its trees. */

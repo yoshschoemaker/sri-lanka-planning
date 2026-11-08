@@ -19,6 +19,8 @@ import { Turtle } from "./Turtle";
 import { Whale } from "./Whale";
 import { JungleTree, getRowHeadings } from "./JungleTree";
 import { Monkey } from "./Monkey";
+import { ParkedTuktuk3D } from "./RoadVehicle3D";
+import { openTuktukEasterEgg } from "../../utils/tuktukEasterEgg";
 
 /**
  * Everything each renderer might need beyond its own position. Passed as one
@@ -107,6 +109,11 @@ const RENDERERS: Record<DecorType, DecorRenderer> = {
   fishSchool: placed((p, _item, ctx) => <FishSchool x={p.x} z={p.z} prefersReducedMotion={ctx.prefersReducedMotion} />),
   turtle: placed((p, _item, ctx) => <Turtle x={p.x} z={p.z} prefersReducedMotion={ctx.prefersReducedMotion} />),
   whale: placed((p, _item, ctx) => <Whale x={p.x} z={p.z} prefersReducedMotion={ctx.prefersReducedMotion} />),
+
+  // Easter egg: tapping it opens the tuktuk mini-game (see TuktukEasterEgg).
+  parkedTuktuk: placed((p, item) => (
+    <ParkedTuktuk3D x={p.x} z={p.z} rotation={item.rotation ?? 0} onTap={openTuktukEasterEgg} />
+  )),
 
   // The trees are permanent scenery; only the monkey cycles, which is what
   // makes catching it a treat. Each tree faces along the row so the limb the

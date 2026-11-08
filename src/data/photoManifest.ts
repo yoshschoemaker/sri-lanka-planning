@@ -87,6 +87,26 @@ export const photoManifest: Record<string, PhotoEntry> = {
       { width: 1280, url: "/photos/hikkaduwa-1280.webp" },
     ],
   },
+  "/hiriketiya-airbnb-kamer.png": {
+    width: 720,
+    height: 960,
+    hash: "cd4442d44fbc",
+    variants: [
+      { width: 320, url: "/photos/hiriketiya-airbnb-kamer-320.webp" },
+      { width: 640, url: "/photos/hiriketiya-airbnb-kamer-640.webp" },
+      { width: 720, url: "/photos/hiriketiya-airbnb-kamer-720.webp" },
+    ],
+  },
+  "/hiriketiya-airbnb-pool.png": {
+    width: 2560,
+    height: 1920,
+    hash: "2c6b501d2e5b",
+    variants: [
+      { width: 320, url: "/photos/hiriketiya-airbnb-pool-320.webp" },
+      { width: 640, url: "/photos/hiriketiya-airbnb-pool-640.webp" },
+      { width: 1280, url: "/photos/hiriketiya-airbnb-pool-1280.webp" },
+    ],
+  },
   "/hiriketiya.jpeg": {
     width: 900,
     height: 601,
@@ -114,6 +134,16 @@ export const photoManifest: Record<string, PhotoEntry> = {
     variants: [
       { width: 320, url: "/photos/kandy-320.webp" },
       { width: 554, url: "/photos/kandy-554.webp" },
+    ],
+  },
+  "/mirissa-green-paradise.png": {
+    width: 901,
+    height: 768,
+    hash: "2fb4417d07c2",
+    variants: [
+      { width: 320, url: "/photos/mirissa-green-paradise-320.webp" },
+      { width: 640, url: "/photos/mirissa-green-paradise-640.webp" },
+      { width: 901, url: "/photos/mirissa-green-paradise-901.webp" },
     ],
   },
   "/mirissa.jpg": {

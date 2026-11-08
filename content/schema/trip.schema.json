@@ -58,6 +58,16 @@
       "type": "array",
       "description": "Regeldingen die niet aan een stop hangen (visum, verzekering).",
       "items": { "type": "string" }
+    },
+    "budget": {
+      "type": "object",
+      "description": "Voor de Budget-tab. Alle bedragen zijn totalen voor de hele groep, in euro's; de app deelt ze zelf door per stel of per persoon.",
+      "required": ["people"],
+      "additionalProperties": false,
+      "properties": {
+        "people": { "type": "integer", "minimum": 1, "description": "Aantal reizigers. Per stel is dit gedeeld door twee." },
+        "flights": { "type": "number", "minimum": 0, "description": "Vliegtickets heen en terug, totaal voor de groep. Weglaten zolang onbekend." }
+      }
     }
   },
 
@@ -156,6 +166,7 @@
             "name": { "type": "string", "minLength": 1 },
             "url": { "type": "string", "description": "Link naar de boeking of de accommodatie." },
             "mapsUrl": { "type": "string", "description": "Google Maps-link naar de accommodatie." },
+            "price": { "type": "number", "minimum": 0, "description": "Totaalprijs van het verblijf voor de hele groep, in euro's. Voor de Budget-tab." },
             "note": { "type": "string" },
             "photos": { "type": "array", "items": { "$ref": "#/definitions/photo" } }
           }

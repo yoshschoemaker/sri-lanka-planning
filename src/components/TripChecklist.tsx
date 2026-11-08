@@ -62,7 +62,7 @@ function ChecklistGroup({
  * "dit is geregeld" en "laat me deze stop zien" zijn verschillende bedoelingen,
  * en één gecombineerde klik zou steeds de verkeerde van de twee raden.
  */
-function ChecklistRow({
+export function ChecklistRow({
   item,
   progress,
   onJumpToStop,

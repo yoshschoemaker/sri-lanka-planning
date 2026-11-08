@@ -34,6 +34,11 @@ function textKey(prefix: string, text: string): string {
   return `${prefix}-${slug}`;
 }
 
+/** Losse regeldingen die niet aan een stop hangen (visum, vervoer, ...). */
+export function buildTodoItems(todos: string[]): ChecklistItem[] {
+  return todos.map((todo) => ({ key: textKey("todo", todo), label: todo }));
+}
+
 export function buildTripChecklist(
   trip: Trip,
   stops: Stop[],
@@ -53,8 +58,7 @@ export function buildTripChecklist(
       .map((stop) => ({ key: `book-${stop.id}`, label: stop.name, detail: stop.dates, stopId: stop.id })),
   ];
 
-  // Losse regeldingen die niet aan een stop hangen (visum, verzekering, ...).
-  const toArrange: ChecklistItem[] = todos.map((todo) => ({ key: textKey("todo", todo), label: todo }));
+  const toArrange = buildTodoItems(todos);
 
   const warnings: ChecklistItem[] = stops.flatMap((stop) => {
     const items: ChecklistItem[] = [];

@@ -80,6 +80,14 @@
     },
 
     {
+      "type": "parkedTuktuk",
+      "x": -1.15,
+      "z": 1.62,
+      "rotation": 0.9,
+      "note": "Easter egg: staat geparkeerd langs de weg van Negombo naar Kandy. Aantikken opent de tuktuk-mini-game."
+    },
+
+    {
       "type": "monkeyGrove",
       "note": "Vier hoge regenwoudbomen met de langoer die er langs slingert. De rij staat dwars op de standaard kijkrichting; loopt hij van de camera af, dan verbergt de voorste boom de rest.",
       "trees": [

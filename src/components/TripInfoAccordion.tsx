@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Stop, Trip } from "../types/trip";
 import { buildTripChecklist } from "../utils/checklist";
-import { useChecklistProgress } from "../utils/checklistProgress";
+import { useChecklistProgress, type ChecklistProgress } from "../utils/checklistProgress";
 import { dimTransition } from "../motion/variants";
 import { TripChecklist } from "./TripChecklist";
 import { PracticalNotes } from "./PracticalNotes";
@@ -15,13 +15,27 @@ interface TripInfoAccordionProps {
   todos: string[];
   notes: string[];
   onJumpToStop: (id: string) => void;
+  /**
+   * Gedeelde vinkjes uit App. Zonder deze prop houdt het accordeon zijn eigen
+   * staat bij; dan loopt het niet gelijk met de takentegel in TripStats.
+   */
+  progress?: ChecklistProgress;
 }
 
 /** Collapsed by default: todo's and practical notes matter, but the route + map below are the centerpiece and should land in view without scrolling past a wall of text first. */
-export function TripInfoAccordion({ trip, stops, openQuestions, todos, notes, onJumpToStop }: TripInfoAccordionProps) {
+export function TripInfoAccordion({
+  trip,
+  stops,
+  openQuestions,
+  todos,
+  notes,
+  onJumpToStop,
+  progress: sharedProgress,
+}: TripInfoAccordionProps) {
   const [open, setOpen] = useState(false);
   const checklist = buildTripChecklist(trip, stops, openQuestions, todos);
-  const progress = useChecklistProgress();
+  const ownProgress = useChecklistProgress();
+  const progress = sharedProgress ?? ownProgress;
   const panelId = "trip-info-panel";
 
   // De badge telt wat er nog open staat, niet wat er in totaal op de lijst

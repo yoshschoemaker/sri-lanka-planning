@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { ChatIcon, CompassIcon, MapIcon, SuitcaseIcon } from "./icons";
+import { CompassIcon, MapIcon, SuitcaseIcon, WalletIcon } from "./icons";
 
-export type AppTab = "reis" | "doen" | "gids" | "kaart";
+export type AppTab = "reis" | "doen" | "budget" | "kaart";
 
 interface BottomNavProps {
   active: AppTab;
@@ -11,7 +11,8 @@ interface BottomNavProps {
 const TABS: { id: AppTab; label: string; icon: ReactNode }[] = [
   { id: "reis", label: "Reis", icon: <SuitcaseIcon className="h-5.5 w-5.5" /> },
   { id: "doen", label: "Doen", icon: <CompassIcon className="h-5.5 w-5.5" /> },
-  { id: "gids", label: "Gids", icon: <ChatIcon className="h-5.5 w-5.5" /> },
+  // De Gids staat tijdelijk uit; GuideView en zijn content blijven bestaan.
+  { id: "budget", label: "Budget", icon: <WalletIcon className="h-5.5 w-5.5" /> },
   { id: "kaart", label: "Kaart", icon: <MapIcon className="h-5.5 w-5.5" /> },
 ];
 

@@ -436,3 +436,25 @@ export function UsersIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** Budget-tab. */
+export function WalletIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H17v2.5" />
+      <rect x="4" y="7.5" width="16.5" height="12" rx="2.5" />
+      <path d="M20.5 11.5H16a2 2 0 0 0 0 4h4.5" />
+      <circle cx="16.25" cy="13.5" r="0.6" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Vliegtickets. */
+export function PlaneIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <path d="M10.5 13.5 4 11l1.5-1.5 7 1L17 6a1.8 1.8 0 0 1 2.5 2.5L15 13l1 7-1.5 1.5-2.5-6.5" />
+      <path d="M7.5 16.5 5 19" />
+    </svg>
+  );
+}
