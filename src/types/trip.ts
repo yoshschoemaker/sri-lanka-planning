@@ -36,6 +36,8 @@ export interface Flight {
   /** As the airline states it — the two timestamps are in different time zones, so this is not derived. */
   duration: string;
   booked: boolean;
+  /** Baggage allowance per person, as authored. */
+  baggage?: string;
   /** Derived display string, e.g. "ma 25 jan". */
   date: string;
   /** Derived display string, e.g. "11:45". */
@@ -81,6 +83,11 @@ export interface Accommodation {
   mapsUrl?: string;
   /** Total for the whole group and the whole stay, in euros. Absent while unknown. */
   price?: number;
+  booking?: BookingDetails;
+  /** Breakfast included. Absent while unknown. */
+  breakfast?: boolean;
+  /** Shown after the breakfast label, e.g. "los te boeken, € 3". */
+  breakfastNote?: string;
   photos?: PhotoUrl[];
   note?: string;
 }
@@ -173,9 +180,53 @@ export interface Region {
   name: string;
 }
 
+/** Who booked what and how it's paid, for the Budget tab. Every field is optional. */
+export interface BookingDetails {
+  /** Booking.com, Airbnb, ... Absent: derived from the accommodation url. */
+  platform?: string;
+  bookedBy?: string;
+  payment?: "paid" | "partial" | "unpaid";
+  /** With payment "partial": how much is already paid, group total in euros. */
+  paidAmount?: number;
+  /** YYYY-MM-DD the (remaining) amount is charged. */
+  chargeDate?: string;
+  /** Booked, but the host hasn't confirmed yet. */
+  awaitingConfirmation?: boolean;
+  /** Costs already split and settled among the group. */
+  settled?: boolean;
+  /** When there's no charge date yet, e.g. "na bevestiging". */
+  chargeNote?: string;
+  /** YYYY-MM-DD, last day of free cancellation. */
+  cancelUntil?: string;
+  /** Free cancellation right up to arrival. */
+  cancelAnytime?: boolean;
+  nonRefundable?: boolean;
+  /** Paid on site at the accommodation. */
+  payAtProperty?: boolean;
+  /** Last four digits of the linked credit card. */
+  card?: string;
+}
+
+/** A cost that isn't a stay or the flights, such as transport on the island. */
+export interface BudgetExtra {
+  label: string;
+  /** Group total in euros. */
+  amount?: number;
+  /** Per person in euros; multiplied by Budget.people. */
+  perPerson?: number;
+  /** An estimate or placeholder rather than a real price. */
+  estimate?: boolean;
+  note?: string;
+  booking?: BookingDetails;
+}
+
 /** Input for the Budget tab. Every amount is a total for the whole group, in euros. */
 export interface Budget {
   people: number;
+  /** Who's coming along; also the names used in bookedBy. */
+  travellers?: string[];
   /** Return flights for the whole group. Absent while unknown. */
   flights?: number;
+  flightBooking?: BookingDetails;
+  extras?: BudgetExtra[];
 }

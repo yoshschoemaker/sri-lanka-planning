@@ -43,6 +43,7 @@ export function FlightCard({ flight, direction }: { flight: Flight; direction: "
         </div>
       </div>
       <p className="mt-2 text-center text-xs text-ink-soft">via {flight.via}</p>
+      {flight.baggage && <p className="mt-1 text-center text-xs text-ink-soft">{flight.baggage}</p>}
     </div>
   );
 }

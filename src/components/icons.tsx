@@ -458,3 +458,13 @@ export function PlaneIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** Eén persoon, bijv. wie een boeking regelde. */
+export function UserIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <circle cx="12" cy="8.5" r="3.75" />
+      <path d="M4.75 20a7.25 7.25 0 0 1 14.5 0" />
+    </svg>
+  );
+}

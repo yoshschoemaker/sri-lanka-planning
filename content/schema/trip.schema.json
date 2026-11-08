@@ -66,12 +66,51 @@
       "additionalProperties": false,
       "properties": {
         "people": { "type": "integer", "minimum": 1, "description": "Aantal reizigers. Per stel is dit gedeeld door twee." },
-        "flights": { "type": "number", "minimum": 0, "description": "Vliegtickets heen en terug, totaal voor de groep. Weglaten zolang onbekend." }
+        "travellers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Wie er meegaan; dit zijn ook de namen voor bookedBy." },
+        "flights": { "type": "number", "minimum": 0, "description": "Vliegtickets heen en terug, totaal voor de groep. Weglaten zolang onbekend." },
+        "flightBooking": { "$ref": "#/definitions/bookingDetails" },
+        "extras": {
+          "type": "array",
+          "description": "Overige kosten, zoals vervoer ter plaatse. Geef amount (groepstotaal) of perPerson.",
+          "items": {
+            "type": "object",
+            "required": ["label"],
+            "additionalProperties": false,
+            "properties": {
+              "label": { "type": "string", "minLength": 1 },
+              "amount": { "type": "number", "minimum": 0, "description": "Groepstotaal in euro's." },
+              "perPerson": { "type": "number", "minimum": 0, "description": "Bedrag per persoon; de app rekent het groepstotaal uit." },
+              "estimate": { "type": "boolean", "description": "true voor een schatting of placeholder." },
+              "note": { "type": "string", "description": "Toelichting onder de post." },
+              "booking": { "$ref": "#/definitions/bookingDetails" }
+            }
+          }
+        }
       }
     }
   },
 
   "definitions": {
+    "bookingDetails": {
+      "type": "object",
+      "description": "Boekingsgegevens voor de Budget-tab. Alles optioneel; vul in wat je weet.",
+      "additionalProperties": false,
+      "properties": {
+        "platform": { "type": "string", "description": "Waar de boeking staat, bijv. Booking.com of Airbnb. Weglaten: de app leidt het af uit de url." },
+        "bookedBy": { "type": "string", "description": "Wie het geboekt heeft." },
+        "payment": { "enum": ["paid", "partial", "unpaid"], "description": "Betaald, deels betaald of nog niets betaald." },
+        "paidAmount": { "type": "number", "minimum": 0, "description": "Bij payment 'partial': hoeveel er al betaald is, groepstotaal in euro's." },
+        "chargeDate": { "type": "string", "format": "date", "description": "Datum waarop (de rest) wordt afgeschreven, YYYY-MM-DD." },
+        "cancelUntil": { "type": "string", "format": "date", "description": "Tot en met deze datum gratis annuleren, YYYY-MM-DD." },
+        "awaitingConfirmation": { "type": "boolean", "description": "true zolang de accommodatie de boeking nog niet heeft bevestigd." },
+        "settled": { "type": "boolean", "description": "true als de kosten onderling al verrekend zijn." },
+        "chargeNote": { "type": "string", "description": "Wanneer er wordt afgeschreven als er nog geen datum is, bijv. 'na bevestiging'." },
+        "cancelAnytime": { "type": "boolean", "description": "true als je tot aankomst altijd gratis kunt annuleren." },
+        "payAtProperty": { "type": "boolean", "description": "true als je ter plekke bij de accommodatie betaalt." },
+        "card": { "type": "string", "description": "Laatste vier cijfers van de gekoppelde creditcard." },
+        "nonRefundable": { "type": "boolean", "description": "true als annuleren niet (meer) kan." }
+      }
+    },
     "slug": {
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
@@ -106,7 +145,8 @@
           "minLength": 1,
           "description": "Vliegduur zoals de maatschappij hem opgeeft, bijv. \"13u55\". Niet afgeleid, omdat vertrek en aankomst in verschillende tijdzones staan."
         },
-        "booked": { "type": "boolean", "default": false }
+        "booked": { "type": "boolean", "default": false },
+        "baggage": { "type": "string", "description": "Bagage per persoon, bijv. \"30 kg ruimbagage + 8 kg handbagage\"." }
       }
     },
     "transportMode": {
@@ -167,6 +207,9 @@
             "url": { "type": "string", "description": "Link naar de boeking of de accommodatie." },
             "mapsUrl": { "type": "string", "description": "Google Maps-link naar de accommodatie." },
             "price": { "type": "number", "minimum": 0, "description": "Totaalprijs van het verblijf voor de hele groep, in euro's. Voor de Budget-tab." },
+            "booking": { "$ref": "#/definitions/bookingDetails" },
+            "breakfast": { "type": "boolean", "description": "Ontbijt inbegrepen. Weglaten zolang onbekend." },
+            "breakfastNote": { "type": "string", "description": "Toelichting achter het ontbijtlabel, bijv. 'los te boeken, € 3'." },
             "note": { "type": "string" },
             "photos": { "type": "array", "items": { "$ref": "#/definitions/photo" } }
           }

@@ -261,6 +261,28 @@ if (trip) {
   }
 }
 
+// Budget: de namen bij "geboekt door" moeten reizigers zijn, anders valt een
+// tikfout ("Jesse") pas op als iemand hem op de Budget-tab ziet staan.
+if (trip?.budget) {
+  const { people, travellers } = trip.budget;
+  if (Array.isArray(travellers)) {
+    if (travellers.length !== people) {
+      fail(`budget.travellers noemt ${travellers.length} namen, maar budget.people is ${people}.`);
+    }
+    const known = new Set(travellers);
+    const bookings = [
+      ["vliegtickets", trip.budget.flightBooking],
+      ...(trip.budget.extras ?? []).map((extra) => [extra.label, extra.booking]),
+      ...(trip.stops ?? []).map((stop) => [stop.name, stop.accommodation?.booking]),
+    ];
+    for (const [label, booking] of bookings) {
+      if (booking?.bookedBy && !known.has(booking.bookedBy)) {
+        fail(`${label}: bookedBy "${booking.bookedBy}" staat niet in budget.travellers.`);
+      }
+    }
+  }
+}
+
 // --- decor.json ------------------------------------------------------------
 
 const decorSchema = readJson("content/schema/decor.schema.json");

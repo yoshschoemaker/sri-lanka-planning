@@ -77,6 +77,45 @@ export const photoManifest: Record<string, PhotoEntry> = {
       { width: 1280, url: "/photos/ella-1280.webp" },
     ],
   },
+  "/hikkaduwa-bk-beach-kamer.png": {
+    width: 1024,
+    height: 683,
+    hash: "5300bbf75b3d",
+    variants: [
+      { width: 320, url: "/photos/hikkaduwa-bk-beach-kamer-320.webp" },
+      { width: 640, url: "/photos/hikkaduwa-bk-beach-kamer-640.webp" },
+      { width: 1024, url: "/photos/hikkaduwa-bk-beach-kamer-1024.webp" },
+    ],
+  },
+  "/hikkaduwa-bk-beach.png": {
+    width: 1024,
+    height: 576,
+    hash: "883604152e63",
+    variants: [
+      { width: 320, url: "/photos/hikkaduwa-bk-beach-320.webp" },
+      { width: 640, url: "/photos/hikkaduwa-bk-beach-640.webp" },
+      { width: 1024, url: "/photos/hikkaduwa-bk-beach-1024.webp" },
+    ],
+  },
+  "/hikkaduwa-temptation-zwembad.png": {
+    width: 512,
+    height: 768,
+    hash: "629a5bf6d266",
+    variants: [
+      { width: 320, url: "/photos/hikkaduwa-temptation-zwembad-320.webp" },
+      { width: 512, url: "/photos/hikkaduwa-temptation-zwembad-512.webp" },
+    ],
+  },
+  "/hikkaduwa-temptation.png": {
+    width: 1000,
+    height: 667,
+    hash: "1cef1716e52e",
+    variants: [
+      { width: 320, url: "/photos/hikkaduwa-temptation-320.webp" },
+      { width: 640, url: "/photos/hikkaduwa-temptation-640.webp" },
+      { width: 1000, url: "/photos/hikkaduwa-temptation-1000.webp" },
+    ],
+  },
   "/hikkaduwa.webp": {
     width: 1600,
     height: 1200,

@@ -12,7 +12,8 @@
       "departAt": "2027-01-25T11:45",
       "arriveAt": "2027-01-26T06:10",
       "duration": "13u55",
-      "booked": true
+      "booked": true,
+      "baggage": "30 kg ruimbagage + 8 kg handbagage p.p."
     },
     "return": {
       "airline": "Turkish Airlines",
@@ -22,7 +23,8 @@
       "departAt": "2027-02-18T07:40",
       "arriveAt": "2027-02-18T17:20",
       "duration": "14u10",
-      "booked": true
+      "booked": true,
+      "baggage": "30 kg ruimbagage + 8 kg handbagage p.p."
     }
   },
 
@@ -50,6 +52,9 @@
       "note": "Aankomst 06:10",
       "accommodation": {
         "name": "The Beach Apartments",
+        "price": 95.94,
+        "breakfast": false,
+        "booking": { "bookedBy": "Jessie", "payment": "unpaid", "payAtProperty": true, "card": "0548", "nonRefundable": true },
         "url": "https://www.booking.com/hotel/lk/the-beach-negombo.en-gb.html",
         "mapsUrl": "https://maps.app.goo.gl/P3ZgkaJNLm2LHMu29",
         "note": "Geboekt · 1 nacht",
@@ -78,6 +83,9 @@
       "note": "Culturele driehoek · Wilpattu als dagtrip",
       "accommodation": {
         "name": "Ceylonima Home Stay",
+        "price": 142.51,
+        "breakfast": true,
+        "booking": { "bookedBy": "Jessie", "payment": "unpaid", "payAtProperty": true, "cancelUntil": "2027-01-23" },
         "url": "https://www.booking.com/hotel/lk/ceylonima-home-stay.en-gb.html",
         "mapsUrl": "https://maps.app.goo.gl/BKgubJpyyGQEoXP79",
         "note": "Geboekt · 2 nachten",
@@ -118,6 +126,10 @@
       "note": "",
       "accommodation": {
         "name": "Nelu Villa Sigiriya",
+        "price": 144.3,
+        "breakfast": false,
+        "breakfastNote": "los te boeken, € 3",
+        "booking": { "bookedBy": "Jessie", "payment": "unpaid", "payAtProperty": true, "card": "0548", "cancelUntil": "2027-01-25" },
         "url": "https://www.booking.com/hotel/lk/nelu-villa-sigiriya-sigiriya2.en-gb.html",
         "mapsUrl": "https://maps.app.goo.gl/J5RgsujddChmBt8Q9",
         "note": "Geboekt · 2 nachten",
@@ -156,6 +168,9 @@
       "note": "",
       "accommodation": {
         "name": "Riverside Luxury Villa",
+        "price": 287.44,
+        "breakfast": true,
+        "booking": { "bookedBy": "Jessie", "payment": "paid", "cancelUntil": "2027-01-01", "settled": true },
         "url": "https://www.airbnb.nl/rooms/26236902",
         "note": "Geboekt · 2 nachten",
         "photos": ["/kandy-riverside-luxury-villa.png"]
@@ -184,6 +199,9 @@
       "note": "Reserveer de trein vooraf",
       "accommodation": {
         "name": "Misty Hills Ella Resort",
+        "price": 885.86,
+        "breakfast": true,
+        "booking": { "bookedBy": "Jessie", "payment": "unpaid", "payAtProperty": true, "card": "0548", "cancelUntil": "2027-01-25" },
         "url": "https://www.booking.com/hotel/lk/misty-hills-ella-resort.en-gb.html",
         "note": "Geboekt onder voorbehoud · 4 nachten · we zoeken nog naar een mooier verblijf, mogelijk annuleren",
         "photos": ["/ella-misty-hills-resort.png"]
@@ -221,6 +239,9 @@
       "note": "Eén nacht bij het park: safari in Yala, daarna door naar de kust",
       "accommodation": {
         "name": "Privévilla met zwembad, Kirinda",
+        "price": 120.83,
+        "breakfast": true,
+        "booking": { "bookedBy": "Jessie", "payment": "paid", "cancelUntil": "2027-02-05", "settled": true },
         "url": "https://www.airbnb.nl/rooms/1641082711801090187",
         "note": "Geboekt · 1 nacht (6–7 feb) · 2 slaapkamers, 2 badkamers",
         "photos": ["/yala-kirinda-villa.jpeg"]
@@ -243,9 +264,13 @@
       "note": "Rustige zuidkust · aankomst na de safari in Yala",
       "accommodation": {
         "name": "Cielo - Hiriketiya",
+        "price": 656.31,
+        "breakfast": false,
+        "breakfastNote": "los te boeken, € 9,43",
+        "booking": { "bookedBy": "Jessie", "awaitingConfirmation": true, "payment": "unpaid", "cancelUntil": "2027-01-24", "chargeNote": "na bevestiging" },
         "url": "https://www.airbnb.nl/rooms/1594202440935085032",
         "mapsUrl": "https://www.google.com/maps/place/The+Cielo+Hiriketiya/@5.9636257,80.7047662,1051m/data=!3m2!1e3!4b1!4m10!3m9!1s0x3ae137e6f5572615:0x781189b9489ec642!5m3!1s2026-12-03!4m1!1i2!8m2!3d5.9636257!4d80.7073411!16s%2Fg%2F11mywcygkd",
-        "note": "Geboekt · 4 nachten (7–11 feb) · zwembad met uitzicht op zee",
+        "note": "Aangevraagd, nog niet bevestigd · 4 nachten (7–11 feb) · zwembad met uitzicht op zee",
         "photos": ["/hiriketiya-airbnb-pool.png", "/hiriketiya-airbnb-kamer.png"]
       },
       "photos": ["/hiriketiya.jpeg"],
@@ -284,6 +309,10 @@
       "note": "Zuidkust",
       "accommodation": {
         "name": "Green Paradise Mirissa",
+        "breakfast": false,
+        "price": 285.84,
+        "breakfastNote": "geen ontbijtoptie",
+        "booking": { "bookedBy": "Jessie", "payment": "unpaid", "payAtProperty": true, "cancelAnytime": true },
         "url": "https://www.booking.com/hotel/lk/green-paradise-mirissa-mirissa2.en-gb.html",
         "mapsUrl": "https://www.google.com/maps/place/Green+Paradise+Mirissa/@5.9436257,80.4616905,1051m/data=!3m1!1e3!4m10!3m9!1s0x3ae13f4e229937ff:0x9beb91401a7055b!5m3!1s2026-12-03!4m1!1i2!8m2!3d5.9436257!4d80.4642654!16s%2Fg%2F11z_1z5dd4",
         "note": "Geboekt · 3 nachten (11–14 feb) · 2 kamers",
@@ -302,11 +331,20 @@
       "name": "Hikkaduwa",
       "region": "south-coast",
       "nights": 3,
-      "booked": false,
+      "booked": true,
       "lat": 6.14,
       "lon": 80.1,
       "transportTo": { "mode": "tuktuk", "label": "Tuk-tuk", "duration": "± 1,5 u" },
       "note": "Zuidwestkust · Galle als dagtrip",
+      "accommodation": {
+        "name": "Temptation Hikkaduwa",
+        "price": 484,
+        "breakfast": true,
+        "booking": { "bookedBy": "Jessie", "payment": "unpaid", "payAtProperty": true, "cancelAnytime": true },
+        "url": "https://www.booking.com/hotel/lk/temptation.nl.html",
+        "note": "Geboekt · 3 nachten (14–17 feb) · 2 kamers",
+        "photos": ["/hikkaduwa-temptation.png", "/hikkaduwa-temptation-zwembad.png"]
+      },
       "photos": ["/hikkaduwa.webp"],
       "activities": [
         {
@@ -364,7 +402,24 @@
   "openQuestions": [],
 
   "budget": {
-    "people": 4
+    "people": 4,
+    "travellers": ["Frank", "Sylvana", "Jessie", "Yosh"],
+    "flights": 3063.6,
+    "flightBooking": { "bookedBy": "Jessie", "payment": "paid", "settled": true },
+    "extras": [
+      {
+        "label": "Tuktuk-huur (2 tuktuks)",
+        "amount": 1220,
+        "estimate": true,
+        "note": "Per tuktuk: € 520 huur + € 40 rijbewijs + € 50 om hem van Kandy naar Ella te laten brengen"
+      },
+      {
+        "label": "Treinrit Kandy → Ella",
+        "perPerson": 10,
+        "estimate": true,
+        "note": "Placeholder, prijs volgt"
+      }
+    ]
   },
 
   "todos": ["Visum regelen", "Tuktuk regelen", "Trein regelen", "Vaccinaties"]

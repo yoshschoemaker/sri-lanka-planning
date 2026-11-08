@@ -126,6 +126,31 @@ De twee Negombo's hebben dit nodig omdat ze exact dezelfde coördinaten hebben. 
 
 Een dagtrip kan hetzelfde doen met `"map": { "labelOffset3d": -40 }` (negatief is naar links).
 
+## Budget en boekingsgegevens
+
+De Budget-tab leest prijzen en boekingsgegevens uit `trip.json`. Alle bedragen zijn **groepstotalen in euro's**; de tab deelt ze zelf door per stel of per persoon. Wat je weglaat, toont de tab als "prijs volgt" of laat hij gewoon weg.
+
+Per verblijf, in `accommodation`:
+
+```json
+"price": 640,
+"booking": {
+  "bookedBy": "Yosh",
+  "payment": "partial",
+  "paidAmount": 200,
+  "chargeDate": "2027-01-20",
+  "cancelUntil": "2027-01-05"
+}
+```
+
+- **`platform`** (Booking.com, Airbnb, ...) mag weg: de app leidt het af uit `url`.
+- **`payment`** is `paid`, `partial` of `unpaid`. `paidAmount` hoort alleen bij `partial`.
+- **`chargeDate`** is wanneer (de rest) wordt afgeschreven, **`cancelUntil`** de laatste dag van gratis annuleren. Kan annuleren helemaal niet, zet dan `"nonRefundable": true`.
+
+De vliegtickets staan in het blok `budget` bovenaan: `"flights": 2800` en `"flightBooking": { ... }` met dezelfde velden. `people` is het aantal reizigers; per stel is dat gedeeld door twee.
+
+De tab staat per toestel eenmalig achter een wachtwoord. Dat is een drempel, geen beveiliging: de bedragen staan in dit bestand en gaan mee in de app, dus wie de broncode leest ziet ze.
+
 ## decor.json
 
 Alles wat met de hand op het 3D-eiland is neergezet. De coördinaten zijn géén lat/lon maar wereldeenheden van de scène (x = oost, z = zuid), want deze dingen zijn op het oog geplaatst tegen het terrein: een fort moet vrij van de kustrand staan, een waterval heeft een echte steilrand nodig.
@@ -136,9 +161,10 @@ Verplaatsen, verwijderen of nog eentje neerzetten is een JSON-bewerking:
 { "type": "temple", "x": -0.38, "z": 0.1, "note": "Dambulla Cave Temple" }
 ```
 
-Beschikbare types: `palmTree`, `stupa`, `temple`, `sigiriyaRock`, `nineArches`, `galleFort`, `waterfall`, `leopard`, `elephant`, `peacock`, `fishSchool`, `turtle`, `whale`, `monkeyGrove`.
+Beschikbare types: `palmTree`, `stupa`, `temple`, `sigiriyaRock`, `nineArches`, `galleFort`, `waterfall`, `leopard`, `elephant`, `peacock`, `fishSchool`, `turtle`, `whale`, `monkeyGrove`, `parkedTuktuk`.
 
-- `rotation` (radialen) werkt bij `nineArches` en `waterfall`.
+- `rotation` (radialen) werkt bij `nineArches`, `waterfall` en `parkedTuktuk`.
+- `parkedTuktuk` is de easter egg: aantikken opent de tuktuk-mini-game.
 - `fireflies: true` werkt bij `temple`.
 - `monkeyGrove` heeft geen `x`/`z` maar een lijst `trees`: de bomen in de volgorde waarin de aap ze bezoekt.
 - `note` is alleen voor jezelf en wordt nergens getoond.

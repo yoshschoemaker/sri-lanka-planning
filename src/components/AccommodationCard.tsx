@@ -1,6 +1,8 @@
 import type { Accommodation } from "../types/trip";
 import { PhotoGallery } from "./PhotoGallery";
 import { CircleIcon } from "./icons";
+import { PlatformLogo } from "./PlatformLogo";
+import { platformOf } from "../utils/budget";
 
 const LINK_CLASS =
   "inline-flex shrink-0 items-center gap-1 rounded-full border border-ink/15 bg-white/60 px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:border-terracotta-light hover:text-terracotta-dark";
@@ -27,12 +29,23 @@ export function AccommodationCard({ accommodation }: AccommodationCardProps) {
         <div>
           <p className="font-serif text-base font-semibold text-ink">{accommodation.name}</p>
           {accommodation.note && <p className="text-xs text-ink-soft">{accommodation.note}</p>}
+          {accommodation.breakfast !== undefined && (
+            <p
+              className={`mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                accommodation.breakfast ? "bg-forest/10 text-forest-dark" : "bg-ink/5 text-ink-soft"
+              }`}
+            >
+              {accommodation.breakfast ? "Met ontbijt" : "Zonder ontbijt"}
+              {accommodation.breakfastNote && ` · ${accommodation.breakfastNote}`}
+            </p>
+          )}
         </div>
 
         {(accommodation.url || accommodation.mapsUrl) && (
           <div className="flex flex-wrap gap-2">
             {accommodation.url && (
               <a href={accommodation.url} target="_blank" rel="noreferrer" className={LINK_CLASS}>
+                <PlatformLogo platform={platformOf(accommodation.booking, accommodation.url)} className="h-3.5 w-3.5 shrink-0" />
                 Bekijk boeking ↗
               </a>
             )}
